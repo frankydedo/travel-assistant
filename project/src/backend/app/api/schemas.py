@@ -19,6 +19,7 @@ class MessageOut(BaseModel):
     provider: Provider | None
     model: str | None
     ai_generated: bool
+    trace_url: str | None = None  # link to the turn's trace in Langfuse
     created_at: datetime
     itinerary_ids: list[str]
     ui: dict | None

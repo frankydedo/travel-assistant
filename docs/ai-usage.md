@@ -6,7 +6,7 @@
 
 - **L'AI ha accelerato tutto ciò che è esplorazione, stesura e implementazione**: analisi del problema, alternative, bozze di documenti, codice, dati sintetici.
 - **Le decisioni sono mie.** L'AI propone opzioni con pro e contro; io scelgo, modifico o scarto, e ogni decisione è registrata in un ADR con la sua motivazione.
-- **Nessun output dell'AI viene accettato senza verifica**: rileggo i diff, eseguo test ed eval, e controllo sulle fonti le affermazioni fattuali (limiti dei provider, API).
+- **Nessun output dell'AI viene accettato senza verifica**: rileggo i diff, eseguo i test e controllo sulle fonti le affermazioni fattuali (limiti dei provider, API).
 - **Il contesto per l'AI è un artefatto versionato** (`CLAUDE.md`, ADR, documento delle sfide), così il comportamento dell'agente resta coerente e riproducibile tra una sessione e l'altra.
 
 ## Due livelli: l'AI nello sviluppo e l'AI nel prodotto
@@ -45,7 +45,7 @@ Il parallelo è voluto: **in entrambi i livelli l'AI non ha l'ultima parola sull
 4. **Registrare le decisioni.** Ogni decisione è diventata un ADR in [`adr/`](adr/README.md), con le alternative scartate e le esclusioni motivate.
 5. **Fissare il contesto per l'agente.** `CLAUDE.md` riassume principio guida, decisioni e vincoli. In questo modo ogni nuova sessione parte allineata, e una scelta ancora aperta non viene trattata come definitiva.
 6. **Implementare per fasi** (ADR-0015): prima una slice end-to-end funzionante con il mock, poi gli strati in ordine di valore. Ogni fase si chiude con codice funzionante, rivisto e testato.
-7. **Verificare.** Test, eval e validatore deterministico (vedi sotto).
+7. **Verificare.** Test, validatore deterministico e conversazioni di prova; gli eval (ADR-0008) restano tra i miglioramenti futuri (vedi sotto).
 8. **Parallelizzare quando le interfacce sono fissate.** Frontend e fixture del catalogo sono stati delegati a sotto-agenti, ciascuno con una cartella esclusiva e un contratto esplicito (tipi dell'API, schema dei fixture e vincoli da autoverificare). Nel frattempo l'agente principale scriveva il backend. Il contratto scritto prima è ciò che ha reso possibile lavorare in parallelo senza conflitti.
 
 ## Registro: dove ho corretto, integrato o accettato le proposte dell'AI
@@ -56,7 +56,7 @@ Il parallelo è voluto: **in entrambi i livelli l'AI non ha l'ultima parola sull
 |---|---|---|---|
 | Requisiti mancanti nella traccia | Default ragionevoli (1 viaggiatore, 7 notti, partenza da Roma) | Tutti i campi obbligatori, a `null` finché non vengono raccolti, con **valori flessibili** (durata 5-7 giorni, "consigliami tu", "ovunque") | **Io**: i default silenziosi nascondono scelte che l'utente non ha fatto; i valori flessibili rispecchiano come si pianifica davvero un viaggio |
 | "Consigliami tu" | — | L'LLM sceglie, ma solo tra i paesi che il codice ha verificato come fattibili | **AI**: affinamento della mia idea, per coerenza con il principio guida |
-| Catena di fallback | Groq → Gemini → Ollama; mock separato per i test | **Gemini → Groq → LM Studio → Mock**, con il mock come ultimo anello | **Io**: Gemini è il mio piano A; il mock in catena garantisce che il sistema risponda sempre |
+| Catena di fallback | Groq → Gemini → Ollama; mock separato per i test | **Gemini → Groq → LM Studio → Mock**, con il mock come ultimo anello (poi Groq → Gemini → Mock, ADR-0018 e ADR-0019) | **Io**: Gemini è il mio piano A; il mock in catena garantisce che il sistema risponda sempre |
 | Mock in produzione | L'AI ha segnalato il rischio di risposte finte senza che l'utente lo sappia | **Ogni risposta salvata con il provider che l'ha generata, con un tag visibile in chat** | **AI** ha posto il problema, **io** ho scelto la soluzione: trasparenza per messaggio invece di un banner generico |
 | Planner | Greedy + K varianti, ILP in futuro | Solo greedy dietro un'interfaccia; poi **3 varianti**, su domanda dell'AI | **Io** ho ridotto lo scope; **l'AI** ha fatto notare che le varianti costano poco con lo stesso greedy |
 | Memoria della conversazione | Opzioni (troncamento, riassunto, finestra); storico come opzionale | **Storico implementato + compaction automatica a soglia** | **Io**: ho alzato la priorità e definito il meccanismo |
@@ -77,12 +77,13 @@ Il parallelo è voluto: **in entrambi i livelli l'AI non ha l'ultima parola sull
 | Scope vs tempo disponibile | L'AI ha segnalato il rischio di un backlog troppo ampio | **Slice end-to-end prima**, poi strati in ordine di valore | Decisione condivisa (ADR-0015) |
 | Persistenza | SQLite all'inizio; Postgres dopo la scelta di Langfuse self-hosted | **PostgreSQL** (ADR-0014) | **AI**: una decisione successiva ha cambiato i presupposti di una precedente; **io** ho confermato |
 | Database dei test | In implementazione l'AI ha fatto girare i test su SQLite (Docker era spento), annotandolo solo come deviazione | **Test su PostgreSQL**, con container usa-e-getta e migrazioni reali | **Io**: una decisione accettata in un ADR non si cambia in silenzio; l'AI deve chiedere prima di deviare |
+| Avvio per il reviewer | — | **Realm Keycloak esportato con utenti pronti** (`demo`, `reviewer`) e **4 conversazioni precaricate** per ciascuno, generate dall'orchestratore reale con il mock (tag `MOCK`, nessuna chiave necessaria) | **Io**: requisito; il reviewer deve solo eseguire `docker compose up` e trovare subito i casi significativi (destinazione suggerita, caso infattibile, prenotazione, modifica e rifiuto fuori scope) |
 
 ## Come verifico l'output dell'AI
 
-- **Codice:** leggo ogni diff prima di accettarlo. I test unitari e di integrazione girano in CI sul provider mock. L'agente non fa commit senza la mia richiesta.
+- **Codice:** leggo ogni diff prima di accettarlo. I test unitari e di integrazione girano sul provider mock (la CI su GitHub Actions non è ancora configurata). L'agente non fa commit senza la mia richiesta.
 - **Correttezza dei vincoli:** il validatore deterministico (ADR-0003) controlla ogni itinerario, quindi un bug introdotto dall'AI nel planner viene intercettato.
-- **Comportamento LLM:** golden set e metriche (ADR-0008). Le modifiche ai prompt si confrontano sui numeri, non a impressione.
+- **Comportamento LLM:** oggi conversazioni di prova sui provider reali e trace in Langfuse. Golden set e metriche (ADR-0008) non sono ancora implementati: servono perché le modifiche ai prompt si confrontino sui numeri, non a impressione.
 - **Affermazioni fattuali:** limiti dei free tier, supporto all'output strutturato e API dei provider li verifico sulla documentazione ufficiale. Negli ADR i punti non ancora verificati sono marcati **"Da verificare"**.
 - **Testi generati** (descrizioni delle attività): riletti e corretti prima di essere versionati.
 
@@ -105,8 +106,11 @@ Casi reali emersi durante l'implementazione. Nessuno è stato trovato rileggendo
 | Con budget residuo basso, "qualcosa di culturale" diventava una corsa allo stadio (sport), e l'LLM scriveva che l'attività era stata "mantenuta" | Prova reale con Groq | Il tool `swap_activity` riceve la categoria; se non ci sono opzioni lo dice con il motivo preciso |
 | Gemini falliva sempre al secondo passo del loop di tool, e il fallback su Groq lo nascondeva | Log `llm.provider_failed` e riproduzione diretta della chiamata | La `thought_signature` di Gemini 3 viene rimandata allo stesso provider |
 | Dopo una modifica il modello scriveva «il totale rimane» con un totale diverso, e presentava il nuovo hotel come quello "già" previsto | Conversazioni di prova con il tool calling | I risultati dei tool riportano anche il valore precedente (attività, hotel, totale) |
+| Per la pagina Tracing l'AI ha usato gli endpoint storici di Langfuse (`/traces`, `/observations`), non disponibili in Langfuse v4 in modalità *events_only* | Risposte 404 dall'istanza self-hosted | Verifica sulla documentazione e passaggio alle API v2 (Metrics e Observations) |
+| Il link "Trace" accanto ai messaggi non compariva: il backend salvava l'id della trace, ma lo schema della risposta dell'API non esponeva il campo | Prova nella UI | Campo aggiunto allo schema e ai tipi del frontend |
+| Una sostituzione con espressione regolare nei README ha cancellato parte dell'introduzione del README del frontend | Controllo dei file modificati | Testo ripristinato |
 
-
+## Rischi dell'uso dell'AI e mitigazioni
 
 | Rischio | Mitigazione |
 |---|---|
@@ -122,7 +126,6 @@ Casi reali emersi durante l'implementazione. Nessuno è stato trovato rileggendo
 - [`engineering-challenges.md`](engineering-challenges.md): analisi delle sfide e decisioni.
 - [`adr/`](adr/README.md): le decisioni, una per file.
 - Commit con il trailer `Co-Authored-By` quando il contributo dell'agente è sostanziale, per avere tracciabilità nella history git.
-
 
 ## Da completare a fine progetto
 

@@ -1,12 +1,12 @@
 # Tracker
 
-Stato di avanzamento del progetto, organizzato per le fasi di [ADR-0015](docs/adr/0015-perimetro-priorita-esclusioni.md). Legenda: `[x]` fatto · `[ ]` da fare · `[~]` in corso.
+Stato di avanzamento del progetto, organizzato per le fasi di [ADR-0015](docs/adr/0015-perimetro-priorita-esclusioni.md). Legenda: `[x]` fatto · `[ ]` da fare (miglioramento futuro).
 
 ## Fase 0 — Analisi e design
 
 - [x] Analisi delle sfide ingegneristiche ([engineering-challenges.md](docs/engineering-challenges.md))
 - [x] Decisioni su tutte le sfide, con motivazioni ed esclusioni
-- [x] ADR 0001-0015 ([docs/adr/](docs/adr/README.md))
+- [x] ADR 0001-0015 (0016-0020 aggiunti durante l'implementazione) ([docs/adr/](docs/adr/README.md)); 0016-0019 aggiunti in implementazione
 - [x] Diagrammi del workflow di prenotazione ([workflow-prenotazione.md](docs/workflow-prenotazione.md))
 - [x] Documento sull'uso dell'AI ([ai-usage.md](docs/ai-usage.md))
 - [x] Contesto di progetto per l'agente ([CLAUDE.md](CLAUDE.md))
@@ -59,14 +59,13 @@ Stato di avanzamento del progetto, organizzato per le fasi di [ADR-0015](docs/ad
 
 - [x] Landing page con «Accedi con SSO» / «Crea un account» (check-sso silenzioso con fallback)
 - [x] Interruttore tema chiaro/scuro (solo due stati; al primo accesso il valore iniziale viene dal sistema), persistito, senza flash
-- [~] Redesign moderno (Tailwind, icone, tema chiaro/scuro) con marcatura dei contenuti generati da AI
-
-- [~] Login/registrazione via Keycloak — flusso OIDC verificato; interfaccia da provare nel browser
-- [~] Chat con tag del provider
-- [~] Pannello requisiti raccolti e fase corrente
-- [~] Card degli itinerari (3 varianti) e pulsante di conferma
-- [~] Dashboard prenotazioni
-- [~] Storico conversazioni (elenco + ripresa)
+- [x] Redesign moderno (Tailwind, icone, tema chiaro/scuro) con marcatura dei contenuti generati da AI
+- [x] Login/registrazione via Keycloak
+- [x] Chat con tag del provider
+- [x] Pannello requisiti raccolti e fase corrente
+- [x] Card degli itinerari (3 varianti) e pulsante di conferma
+- [x] Dashboard prenotazioni
+- [x] Storico conversazioni (elenco + ripresa)
 - [x] Rinomina ed eliminazione delle conversazioni (le prenotazioni confermate restano)
 - [x] Rendering Markdown sicuro delle risposte dell'assistente (anche durante lo streaming)
 
@@ -87,12 +86,19 @@ Stato di avanzamento del progetto, organizzato per le fasi di [ADR-0015](docs/ad
 
 ## Fase 3 — Osservabilità
 
-- [ ] Langfuse self-hosted nel compose, con chiavi pre-create
-- [ ] Trace per turno e generation per chiamata LLM, versione del prompt
-- [ ] Costo stimato a listino
-- [ ] Pagina Tracing nella UI (metriche via backend)
+- [x] Langfuse v4 self-hosted nel compose (web, worker, ClickHouse, MinIO, Redis; database `langfuse` sullo stesso PostgreSQL), con organizzazione, progetto, utente e chiavi pre-creati via init headless
+- [x] Trace per turno (utente, conversazione come sessione, fase, versione del prompt) e generation per ogni tentativo verso un provider, così i fallback restano visibili
+- [x] Span tipizzati: planner, scoring RAG, tool della proposta, rifiuti di guardrail e validatore
+- [x] Best effort: senza chiavi o con Langfuse giù il tracing è un no-op e l'app funziona; i contenuti vanno solo in Langfuse, mai nei log (ADR-0017)
+- [x] Costo stimato a listino per modello (`cost_details` su ogni generation e nel log `llm.call`); modello sconosciuto → nessun costo
+- [x] Pagina Tracing nella UI (metriche via backend, filtrate sull'utente): KPI, tabella per provider/modello, serie dei costi, task, turni recenti, aggiornamento ogni 30 s, stato «non disponibile» se Langfuse è giù
+- [x] Link «Trace» su ogni messaggio dell'assistente
+- [x] Utenti `demo` e `reviewer` con id fissati nel realm e 4 conversazioni dimostrative pre-caricate dal seed (una sola volta per utente)
+- [x] Proxy nginx robusto al riavvio del backend (resolver DNS di Docker)
 
 ## Fase 4 — Qualità del comportamento LLM
+
+> Miglioramenti futuri, non implementati in questa consegna (ADR-0008): golden set di conversazioni, metriche deterministiche (estrazione degli slot, validità dei vincoli, scelta del tool), judge solo per tono e qualità delle spiegazioni, eval per provider con il mock come baseline; la CI eseguirebbe ruff, pytest ed eval deterministici sul mock.
 
 - [ ] Golden set (casi semplici, ambigui, flessibili, infattibili, prompt injection, fuori scope e falsi rifiuti)
 - [ ] Metriche deterministiche per provider, mock come baseline
@@ -101,12 +107,18 @@ Stato di avanzamento del progetto, organizzato per le fasi di [ADR-0015](docs/ad
 
 ## Fase 5 — Memoria
 
+> Miglioramenti futuri, non implementati in questa consegna (ADR-0009). Oggi la cronologia è persistita per intero e le conversazioni si riaprono dall'elenco, ma al modello arrivano solo lo stato strutturato e una finestra fissa degli ultimi messaggi, e quelli più vecchi si perdono. Con la compaction, oltre circa 8k token i messaggi vecchi verrebbero riassunti dall'LLM (colonna `summary` già prevista), tenendo gli ultimi turni; lo stato strutturato non si riassume mai.
+
 - [ ] Compaction automatica a soglia
 - [ ] Ripresa delle conversazioni con contesto compattato
 
 ## Fase 6 — Extra
 
+> Miglioramento futuro, non implementato in questa consegna: oggi una prenotazione si può solo annullare e rifare; la modifica riuserebbe la transazione con decremento condizionale e ripristinerebbe l'inventario delle voci tolte.
+
 - [ ] Modifica di una prenotazione esistente (con verifica disponibilità)
+- [ ] Costo per conversazione e per prenotazione nella pagina Tracing (ADR-0010)
+- [ ] `trace_id` nel contesto dei log JSON (ADR-0017)
 
 ## Decisioni di implementazione e deviazioni
 
@@ -142,3 +154,9 @@ Le scelte prese durante l'implementazione che non meritano un ADR, ma che vanno 
 - **Limiti noti della UI**: su mobile Esc chiude insieme la finestra di conferma dell'eliminazione e il pannello laterale; se si elimina una conversazione mentre una risposta è ancora in streaming, a fine risposta la conversazione può ricomparire nell'elenco.
 - **`swap_activity` con categoria esplicita**: chiedendo "qualcosa di culturale" con poco budget residuo, il sistema sceglieva l'attività più simile tra quelle economiche, cioè una corsa allo stadio (sport). Ora il tool riceve la categoria e, se nessuna attività di quella categoria è disponibile, risponde con il motivo preciso (già nel programma, non disponibile quel giorno, fuori budget) invece di sostituire con altro.
 - **LM Studio rimosso** (ADR-0019): richiedeva software locale che il reviewer non userebbe, e il mock copre già il caso senza quote esterne. Rimossi anche il codice dedicato (scoperta del modello caricato, provider senza chiave) e l'accesso all'host nel compose.
+- **Langfuse v4 in modalità `events_only`**: gli endpoint legacy `/api/public/traces` e `/observations` non sono disponibili, quindi la pagina Tracing usa la Metrics API v2 (`/api/public/v2/metrics`) e la Observations API v2 (`/api/public/v2/observations`).
+- **Metriche filtrate per utente**: il backend interroga Langfuse con le proprie chiavi e filtra sull'utente del JWT; le chiavi non arrivano mai al browser e ognuno vede solo i propri turni.
+- **Listino prezzi come configurazione** (`app/llm/prices.py`): prezzi pubblici in USD per milione di token. Il costo risponde a "quanto costerebbe in produzione" anche se i free tier sono gratuiti; per un modello assente dal listino non si stima nulla, invece di indovinare.
+- **Conversazioni dimostrative generate dall'orchestratore reale con il mock**: non sono testi scritti a mano, quindi riflettono il comportamento vero, portano onestamente il tag `MOCK` e sono identiche su ogni macchina senza chiavi API. Il seed le crea una sola volta per utente: le chat eliminate non ricompaiono al riavvio (`--no-demo` per saltarle).
+- **Id utente fissati nel realm Keycloak**: `demo` e `reviewer` hanno un `sub` noto, così il seed può creare le loro conversazioni prima del primo login.
+- **Resolver DNS di Docker in nginx** (`127.0.0.11` + `proxy_pass` con variabile): senza, nginx teneva l'IP del vecchio container dopo la ricreazione del backend e rispondeva 502.

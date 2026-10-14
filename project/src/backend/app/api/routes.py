@@ -3,6 +3,8 @@ import json
 import logging
 import queue
 import threading
+from functools import lru_cache
+from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
@@ -23,6 +25,7 @@ from app.ratelimit import RateLimiter
 from app.services import booking as booking_service
 from app.services import conversations_admin
 from app.services.conversation import ConversationService, InvalidRequest
+from app.services.tracing_metrics import LangfuseMetrics
 
 router = APIRouter(prefix="/api")
 log = logging.getLogger(__name__)
@@ -49,6 +52,7 @@ def _message(m: Message) -> schemas.MessageOut:
         provider=m.provider,
         model=m.model,  # type: ignore[arg-type]
         ai_generated=m.provider in schemas.AI_PROVIDERS,
+        trace_url=_metrics().trace_url(m.trace_id),
         created_at=m.created_at,
         itinerary_ids=m.itinerary_ids or [],
         ui=m.ui,
@@ -93,6 +97,17 @@ def _own_conversation(session: Session, user: User, conversation_id: str) -> Con
 
 
 # --- Endpoints -------------------------------------------------------------------------
+
+
+@lru_cache
+def _metrics() -> LangfuseMetrics:
+    return LangfuseMetrics(get_settings())
+
+
+@router.get("/tracing/summary")
+def tracing_summary(period: Literal["24h", "7d", "30d"] = "7d", user: User = Depends(get_current_user)) -> dict:
+    """LLM metrics of the current user only, read from Langfuse server side (ADR-0010)."""
+    return _metrics().summary(user.id, period)
 
 
 @router.get("/health")

@@ -8,7 +8,8 @@ import calendar
 import json
 import logging
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from datetime import date, timedelta
 
 from sqlalchemy import select
@@ -36,10 +37,11 @@ from app.domain.requirements import (
 from app.domain.validator import draft_from_plan, validate
 from app.llm.base import LLMResult
 from app.llm.gateway import AllProvidersFailed
-from app.llm.interpreter import Interpreter, missing_labels
+from app.llm.interpreter import PROMPT_VERSION, Interpreter, missing_labels
 from app.llm.mock import VARIANT_LABELS
 from app.llm.registry import AI_PROVIDERS
 from app.models import Activity, Conversation, Country, Itinerary, ItineraryItem, Message
+from app.observability import get_observability
 from app.rag.retriever import SemanticIndex, score_activities
 from app.services.proposal_tools import SPECS as PROPOSAL_TOOLS
 from app.services.proposal_tools import ProposalToolbox
@@ -116,6 +118,8 @@ class ConversationService:
         self.today = today
         self.emit: Callable[[str, dict], None] = lambda event, data: None  # SSE sink (ADR-0011)
         self._last_user_text = ""
+        self.tracer = get_observability()
+        self._trace_id: str | None = None
 
     def _progress(self, stage: str, message: str) -> None:
         self.emit("progress", {"stage": stage, "message": message})
@@ -148,6 +152,10 @@ class ConversationService:
         return conv
 
     def handle_message(self, conv: Conversation, text: str) -> None:
+        with self._turn("chat_turn", conv):
+            self._handle_message(conv, text)
+
+    def _handle_message(self, conv: Conversation, text: str) -> None:
         self._add_message(conv, "user", text)
         self._last_user_text = text
         self._progress("interpreting", "Sto leggendo la tua richiesta…")
@@ -172,6 +180,10 @@ class ConversationService:
         self.session.commit()
 
     def select(self, conv: Conversation, itinerary: Itinerary) -> None:
+        with self._turn("select_itinerary", conv):
+            self._select(conv, itinerary)
+
+    def _select(self, conv: Conversation, itinerary: Itinerary) -> None:
         if Phase(conv.phase) not in (Phase.PROPOSING, Phase.AWAITING_CONFIRMATION):
             raise InvalidRequest("La conversazione non è nella fase di proposta.")
         if itinerary.status not in ACTIVE_STATUSES:
@@ -206,6 +218,10 @@ class ConversationService:
 
     def replan_after_conflict(self, conv: Conversation) -> None:
         """Availability changed between proposal and booking: plan again with fresh inventory."""
+        with self._turn("replan_after_conflict", conv):
+            self._replan_after_conflict(conv)
+
+    def _replan_after_conflict(self, conv: Conversation) -> None:
         req = self._requirements(conv)
         self._add_message(
             conv,
@@ -321,8 +337,26 @@ class ConversationService:
 
         self._progress("planning", "Cerco voli, hotel e attività…")
         started = time.perf_counter()
-        catalogs = self._load(codes, req, start_dates)
-        plans = self.planner.plan(self._planning_request(req, start_dates, codes), catalogs)
+        request = self._planning_request(req, start_dates, codes)
+        with self.tracer.observation(
+            "planner.greedy",
+            as_type="chain",
+            input={
+                "countries": codes,
+                "start_dates": len(start_dates),
+                "budget": req.budget_total,
+                "days": [req.duration.min_days, req.duration.max_days],
+                "travelers": req.travelers,
+            },
+        ) as span:
+            catalogs = self._load(codes, req, start_dates)
+            plans = self.planner.plan(request, catalogs)
+            span.update(
+                output=[
+                    {"variant": p.variant, "country": p.country_code, "days": p.days, "total": p.total_price}
+                    for p in plans
+                ]
+            )
         self._progress("validating", "Verifico budget e disponibilità…")
         valid = []
         inventory = SqlInventory(self.session)
@@ -331,6 +365,14 @@ class ConversationService:
             if errors:
                 # A planner bug caught by the second line of defence: never shown to the user.
                 log.error("validator.rejected", extra={"variant": plan.variant, "errors": errors[:5]})
+                with self.tracer.observation(
+                    "validator.rejected",
+                    as_type="guardrail",
+                    level="ERROR",
+                    input={"variant": plan.variant},
+                    output={"errors": errors[:5]},
+                ):
+                    pass
                 continue
             valid.append(plan)
         log.info(
@@ -497,6 +539,19 @@ class ConversationService:
 
     # --- Helpers ----------------------------------------------------------------------------
 
+    @contextmanager
+    def _turn(self, name: str, conv: Conversation) -> Iterator[None]:
+        """One Langfuse trace per turn; nested calls (e.g. a tool selecting a variant) join it."""
+        if self._trace_id is not None:
+            yield
+            return
+        with self.tracer.turn(name, conv.user_id, conv.id, conv.phase, PROMPT_VERSION) as trace_id:
+            self._trace_id = trace_id
+            try:
+                yield
+            finally:
+                self._trace_id = None
+
     def save_plan(self, conv: Conversation, plan: PlannedItinerary, country: Country, departure: str) -> Itinerary:
         """Persist a validated plan as a new proposed itinerary (view snapshot + items)."""
         itinerary = Itinerary(
@@ -531,6 +586,10 @@ class ConversationService:
     def _refuse(self, conv: Conversation) -> None:
         """Out-of-scope message: fixed reply, phase and requirements untouched."""
         log.info("guardrail.out_of_scope", extra={"phase": conv.phase})
+        with self.tracer.observation(
+            "guardrail.out_of_scope", as_type="guardrail", input=self._last_user_text, output="refused"
+        ):
+            pass
         previous = sum(1 for m in conv.messages if m.role == "assistant" and m.content.startswith(OUT_OF_SCOPE_REPLIES))
         reply = OUT_OF_SCOPE_REPLIES[previous % len(OUT_OF_SCOPE_REPLIES)]
         self._add_message(conv, "assistant", f"{reply} {OUT_OF_SCOPE_NEXT_STEP[Phase(conv.phase)]}", provider="SYSTEM")
@@ -552,7 +611,16 @@ class ConversationService:
         assert req.preferences and req.month
         activities = list(self.session.scalars(select(Activity).where(Activity.country_code.in_(codes))))
         index = self.index_factory(activities)
-        return score_activities(index, req.preferences, activities, codes, req.month)
+        with self.tracer.observation(
+            "rag.score_activities",
+            as_type="retriever",
+            input={"preferences": req.preferences.model_dump(), "countries": codes, "month": req.month},
+        ) as span:
+            scores = score_activities(index, req.preferences, activities, codes, req.month)
+            names = {a.id: a.name for a in activities}
+            top = sorted(scores.items(), key=lambda kv: -kv[1])[:5]
+            span.update(output=[{"activity": names[aid], "score": score} for aid, score in top])
+        return scores
 
     def _load(self, codes: list[str], req: TripRequirements, start_dates: list[date]) -> list[CountryCatalog]:
         assert req.departure_airport and req.duration
@@ -591,6 +659,7 @@ class ConversationService:
             model=result.model if result else None,
             itinerary_ids=itinerary_ids or [],
             ui=ui,
+            trace_id=self._trace_id,
         )
         conv.messages.append(message)
         return message

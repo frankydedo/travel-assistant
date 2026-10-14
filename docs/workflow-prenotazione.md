@@ -129,7 +129,7 @@ stateDiagram-v2
 
 ## 3. Sequenza completa
 
-I nomi dei tool sono indicativi: verranno fissati in implementazione.
+I tool della fase di proposta sono `select_variant`, `update_requirements`, `swap_activity`, `change_hotel`, `search_activities`, `get_itinerary_details` e `flag_out_of_scope` (`app/services/proposal_tools.py`); l'Interprete li riferisce per variante e giorno, mai per id.
 
 ```mermaid
 sequenceDiagram
@@ -154,7 +154,7 @@ sequenceDiagram
     Note over U,DB: Fase 1 · Raccolta requisiti
     loop finché un campo di TripRequirements è null
         U->>FE: messaggio in linguaggio naturale
-        FE->>OR: POST /chat con JWT, risposta in SSE
+        FE->>OR: POST /api/conversations/:id/messages/stream con JWT, risposta in SSE
         OR->>OR: valida JWT, rate limit, carica lo stato
         OR->>LLM: messaggio + stato + schema dei requisiti
         Note right of LLM: fallback Groq → Gemini → Mock
@@ -216,7 +216,7 @@ sequenceDiagram
 
     rect rgba(214, 69, 69, 0.08)
     Note over U,DB: Fase 4 · Prenotazione
-    FE->>BK: POST /bookings con itinerary_id, idempotency key e JWT
+    FE->>BK: POST /api/bookings con itinerary_id, idempotency key e JWT
     BK->>BK: user_id letto dal JWT, mai dal client o dall'LLM
     BK->>DB: BEGIN
     BK->>DB: ricontrollo disponibilità e decremento condizionale
@@ -244,4 +244,4 @@ sequenceDiagram
 | Doppio click o retry | Idempotency key |
 | Due utenti sull'ultima camera | Decremento condizionale nella transazione → 409 e nuovo piano |
 | Provider in quota | Gateway con fallback e cooldown; il tag mostra chi ha risposto |
-| Domanda fuori ambito o tentativo di jailbreak ("scrivimi una poesia", "ignora le istruzioni") | Verdetto di scope nell'output strutturato; rifiuto con testo fisso scritto dal codice, stato invariato (ADR-0016) |
+| Domanda fuori ambito o tentativo di jailbreak ("scrivimi una poesia", "ignora le istruzioni") | Verdetto di scope nell'output strutturato; rifiuto con testo fisso scritto dal codice, stato invariato ([ADR-0016](adr/0016-guardrail-di-dominio.md)) |

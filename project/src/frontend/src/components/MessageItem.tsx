@@ -1,3 +1,4 @@
+import { Activity } from "lucide-react";
 import { Markdown } from "./Markdown";
 import type { ConversationDetail, Message } from "../api/types";
 import { formatClock, formatDateTime } from "../lib/format";
@@ -67,6 +68,19 @@ export function MessageItem({
             <div className="flex items-center gap-2">
               <MessageProvenanceBadge message={message} />
               <Timestamp iso={message.created_at} align="start" />
+              {message.trace_url && (
+                <a
+                  href={message.trace_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Apri la trace in Langfuse"
+                  title="Apri la trace di questo turno in Langfuse"
+                  className="inline-flex items-center gap-1 rounded-md px-1 text-[11px] font-medium text-zinc-400 transition-colors hover:text-indigo-600 focus-visible:text-indigo-600 dark:text-zinc-500 dark:hover:text-indigo-300 dark:focus-visible:text-indigo-300"
+                >
+                  <Activity className="size-3" aria-hidden />
+                  Trace
+                </a>
+              )}
             </div>
           )}
           <div

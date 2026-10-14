@@ -40,6 +40,8 @@ export interface Message {
   created_at: string;
   itinerary_ids: string[];
   ui: ConfirmBookingUi | null;
+  /** Link alla trace del turno nella UI di Langfuse self-hosted; null se il tracing è spento. */
+  trace_url: string | null;
 }
 
 export interface Flight {
@@ -160,3 +162,72 @@ export interface StreamErrorPayload {
   code: string;
   message: string;
 }
+
+// --- Tracing (GET /tracing/summary): metriche lette da Langfuse, solo dell'utente corrente ---
+
+export type TracingPeriod = "24h" | "7d" | "30d";
+
+export interface TracingTotals {
+  turns: number;
+  llm_calls: number;
+  failed_attempts: number;
+  /** 0..1 */
+  failure_rate: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+  avg_turn_latency_ms: number;
+  p95_turn_latency_ms: number;
+}
+
+export interface TracingModelRow {
+  provider: "GROQ" | "GEMINI" | "MOCK" | "—";
+  model: string;
+  calls: number;
+  failed: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+  avg_latency_ms: number;
+  p95_latency_ms: number;
+}
+
+export interface TracingTaskRow {
+  task: string;
+  calls: number;
+  cost_usd: number;
+  avg_latency_ms: number;
+}
+
+export interface TracingSeriesPoint {
+  /** "YYYY-MM-DD" oppure bucket orario (ISO). */
+  bucket: string;
+  cost_usd: number;
+  calls: number;
+}
+
+export interface TracingRecentTurn {
+  name: string;
+  started_at: string;
+  latency_ms: number;
+  level: string;
+  trace_url: string | null;
+}
+
+export interface TracingSummaryAvailable {
+  available: true;
+  period: TracingPeriod;
+  note: string;
+  totals: TracingTotals;
+  by_model: TracingModelRow[];
+  by_task: TracingTaskRow[];
+  series: TracingSeriesPoint[];
+  recent_turns: TracingRecentTurn[];
+}
+
+export interface TracingSummaryUnavailable {
+  available: false;
+  reason: string;
+}
+
+export type TracingSummary = TracingSummaryAvailable | TracingSummaryUnavailable;

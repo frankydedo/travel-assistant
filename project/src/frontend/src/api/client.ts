@@ -10,6 +10,8 @@ import type {
   StreamErrorPayload,
   StreamProgress,
   StreamProviderInfo,
+  TracingPeriod,
+  TracingSummary,
 } from "./types";
 
 const API_BASE = "/api";
@@ -296,6 +298,10 @@ export const listBookings = () => request<Booking[]>("GET", "/bookings");
 
 export const cancelBooking = (bookingId: string) =>
   request<Booking>("POST", `/bookings/${encodeURIComponent(bookingId)}/cancel`);
+
+/** Metriche di tracing (Langfuse) delle conversazioni dell'utente corrente. */
+export const getTracingSummary = (period: TracingPeriod) =>
+  request<TracingSummary>("GET", `/tracing/summary?period=${encodeURIComponent(period)}`);
 
 export function errorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;

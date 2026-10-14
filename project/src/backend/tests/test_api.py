@@ -296,3 +296,19 @@ def test_delete_keeps_confirmed_bookings(client, session):
     assert session.scalars(select(Message).where(Message.conversation_id == conv["id"])).first() is None
     remaining = session.scalars(select(Itinerary.id).where(Itinerary.conversation_id == conv["id"])).all()
     assert remaining == [itinerary_id]  # only the booked itinerary survives
+
+
+def test_demo_conversations_are_seeded_once(session):
+    from app.config import get_settings
+    from app.models import Booking, Conversation, User
+    from app.seed.demo import DEMO_USERS, SCRIPTS, seed_demo
+
+    assert seed_demo(session, get_settings()) == len(DEMO_USERS) * len(SCRIPTS)
+    assert seed_demo(session, get_settings()) == 0  # idempotent: existing users are left untouched
+    reviewer = session.scalar(select(User).where(User.username == "reviewer"))
+    convs = session.scalars(select(Conversation).where(Conversation.user_id == reviewer.id)).all()
+    phases = {c.title: c.phase for c in convs}
+    assert phases["Barcellona a maggio · prenotata"] == "BOOKED"
+    assert phases["Giappone con 300 € · caso infattibile"] == "COLLECTING_REQUIREMENTS"
+    assert phases["Grecia ad agosto · proposte e modifica"] == "PROPOSING"
+    assert session.scalar(select(Booking).where(Booking.user_id == reviewer.id)) is not None

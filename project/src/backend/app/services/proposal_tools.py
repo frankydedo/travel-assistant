@@ -146,10 +146,12 @@ class ProposalToolbox:
             args = spec.parameters.model_validate(call.arguments)
         except ValidationError as exc:
             return self._error(f"Argomenti non validi per {call.name}: {exc.errors()[0]['msg']}.")
-        try:
-            outcome = getattr(self, f"_{call.name}")(args)
-        except ModificationError as exc:
-            outcome = self._error(str(exc))
+        with self.service.tracer.observation(f"tool.{call.name}", as_type="tool", input=args.model_dump()) as span:
+            try:
+                outcome = getattr(self, f"_{call.name}")(args)
+            except ModificationError as exc:
+                outcome = self._error(str(exc))
+            span.update(output=outcome.content, level="WARNING" if "errore" in outcome.content else "DEFAULT")
         log.info(
             "tool.called",
             extra={"tool": call.name, "ok": "errore" not in outcome.content, "terminal": outcome.terminal},

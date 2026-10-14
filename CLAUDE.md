@@ -4,19 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-Phase 1 (end-to-end slice) and most of Phase 2 (real providers Groq/Gemini via `app/llm/openai_compat.py`, adaptive structured output, SSE streaming) are implemented. Real API keys live only in `project/.env` (gitignored): never print, log or commit them. `tracker.md` is the source of truth for what is done and to do: keep it updated, and record implementation-level decisions in its last section.
+Phases 1-3 are implemented: end-to-end slice, real providers Groq/Gemini via `app/llm/openai_compat.py` with adaptive structured output and SSE streaming, and observability (self-hosted Langfuse, estimated costs, Tracing page, demo conversations seeded with the mock). Phases 4-6 (evals and CI, history compaction, booking editing) are future improvements, not implemented in this delivery. Real API keys live only in `project/.env` (gitignored): never print, log or commit them. `tracker.md` is the source of truth for what is done and to do: keep it updated, and record implementation-level decisions in its last section.
 
 Commands:
 
 - Layout: docs and project context at the root; everything runnable under `project/` (compose, `.env.example`, `infra/`, `src/backend`, `src/frontend`).
 - Backend (`project/src/backend/`, Python 3.12 via uv; on this Mac use the arm64 interpreter already in its `.venv`): `uv run pytest` (PostgreSQL via testcontainers, so Docker must be running; mock provider; never switch tests to SQLite, ADR-0014), `uv run ruff check .`
 - Frontend (`project/src/frontend/`): `npm run build` (includes `tsc --noEmit`), `npm run dev`
-- Everything: `cd project && docker compose up --build` (app on :3000, API on :8000, Keycloak on :8080)
+- Everything: `cd project && docker compose up --build` (app on :3000, API on :8000, Keycloak on :8080, Langfuse on :3001)
 - Code comments and identifiers are in English; user-facing strings and docs are in Italian.
 - **Every id is a UUID** (`Uuid(as_uuid=False)` columns, `uuid_pk()` in `app/models.py`): catalog ids are deterministic via `catalog_id(kind, slug)`, runtime ids random. API path/body ids and the Idempotency-Key are typed `UUID` (422 if malformed). ISO country and IATA airport codes stay natural keys.
 
 - `CHALLENGE.md`: the original challenge brief (Italian). It is **gitignored on purpose** and must not be committed to the delivered repo. Read it for requirements, but don't reference it from committed files.
-- `docs/adr/`: **the source of truth for architectural decisions** (ADR-0001 to 0019, Italian). Read the relevant ADR before implementing a component. An accepted ADR is never edited; a changed decision gets a new ADR that supersedes it. ADRs with status `Proposta` are not settled (none at the moment), so check with the user before relying on them. "Da verificare" marks claims still to be checked during implementation.
+- `docs/adr/`: **the source of truth for architectural decisions** (ADR-0001 to 0020, Italian). Read the relevant ADR before implementing a component. An accepted ADR is never edited; a changed decision gets a new ADR that supersedes it. ADRs with status `Proposta` are not settled (none at the moment), so check with the user before relying on them. "Da verificare" marks claims still to be checked during implementation.
 - `docs/engineering-challenges.md`: the overview of the challenges and decisions, linking to the ADRs.
 - `docs/workflow-prenotazione.md`: Mermaid diagrams of the booking flow (trust zones, phase state machine, full sequence). The LLM component is called **"Interprete LLM"**, not "agent": it interprets and explains, and only *proposes* tool calls that the orchestrator validates. Keep the diagrams in sync when the flow changes.
 - `docs/ai-usage.md`: the user's living log of how AI is used in development (part of the evaluation). Record in its *Registro* table any case where the user corrected or changed an AI proposal, or where the AI changed the user's. The document must not contain dates or a timeline.

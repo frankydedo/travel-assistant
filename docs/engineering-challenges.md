@@ -94,7 +94,7 @@ Principio adottato: **l'LLM capisce e spiega, il codice decide e garantisce.**
 - **Il mock è l'ultimo anello** ed è deterministico, basato su regole: il sistema risponde sempre, anche senza chiavi, ed è lo stesso mock usato da test e CI.
 - **Trasparenza: ogni messaggio dell'assistente è salvato con il provider (e il modello) che l'ha generato, e la chat mostra un tag** `GROQ` / `GEMINI` / `MOCK` (e `SYSTEM` per i messaggi scritti dal codice).
 
-**Motivazione.** I free tier sono inaffidabili per natura, quindi il fallback è un requisito e non un extra. Il tag rende visibile ogni degradazione invece di nasconderla: se l'utente vede `MOCK`, sa che sta parlando con il sistema di riserva. L'ordine segue il piano A (Gemini) e mette in fondo le opzioni che non dipendono da quote esterne.
+**Motivazione.** I free tier sono inaffidabili per natura, quindi il fallback è un requisito e non un extra. Il tag rende visibile ogni degradazione invece di nasconderla: se l'utente vede `MOCK`, sa che sta parlando con il sistema di riserva. L'ordine mette per primo il provider più veloce nelle misure (Groq, ADR-0018) e in fondo l'opzione che non dipende da quote esterne.
 
 **Nota.** L'abbonamento Claude non dà accesso API e i suoi token non si possono usare in un'app propria: è stato usato solo per lo sviluppo (vedi [`ai-usage.md`](ai-usage.md)).
 
@@ -169,7 +169,7 @@ Principio adottato: **l'LLM capisce e spiega, il codice decide e garantisce.**
 
 **Scartati.** *Langfuse Cloud*: il reviewer dovrebbe avere un account. *Tabella `llm_calls` propria*: duplicherebbe Langfuse. *Langtrace*: meno diffuso, nessun vantaggio qui. *Grafana*: metriche di sistema, non specifiche per LLM.
 
-**Costo accettato.** Circa 6 container in più (Postgres, ClickHouse, Redis, MinIO, web, worker) e più RAM. Va documentato nel README.
+**Costo accettato.** 5 container in più (ClickHouse, Redis, MinIO, web, worker; il database di Langfuse sta nella stessa istanza PostgreSQL) e più RAM, documentata nel README.
 
 **Logging** → [ADR-0017](adr/0017-logging-strutturato.md). Tre canali con scopi diversi:
 
@@ -292,4 +292,4 @@ Tutte approvate:
 | **5. Memoria** | Compaction automatica, ripresa delle conversazioni |
 | **6. Extra** | Modifica delle prenotazioni |
 
-**Esclusioni consapevoli** (dettaglio in ADR-0015): message broker, upload immagini / multimodalità, solver ILP, WebSocket, login social, pagamenti, deploy cloud.
+**Esclusioni consapevoli** (dettaglio in ADR-0015): message broker, upload immagini / multimodalità, solver ILP, WebSocket, agente LLM libero, login social, pagamenti, deploy cloud, abbonamento Claude come provider a runtime.

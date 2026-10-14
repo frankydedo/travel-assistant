@@ -7,6 +7,7 @@ from app.llm.base import LLMProvider
 from app.llm.gateway import Gateway
 from app.llm.mock import MockProvider
 from app.llm.openai_compat import OpenAICompatibleProvider
+from app.observability import get_observability
 
 log = logging.getLogger(__name__)
 
@@ -50,4 +51,6 @@ def build_providers(settings: Settings) -> list[LLMProvider]:
 
 
 def build_gateway(settings: Settings) -> Gateway:
-    return Gateway(build_providers(settings), cooldown_seconds=settings.llm_cooldown_seconds)
+    return Gateway(
+        build_providers(settings), cooldown_seconds=settings.llm_cooldown_seconds, tracer=get_observability()
+    )

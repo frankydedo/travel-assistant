@@ -20,17 +20,17 @@ Quasi tutti gli ADR applicano questo principio a un punto specifico del sistema.
 ## Indice
 
 | # | Titolo | Stato |
-|---|---|---|
+| --- | --- | --- |
 | [0001](0001-controllo-ibrido-state-machine.md) | Controllo ibrido: state machine + tool calling dentro le fasi | Accettata |
 | [0002](0002-requisiti-strutturati-valori-flessibili.md) | Requisiti strutturati, tutti obbligatori, con valori flessibili | Accettata |
 | [0003](0003-planner-greedy-tre-varianti.md) | Planner greedy sostituibile, 3 varianti, validatore deterministico | Accettata |
 | [0004](0004-rag-chroma-embedding-locali.md) | RAG con Chroma, embedding locali e filtri sui metadati | Accettata |
-| [0005](0005-provider-llm-catena-fallback.md) | Adapter LLM e catena di fallback con tag del provider | Accettata (ordine sostituito da 0018) |
+| [0005](0005-provider-llm-catena-fallback.md) | Adapter LLM e catena di fallback con tag del provider | Accettata (ordine sostituito da 0018, LM Studio rimosso da 0019) |
 | [0006](0006-prenotazione-sicura.md) | Prenotazione sicura: conferma esplicita, transazione, idempotenza | Accettata |
 | [0007](0007-guardrail-sicurezza-ai.md) | Guardrail di sicurezza specifici per l'AI | Accettata |
 | [0008](0008-valutazione-golden-set-judge.md) | Valutazione: golden set, metriche deterministiche, LLM-as-judge | Accettata |
 | [0009](0009-storico-e-compaction.md) | Storico conversazioni e compaction automatica del contesto | Accettata |
-| [0010](0010-osservabilita-langfuse-self-hosted.md) | Osservabilità con Langfuse self-hosted e pagina Tracing | Accettata |
+| [0010](0010-osservabilita-langfuse-self-hosted.md) | Osservabilità con Langfuse self-hosted e pagina Tracing | Accettata (versione e API aggiornate da 0020) |
 | [0011](0011-streaming-sse.md) | Streaming delle risposte via SSE | Accettata |
 | [0012](0012-autenticazione-keycloak.md) | Autenticazione con Keycloak | Accettata |
 | [0013](0013-dati-sintetici-deterministici.md) | Dati sintetici deterministici e fixture versionate | Accettata |
@@ -40,3 +40,4 @@ Quasi tutti gli ADR applicano questo principio a un punto specifico del sistema.
 | [0017](0017-logging-strutturato.md) | Logging strutturato su stdout, separato da trace LLM e audit | Accettata |
 | [0018](0018-ordine-catena-groq-prima.md) | Ordine della catena: Groq prima di Gemini | Accettata (sostituisce l'ordine di 0005) |
 | [0019](0019-rimozione-lm-studio.md) | Rimozione di LM Studio dalla catena | Accettata (modifica 0005 e 0018) |
+| [0020](0020-langfuse-v4-api-v2.md) | Langfuse v4 e API pubbliche v2 per la pagina Tracing | Accettata (aggiorna 0010) |

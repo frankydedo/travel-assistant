@@ -35,6 +35,13 @@ class Settings(BaseSettings):
     groq_reasoning_effort: str | None = "low"
     mock_stream_delay_ms: int = 0
 
+    # Langfuse (ADR-0010): self-hosted in compose; tracing is off when keys are missing.
+    langfuse_host: str | None = None  # internal URL, e.g. http://langfuse-web:3000
+    langfuse_public_key: str | None = None
+    langfuse_secret_key: str | None = None
+    langfuse_ui_url: str = "http://localhost:3001"  # what the browser opens for trace links
+    langfuse_project_id: str = "travel-assistant"
+
     # Per-user rate limit (ADR-0007)
     rate_limit_messages: int = 20
     rate_limit_window_seconds: int = 60

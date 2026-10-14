@@ -16,6 +16,8 @@ from app.llm.base import (
     TransientError,
     Unavailable,
 )
+from app.llm.prices import estimate_cost
+from app.observability import Observability
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +35,7 @@ class Gateway:
         backoff_seconds: float = 0.5,
         clock: Callable[[], float] = time.monotonic,
         sleep: Callable[[float], None] = time.sleep,
+        tracer: Observability | None = None,
     ):
         self.providers = providers
         self.cooldown_seconds = cooldown_seconds
@@ -41,6 +44,7 @@ class Gateway:
         self.clock = clock
         self.sleep = sleep
         self._cooldown_until: dict[str, float] = {}
+        self.tracer = tracer or Observability(None)
 
     def generate(
         self,
@@ -73,11 +77,62 @@ class Gateway:
                 streamed = False
                 if on_attempt is not None:
                     on_attempt(provider.name, provider.model)
-                try:
-                    result = provider.generate(task, relay if on_token is not None else None)
-                    self._check_schema(task, result)
+                # One generation per attempt: fallbacks and retries are visible in the trace.
+                with self.tracer.observation(
+                    task.name,
+                    as_type="generation",
+                    model=provider.model,
+                    input=_trace_input(task),
+                    version=task.prompt_version or None,
+                    metadata={"provider": provider.name, "attempt": attempt + 1},
+                ) as generation:
+                    try:
+                        result = provider.generate(task, relay if on_token is not None else None)
+                        self._check_schema(task, result)
+                    except (RateLimited, Unavailable) as exc:
+                        self._cooldown_until[provider.name] = self.clock() + self.cooldown_seconds
+                        outcome = "rate_limited" if isinstance(exc, RateLimited) else "unavailable"
+                        attempts.append(Attempt(provider.name, outcome, str(exc)[:200]))
+                        generation.update(
+                            level="ERROR",
+                            status_message=f"{outcome}: {str(exc)[:300]}",
+                            metadata={"provider": provider.name, "outcome": outcome},
+                        )
+                        break
+                    except TransientError as exc:
+                        generation.update(
+                            level="WARNING",
+                            status_message=f"transient: {str(exc)[:300]}",
+                            metadata={"provider": provider.name, "outcome": "transient"},
+                        )
+                        if attempt < self.retries:
+                            self.sleep(self.backoff_seconds * (2**attempt))
+                            continue
+                        attempts.append(Attempt(provider.name, "error", str(exc)[:200]))
+                        break
+                    except (LLMError, ValidationError) as exc:
+                        attempts.append(Attempt(provider.name, "error", str(exc)[:200]))
+                        generation.update(
+                            level="ERROR",
+                            status_message=f"error: {str(exc)[:300]}",
+                            metadata={"provider": provider.name, "outcome": "error"},
+                        )
+                        break
                     attempts.append(Attempt(provider.name, "ok"))
                     result.attempts = attempts
+                    cost = estimate_cost(result.model, result.input_tokens, result.output_tokens)
+                    generation.update(
+                        model=result.model,
+                        output=_trace_output(result),
+                        usage_details={"input": result.input_tokens or 0, "output": result.output_tokens or 0},
+                        cost_details=cost,
+                        metadata={
+                            "provider": result.provider,
+                            "outcome": "ok",
+                            "fell_back": result.fell_back,
+                            "attempts": [f"{a.provider}:{a.outcome}" for a in attempts],
+                        },
+                    )
                     log.info(
                         "llm.call",
                         extra={
@@ -87,24 +142,12 @@ class Gateway:
                             "latency_ms": result.latency_ms,
                             "input_tokens": result.input_tokens,
                             "output_tokens": result.output_tokens,
+                            "cost_usd": cost["total"] if cost else None,
                             "fell_back": result.fell_back,
                             "attempts": [f"{a.provider}:{a.outcome}" for a in attempts],
                         },
                     )
                     return result
-                except (RateLimited, Unavailable) as exc:
-                    self._cooldown_until[provider.name] = self.clock() + self.cooldown_seconds
-                    outcome = "rate_limited" if isinstance(exc, RateLimited) else "unavailable"
-                    attempts.append(Attempt(provider.name, outcome, str(exc)[:200]))
-                    break
-                except TransientError as exc:
-                    if attempt < self.retries:
-                        self.sleep(self.backoff_seconds * (2**attempt))
-                        continue
-                    attempts.append(Attempt(provider.name, "error", str(exc)[:200]))
-                except (LLMError, ValidationError) as exc:
-                    attempts.append(Attempt(provider.name, "error", str(exc)[:200]))
-                    break
             log.warning(
                 "llm.provider_failed",
                 extra={
@@ -123,3 +166,20 @@ class Gateway:
             if result.parsed is None:
                 raise LLMError("structured output missing")
             task.output_schema.model_validate(result.parsed.model_dump())
+
+
+def _trace_input(task: LLMTask) -> dict:
+    data: dict = {"system": task.system, "user": task.user}
+    if task.followups:
+        data["followups"] = task.followups
+    if task.tools:
+        data["tools"] = [t.name for t in task.tools]
+    return data
+
+
+def _trace_output(result: LLMResult) -> object:
+    if result.tool_calls:
+        return {"tool_calls": [{"name": c.name, "arguments": c.arguments} for c in result.tool_calls]}
+    if result.parsed is not None:
+        return result.parsed.model_dump(mode="json")
+    return result.text

@@ -1,6 +1,6 @@
 # ADR-0010 — Osservabilità con Langfuse self-hosted e pagina Tracing
 
-- **Stato:** Accettata
+- **Stato:** Accettata (versione e API aggiornate da [ADR-0020](0020-langfuse-v4-api-v2.md))
 - **Riferimenti:** [engineering-challenges §A10, §C2](../engineering-challenges.md#a10-osservabilità-e-costi--adr-0010)
 
 ## Contesto

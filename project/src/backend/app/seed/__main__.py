@@ -13,6 +13,7 @@ from app.db import session_factory
 from app.logging_setup import configure_logging
 from app.models import Activity, CatalogMeta
 from app.rag.retriever import ChromaIndex
+from app.seed.demo import seed_demo
 from app.seed.generate import generate
 
 log = logging.getLogger("seed")
@@ -21,6 +22,7 @@ log = logging.getLogger("seed")
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--force", action="store_true", help="regenerate the catalog even if present")
+    parser.add_argument("--no-demo", action="store_true", help="skip the pre-loaded demo conversations")
     args = parser.parse_args()
     settings = get_settings()
     configure_logging(settings.log_level, settings.log_format)
@@ -37,6 +39,10 @@ def main() -> None:
             index = ChromaIndex(settings.chroma_path, settings.embedding_model, settings.embedding_cache_dir)
             count = index.reindex(activities)
             log.info("seed.indexed", extra={"activities": count})
+
+        if not args.no_demo:
+            created = seed_demo(session, settings)
+            log.info("seed.demo_conversations", extra={"conversations": created})
 
 
 if __name__ == "__main__":
