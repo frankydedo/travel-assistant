@@ -1,0 +1,39 @@
+# Traccia della challenge (non va nella repo consegnata)
+CHALLENGE.md
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+
+# Local data (DB, vector store, uploads)
+*.db
+*.sqlite
+*.sqlite3
+chroma_db/
+data/*.db
+uploads/
+
+# Local runs
+.smoke*
+project/src/backend/data/
+.alembic-gen.db
