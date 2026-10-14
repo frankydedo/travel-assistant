@@ -3,7 +3,7 @@ import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 
 const METRICS = [
-  { icon: Cpu, title: "Provider", text: "Quale modello ha risposto a ogni turno (Gemini, Groq, LM Studio o riserva)." },
+  { icon: Cpu, title: "Provider", text: "Quale modello ha risposto a ogni turno (Groq, Gemini o riserva)." },
   { icon: Hash, title: "Token", text: "Token di input e output per chiamata e per conversazione." },
   { icon: Clock, title: "Latenza", text: "Tempo di risposta di ogni chiamata LLM e del turno completo." },
   { icon: GitBranch, title: "Fallback", text: "Quando e perché la catena è passata al provider successivo." },

@@ -69,8 +69,8 @@ def test_transient_errors_are_retried_then_fall_back():
 def test_missing_structured_output_falls_back_and_unconfigured_are_skipped():
     no_json = Fake("GEMINI", [None])
     skipped = Fake("GROQ", [Out(value=1)], configured=False)
-    result = gateway(no_json, skipped, Fake("LMSTUDIO", [Out(value=3)])).generate(TASK)
-    assert result.provider == "LMSTUDIO" and skipped.calls == 0
+    result = gateway(no_json, skipped, Fake("MOCK", [Out(value=3)])).generate(TASK)
+    assert result.provider == "MOCK" and skipped.calls == 0
     assert [a.outcome for a in result.attempts] == ["error", "skipped", "ok"]
 
 

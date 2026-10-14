@@ -39,3 +39,4 @@ Quasi tutti gli ADR applicano questo principio a un punto specifico del sistema.
 | [0016](0016-guardrail-di-dominio.md) | Guardrail di dominio: rifiuto delle richieste fuori scope | Accettata (estende 0007) |
 | [0017](0017-logging-strutturato.md) | Logging strutturato su stdout, separato da trace LLM e audit | Accettata |
 | [0018](0018-ordine-catena-groq-prima.md) | Ordine della catena: Groq prima di Gemini | Accettata (sostituisce l'ordine di 0005) |
+| [0019](0019-rimozione-lm-studio.md) | Rimozione di LM Studio dalla catena | Accettata (modifica 0005 e 0018) |

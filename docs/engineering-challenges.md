@@ -89,10 +89,10 @@ Principio adottato: **l'LLM capisce e spiega, il codice decide e garantisce.**
 **Decisione.**
 
 - **Adapter proprio** sopra l'API OpenAI-compatibile, esposta da tutti i provider scelti.
-- **Catena di fallback: Gemini (Google AI Studio) → Groq → LM Studio (locale) → Mock.** L'ordine è stato poi invertito in Groq → Gemini sulla base delle latenze misurate ([ADR-0018](adr/0018-ordine-catena-groq-prima.md)).
+- **Catena di fallback: Gemini (Google AI Studio) → Groq → LM Studio (locale) → Mock.** L'ordine è stato poi invertito in Groq → Gemini sulla base delle latenze misurate ([ADR-0018](adr/0018-ordine-catena-groq-prima.md)), e LM Studio è stato rimosso perché nessuno lo avrebbe usato ([ADR-0019](adr/0019-rimozione-lm-studio.md)): la catena attuale è **Groq → Gemini → Mock**.
 - Retry con backoff sugli errori transitori. Su `429`/quota esaurita il provider viene messo in **cooldown** (circuit breaker), così le richieste successive non perdono tempo.
 - **Il mock è l'ultimo anello** ed è deterministico, basato su regole: il sistema risponde sempre, anche senza chiavi, ed è lo stesso mock usato da test e CI.
-- **Trasparenza: ogni messaggio dell'assistente è salvato con il provider (e il modello) che l'ha generato, e la chat mostra un tag** `GEMINI` / `GROQ` / `LMSTUDIO` / `MOCK`.
+- **Trasparenza: ogni messaggio dell'assistente è salvato con il provider (e il modello) che l'ha generato, e la chat mostra un tag** `GROQ` / `GEMINI` / `MOCK` (e `SYSTEM` per i messaggi scritti dal codice).
 
 **Motivazione.** I free tier sono inaffidabili per natura, quindi il fallback è un requisito e non un extra. Il tag rende visibile ogni degradazione invece di nasconderla: se l'utente vede `MOCK`, sa che sta parlando con il sistema di riserva. L'ordine segue il piano A (Gemini) e mette in fondo le opzioni che non dipendono da quote esterne.
 
@@ -286,7 +286,7 @@ Tutte approvate:
 | Fase | Contenuto |
 |---|---|
 | **1. Slice end-to-end** | Compose + Postgres, seed + indice RAG, Keycloak, state machine + slot filling (mock), planner greedy + validatore, prenotazione, chat + card itinerario + dashboard prenotazioni, persistenza messaggi con tag provider |
-| **2. LLM reali** | Adapter + catena Gemini → Groq → LM Studio → Mock, cooldown, streaming SSE |
+| **2. LLM reali** | Adapter + catena Groq → Gemini → Mock, cooldown, streaming SSE |
 | **3. Osservabilità** | Langfuse self-hosted, pagina Tracing nella UI, costi stimati |
 | **4. Qualità** | Golden set, metriche deterministiche, LLM-as-judge, CI |
 | **5. Memoria** | Compaction automatica, ripresa delle conversazioni |

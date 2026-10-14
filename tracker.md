@@ -78,7 +78,7 @@ Stato di avanzamento del progetto, organizzato per le fasi di [ADR-0015](docs/ad
 
 ## Fase 2 — LLM reali
 
-- [x] Provider OpenAI-compatibile: Gemini, Groq, LM Studio (httpx, classificazione degli errori, modelli configurabili) — verificato con chiavi reali
+- [x] Provider OpenAI-compatibile: Groq e Gemini (httpx, classificazione degli errori, modelli configurabili) — verificato con chiavi reali
 - [x] Catena di fallback con retry, backoff e cooldown (gateway generico, testato con provider finti)
 - [x] Output strutturato adattivo: `json_schema` → `json_object` → solo prompt, validazione Pydantic e un retry con l'errore
 - [x] Tool calling nativo nella fase di proposta: `select_variant`, `update_requirements`, `swap_activity`, `change_hotel`, `search_activities`, `get_itinerary_details`, `flag_out_of_scope`; loop limitato a 3 passi; verificato con Gemini e Groq reali
@@ -141,3 +141,4 @@ Le scelte prese durante l'implementazione che non meritano un ADR, ma che vanno 
 - **Eliminazione delle conversazioni**: messaggi e proposte non prenotate vengono cancellati davvero. Se ci sono prenotazioni confermate resta solo una riga di conversazione svuotata e nascosta (`deleted_at`), necessaria all'itinerario prenotato.
 - **Limiti noti della UI**: su mobile Esc chiude insieme la finestra di conferma dell'eliminazione e il pannello laterale; se si elimina una conversazione mentre una risposta è ancora in streaming, a fine risposta la conversazione può ricomparire nell'elenco.
 - **`swap_activity` con categoria esplicita**: chiedendo "qualcosa di culturale" con poco budget residuo, il sistema sceglieva l'attività più simile tra quelle economiche, cioè una corsa allo stadio (sport). Ora il tool riceve la categoria e, se nessuna attività di quella categoria è disponibile, risponde con il motivo preciso (già nel programma, non disponibile quel giorno, fuori budget) invece di sostituire con altro.
+- **LM Studio rimosso** (ADR-0019): richiedeva software locale che il reviewer non userebbe, e il mock copre già il caso senza quote esterne. Rimossi anche il codice dedicato (scoperta del modello caricato, provider senza chiave) e l'accesso all'host nel compose.

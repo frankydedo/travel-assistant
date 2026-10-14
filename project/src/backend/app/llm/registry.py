@@ -11,7 +11,7 @@ from app.llm.openai_compat import OpenAICompatibleProvider
 log = logging.getLogger(__name__)
 
 # Only these produce generative-AI text: MOCK is deterministic rules, SYSTEM is code.
-AI_PROVIDERS = frozenset({"GEMINI", "GROQ", "LMSTUDIO"})
+AI_PROVIDERS = frozenset({"GEMINI", "GROQ"})
 
 
 def build_providers(settings: Settings) -> list[LLMProvider]:
@@ -32,9 +32,6 @@ def build_providers(settings: Settings) -> list[LLMProvider]:
             settings.groq_model,
             timeout,
             reasoning_effort=settings.groq_reasoning_effort,
-        ),
-        "lmstudio": lambda: OpenAICompatibleProvider(
-            "LMSTUDIO", settings.lmstudio_base_url, None, settings.lmstudio_model, timeout, requires_key=False
         ),
         "mock": lambda: MockProvider(settings.mock_stream_delay_ms),
     }

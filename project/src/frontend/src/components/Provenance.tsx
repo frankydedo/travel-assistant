@@ -1,6 +1,6 @@
 // Marcatori di provenienza: rendono visibile il principio
 // "l'LLM capisce e spiega, il codice decide e garantisce".
-//   ai     -> testo generato da un modello (GEMINI/GROQ/LMSTUDIO): icona Sparkles, accento violet
+//   ai     -> testo generato da un modello (GEMINI/GROQ): icona Sparkles, accento violet
 //   rules  -> provider di riserva deterministico (MOCK): icona Cpu, neutro
 //   system -> messaggio o dato prodotto dal codice (SYSTEM, prezzi, itinerari): icona ShieldCheck/Calculator
 import { Calculator, Cpu, ShieldCheck, Sparkles } from "lucide-react";

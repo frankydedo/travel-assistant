@@ -26,10 +26,8 @@ def completion(content: str, usage: dict | None = None) -> httpx.Response:
     return httpx.Response(200, json=body)
 
 
-def provider(handler, model: str | None = "m", key: str | None = "k", requires_key: bool = True):
-    return OpenAICompatibleProvider(
-        "GROQ", "https://api.test/v1", key, model, requires_key=requires_key, transport=httpx.MockTransport(handler)
-    )
+def provider(handler, model: str = "m", key: str | None = "k"):
+    return OpenAICompatibleProvider("GROQ", "https://api.test/v1", key, model, transport=httpx.MockTransport(handler))
 
 
 def test_structured_output_with_json_schema_and_usage():
@@ -116,14 +114,6 @@ def test_streaming_text_and_usage():
     assert result.output_tokens == 2
 
 
-def test_lmstudio_discovers_the_loaded_model_and_needs_no_key():
-    def handler(request):
-        if request.url.path.endswith("/models"):
-            return httpx.Response(200, json={"data": [{"id": "qwen2.5-7b-instruct"}]})
-        assert json.loads(request.content)["model"] == "qwen2.5-7b-instruct"
-        return completion("ok")
-
-    p = provider(handler, model=None, key=None, requires_key=False)
-    assert p.is_configured()
-    assert p.generate(TEXT).model == "qwen2.5-7b-instruct"
-    assert not provider(handler, key=None).is_configured()  # cloud providers need a key
+def test_providers_without_a_key_are_not_configured():
+    assert provider(lambda request: completion("ok")).is_configured()
+    assert not provider(lambda request: completion("ok"), key=None).is_configured()  # skipped by the gateway

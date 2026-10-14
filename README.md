@@ -25,7 +25,7 @@ docker compose up --build
 
 Utenti di prova: `demo` / `demo` e `reviewer` / `reviewer`. In alternativa ci si può registrare dalla pagina di login.
 
-Per usare gli LLM reali copia `project/.env.example` in `project/.env` e inserisci almeno una chiave (Google AI Studio e/o Groq, entrambi con free tier). In alternativa avvia il server di LM Studio in locale. I provider senza chiave vengono saltati.
+Per usare gli LLM reali copia `project/.env.example` in `project/.env` e inserisci almeno una chiave (Google AI Studio e/o Groq, entrambi con free tier). I provider senza chiave vengono saltati.
 
 Al primo avvio il backend applica le migrazioni, genera il catalogo sintetico e indicizza le attività nel database vettoriale. **Non serve nessuna chiave API**: senza chiavi risponde il provider mock deterministico, e ogni risposta in chat mostra il tag del provider che l'ha generata.
 
@@ -69,7 +69,7 @@ Assunzioni sul modello dei costi:
 ```text
 frontend (React) ──► backend (FastAPI) ──► PostgreSQL   catalogo, inventario, itinerari, prenotazioni
         │                 │      └───────► Chroma       RAG sulle attività (embedding locali multilingue)
-        │                 └──────────────► Gateway LLM  Groq → Gemini → LM Studio → Mock
+        │                 └──────────────► Gateway LLM  Groq → Gemini → Mock
         └──► Keycloak (OIDC)  login e registrazione; il backend valida solo i JWT
 ```
 

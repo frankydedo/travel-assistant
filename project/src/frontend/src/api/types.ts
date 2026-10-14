@@ -1,7 +1,7 @@
 // Tipi del contratto API del backend (FastAPI). Tenere allineati al backend.
 // Tutti gli id sono UUID stringa opachi: non se ne deriva alcun significato.
 
-export type Provider = "GEMINI" | "GROQ" | "LMSTUDIO" | "MOCK" | "SYSTEM";
+export type Provider = "GEMINI" | "GROQ" | "MOCK" | "SYSTEM";
 
 export type Phase =
   | "COLLECTING_REQUIREMENTS"
@@ -35,7 +35,7 @@ export interface Message {
   content: string;
   provider: Provider | null;
   model: string | null;
-  /** true solo per GEMINI/GROQ/LMSTUDIO. MOCK = regole deterministiche, SYSTEM = codice. */
+  /** true solo per GEMINI/GROQ. MOCK = regole deterministiche, SYSTEM = codice. */
   ai_generated: boolean;
   created_at: string;
   itinerary_ids: string[];

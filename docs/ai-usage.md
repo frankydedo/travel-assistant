@@ -14,7 +14,7 @@
 | | AI nello sviluppo | AI nel prodotto |
 |---|---|---|
 | **Cosa** | Assistente di ingegneria: analisi, documenti, codice | Componente del sistema: comprensione della chat e spiegazione degli itinerari |
-| **Strumento** | Claude Code (in VS Code) con l'abbonamento Claude | Gemini → Groq → LM Studio → Mock (ADR-0005) |
+| **Strumento** | Claude Code (in VS Code) con l'abbonamento Claude | Groq → Gemini → Mock (ADR-0005, ADR-0018, ADR-0019) |
 | **Principio** | L'AI propone, io decido e verifico | L'LLM capisce e spiega, il codice decide e garantisce |
 
 Il parallelo è voluto: **in entrambi i livelli l'AI non ha l'ultima parola sulle cose che devono essere corrette.** Nello sviluppo l'ultima parola spetta a me e ai test, nel prodotto al codice deterministico.
@@ -23,7 +23,7 @@ Il parallelo è voluto: **in entrambi i livelli l'AI non ha l'ultima parola sull
 
 - **Claude Code** (agente in VS Code): lavora direttamente sul repository, legge e scrive i file, esegue i comandi. L'ho usato con modelli diversi in base al compito, cambiando modello durante la sessione.
 - **Abbonamento Claude solo per lo sviluppo.** Ho valutato di usarlo anche come LLM dell'applicazione. Ho verificato però che l'abbonamento non include accesso API e che i termini d'uso non consentono di usarne i token dentro un'app, quindi a runtime uso i free tier (ADR-0005).
-- **Free tier a runtime** (Google AI Studio, Groq) + **LM Studio** in locale + **mock**: nessun costo, come richiesto dalla traccia.
+- **Free tier a runtime** (Groq, Google AI Studio) + **mock** deterministico: nessun costo, come richiesto dalla traccia.
 
 ## Divisione dei ruoli
 
@@ -68,6 +68,7 @@ Il parallelo è voluto: **in entrambi i livelli l'AI non ha l'ultima parola sull
 | Tool calling | Due opzioni: azioni strutturate estese o tool calling nativo | **Tool calling nativo**, loop limitato, l'LLM non vede mai un id | **Io**: scelta del nativo; **l'AI** ha proposto i vincoli di sicurezza (niente id, tool terminali, nuovo itinerario validato) |
 | Eliminazione delle conversazioni | — | Cancellazione reale di messaggi e proposte; resta solo il minimo necessario alle prenotazioni confermate | **Io**: requisito; **l'AI** ha segnalato il vincolo delle prenotazioni |
 | Risposte in Markdown | Inizialmente testo semplice (il markdown veniva tolto) | **Markdown sempre**, con un sottoinsieme sicuro nel rendering (niente HTML, link, immagini) | **Io**: requisito; **l'AI** ha proposto i limiti di sicurezza sul rendering dell'output dell'LLM |
+| LM Studio | Terzo anello della catena, in locale | **Rimosso** (ADR-0019) | **Io**: non necessario, il reviewer non lo userebbe e mock e due provider cloud coprono già l'affidabilità |
 | Streaming | SSE o WebSocket | **SSE** | **Io**: WebSocket è eccessivo per una comunicazione unidirezionale |
 | Multimodalità | Opzionale, con due approcci possibili | **Esclusa** | **Io**: non rafforza il nucleo e aggiunge superficie di attacco |
 | Message broker | (proposto da me) | **Escluso e documentato** | **L'AI** l'ha sconsigliato come over-engineering; **io** ho accettato, chiedendo di motivare tutte le esclusioni |

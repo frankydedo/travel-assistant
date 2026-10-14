@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 from app.domain.requirements import TripRequirements
 from app.llm.registry import AI_PROVIDERS  # noqa: F401  (re-exported for the presenters)
 
-Provider = Literal["GEMINI", "GROQ", "LMSTUDIO", "MOCK", "SYSTEM"]
+Provider = Literal["GEMINI", "GROQ", "MOCK", "SYSTEM"]
 
 
 class MessageOut(BaseModel):

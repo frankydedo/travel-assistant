@@ -75,7 +75,7 @@ export const ITINERARY_STATUS_LABELS: Record<ItineraryStatus, string> = {
   discarded: "Scartata",
 };
 
-export const PROVIDERS: Provider[] = ["GEMINI", "GROQ", "LMSTUDIO", "MOCK", "SYSTEM"];
+export const PROVIDERS: Provider[] = ["GEMINI", "GROQ", "MOCK", "SYSTEM"];
 
 export const plural = (n: number, one: string, many: string): string =>
   `${n} ${n === 1 ? one : many}`;

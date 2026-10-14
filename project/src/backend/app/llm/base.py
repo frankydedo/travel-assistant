@@ -71,7 +71,7 @@ class Attempt:
 class LLMResult:
     text: str
     parsed: BaseModel | None
-    provider: str  # GEMINI | GROQ | LMSTUDIO | MOCK
+    provider: str  # GROQ | GEMINI | MOCK
     model: str
     input_tokens: int | None = None
     output_tokens: int | None = None

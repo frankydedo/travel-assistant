@@ -1,6 +1,6 @@
 # ADR-0018 — Ordine della catena: Groq prima di Gemini
 
-- **Stato:** Accettata (sostituisce l'ordine della catena di [ADR-0005](0005-provider-llm-catena-fallback.md))
+- **Stato:** Accettata (sostituisce l'ordine della catena di [ADR-0005](0005-provider-llm-catena-fallback.md)) · LM Studio rimosso con [ADR-0019](0019-rimozione-lm-studio.md)
 
 ## Contesto
 

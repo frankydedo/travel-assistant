@@ -1,6 +1,6 @@
 # ADR-0005 — Adapter LLM e catena di fallback con tag del provider
 
-- **Stato:** Accettata · l'ordine della catena è sostituito da [ADR-0018](0018-ordine-catena-groq-prima.md)
+- **Stato:** Accettata · l'ordine della catena è sostituito da [ADR-0018](0018-ordine-catena-groq-prima.md), LM Studio è stato rimosso con [ADR-0019](0019-rimozione-lm-studio.md)
 - **Riferimenti:** [engineering-challenges §A5](../engineering-challenges.md#a5-affidabilità-e-indipendenza-dal-provider--adr-0005)
 
 ## Contesto

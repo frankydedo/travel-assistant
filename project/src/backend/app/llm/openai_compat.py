@@ -1,4 +1,4 @@
-"""Provider for OpenAI-compatible chat completions APIs: Gemini, Groq and LM Studio (ADR-0005).
+"""Provider for OpenAI-compatible chat completions APIs: Groq and Gemini (ADR-0005, ADR-0019).
 
 Written on httpx rather than an SDK to keep full control over the parts the gateway depends on: error
 classification (429 -> cooldown, 5xx/timeout -> retry, connection refused -> unavailable), streaming and
@@ -34,9 +34,8 @@ class OpenAICompatibleProvider:
         name: str,
         base_url: str | None,
         api_key: str | None,
-        model: str | None,
+        model: str,
         timeout_seconds: float = 30.0,
-        requires_key: bool = True,
         transport: httpx.BaseTransport | None = None,
         reasoning_effort: str | None = None,
     ):
@@ -44,7 +43,6 @@ class OpenAICompatibleProvider:
         self.base_url = (base_url or "").rstrip("/")
         self.api_key = api_key
         self._model = model
-        self.requires_key = requires_key
         self.mode_index = 0  # index into STRUCTURED_MODES, lowered when the API rejects a format
         self.stream_usage = True  # some APIs reject stream_options
         self.reasoning_effort = reasoning_effort  # thinking models are slow: "low" keeps latency down
@@ -55,24 +53,13 @@ class OpenAICompatibleProvider:
 
     @property
     def model(self) -> str:
-        return self._model or "auto"
+        return self._model
 
     def is_configured(self) -> bool:
-        return bool(self.base_url) and (bool(self.api_key) or not self.requires_key)
+        return bool(self.base_url and self.api_key and self._model)
 
     def _headers(self) -> dict[str, str]:
-        return {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
-
-    def _resolve_model(self) -> str:
-        """LM Studio serves whatever model is loaded: discover it when none is configured."""
-        if self._model:
-            return self._model
-        data = self._request("GET", "/models").json()
-        models = [m["id"] for m in data.get("data", [])]
-        if not models:
-            raise Unavailable(f"{self.name}: no model loaded")
-        self._model = models[0]
-        return self._model
+        return {"Authorization": f"Bearer {self.api_key}"}
 
     # --- HTTP and error classification -------------------------------------------------
 
@@ -105,7 +92,7 @@ class OpenAICompatibleProvider:
     # --- Generation --------------------------------------------------------------------
 
     def generate(self, task: LLMTask, on_token: Callable[[str], None] | None = None) -> LLMResult:
-        model = self._resolve_model()
+        model = self._model
         self.served_model = None
         started = time.perf_counter()
         tool_calls: list[ToolCall] = []

@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     retriever: str = "chroma"
 
     # Fallback chain order (ADR-0005). Providers without credentials are skipped.
-    llm_chain: str = "groq,gemini,lmstudio,mock"  # ADR-0018
+    llm_chain: str = "groq,gemini,mock"  # ADR-0018, ADR-0019
     llm_timeout_seconds: float = 30.0
     llm_cooldown_seconds: float = 60.0
     # Model names change often: they are configuration, not code (check each provider's console).
@@ -33,8 +33,6 @@ class Settings(BaseSettings):
     groq_model: str = "openai/gpt-oss-120b"
     groq_base_url: str = "https://api.groq.com/openai/v1"
     groq_reasoning_effort: str | None = "low"
-    lmstudio_base_url: str | None = None  # e.g. http://host.docker.internal:1234/v1
-    lmstudio_model: str | None = None  # None = the model currently loaded in LM Studio
     mock_stream_delay_ms: int = 0
 
     # Per-user rate limit (ADR-0007)

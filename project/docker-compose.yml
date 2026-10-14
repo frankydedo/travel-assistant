@@ -59,8 +59,6 @@ services:
       - backend-data:/data
     ports:
       - "8000:8000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"  # LM Studio running on the host (ADR-0005)
     depends_on:
       postgres:
         condition: service_healthy
