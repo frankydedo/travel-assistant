@@ -1,0 +1,394 @@
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Compass, ListChecks, PanelLeft, Plus } from "lucide-react";
+import {
+  ApiError,
+  createBooking,
+  createConversation,
+  errorMessage,
+  getConversation,
+  listConversations,
+  selectItinerary,
+  sendMessage,
+} from "../api/client";
+import type { ConversationDetail, ConversationSummary } from "../api/types";
+import { UserAvatar } from "../components/Avatar";
+import { Composer } from "../components/Composer";
+import { ConversationSidebar } from "../components/ConversationSidebar";
+import { MessageItem, type BookingAttempt } from "../components/MessageItem";
+import { StatusPanel } from "../components/StatusPanel";
+import { SuggestionChips } from "../components/SuggestionChips";
+import { TypingIndicator } from "../components/TypingIndicator";
+import { Alert } from "../components/ui/Alert";
+import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
+import { Drawer } from "../components/ui/Drawer";
+import { Skeleton } from "../components/ui/Skeleton";
+import { PHASE_LABELS } from "../lib/format";
+import { PHASE_TONE } from "../lib/styles";
+import { uuid } from "../lib/uuid";
+
+const byNewest = (a: ConversationSummary, b: ConversationSummary) =>
+  (b.updated_at || b.created_at).localeCompare(a.updated_at || a.created_at);
+
+function toSummary(d: ConversationDetail): ConversationSummary {
+  return { id: d.id, title: d.title, phase: d.phase, created_at: d.created_at, updated_at: d.updated_at };
+}
+
+export function ChatPage({ userName }: { userName: string }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedId = searchParams.get("c");
+  const selectedIdRef = useRef(selectedId);
+  selectedIdRef.current = selectedId;
+
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [listError, setListError] = useState<string | null>(null);
+  const [listLoading, setListLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+
+  const [detail, setDetail] = useState<ConversationDetail | null>(null);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  const [draft, setDraft] = useState("");
+  const [sendingFor, setSendingFor] = useState<string | null>(null);
+  const [pendingText, setPendingText] = useState<string | null>(null);
+  const [chatError, setChatError] = useState<string | null>(null);
+
+  const [selectingId, setSelectingId] = useState<string | null>(null);
+  const [booking, setBooking] = useState<Record<string, BookingAttempt>>({});
+  // Una Idempotency-Key per tentativo di conferma, riusata se si riprova dopo un errore di rete.
+  const idempotencyKeys = useRef(new Map<string, string>());
+
+  const endRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+
+  // Drawer per schermi stretti (su quelli larghi i pannelli sono sempre visibili).
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+  const closePanel = useCallback(() => setPanelOpen(false), []);
+
+  const selectConversation = useCallback(
+    (id: string, replace = false) => setSearchParams({ c: id }, { replace }),
+    [setSearchParams],
+  );
+
+  const upsertSummary = useCallback((d: ConversationDetail) => {
+    setConversations((prev) => [toSummary(d), ...prev.filter((c) => c.id !== d.id)].sort(byNewest));
+  }, []);
+
+  /** Sostituisce lo stato locale con quello restituito dal server (fonte di verità). */
+  const applyDetail = useCallback(
+    (d: ConversationDetail) => {
+      upsertSummary(d);
+      if (d.id === selectedIdRef.current) setDetail(d);
+    },
+    [upsertSummary],
+  );
+
+  const refreshList = useCallback(async () => {
+    try {
+      const list = await listConversations();
+      setConversations([...list].sort(byNewest));
+      setListError(null);
+      return list;
+    } catch (err) {
+      setListError(errorMessage(err));
+      return null;
+    } finally {
+      setListLoading(false);
+    }
+  }, []);
+
+  const refreshDetail = useCallback(async (id: string) => {
+    try {
+      const d = await getConversation(id);
+      if (d.id === selectedIdRef.current) {
+        setDetail(d);
+        setDetailError(null);
+      }
+    } catch (err) {
+      if (id === selectedIdRef.current) setDetailError(errorMessage(err));
+    }
+  }, []);
+
+  // Lista conversazioni all'avvio; se nessuna è selezionata apre la più recente.
+  useEffect(() => {
+    void refreshList().then((list) => {
+      if (!selectedIdRef.current && list && list.length > 0) {
+        const newest = [...list].sort(byNewest)[0];
+        if (newest) selectConversation(newest.id, true);
+      }
+    });
+  }, [refreshList, selectConversation]);
+
+  // Carica il dettaglio quando cambia la conversazione selezionata.
+  useEffect(() => {
+    setChatError(null);
+    setDetailError(null);
+    if (!selectedId) {
+      setDetail(null);
+      return;
+    }
+    setDetail((prev) => (prev?.id === selectedId ? prev : null));
+    setLoadingDetail(true);
+    void refreshDetail(selectedId).finally(() => setLoadingDetail(false));
+  }, [selectedId, refreshDetail]);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [detail?.messages.length, pendingText]);
+
+  // Su mobile, scegliere una conversazione chiude il drawer.
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [selectedId]);
+
+  async function handleCreate() {
+    setCreating(true);
+    setListError(null);
+    try {
+      const d = await createConversation();
+      selectedIdRef.current = d.id;
+      setDetail(d);
+      upsertSummary(d);
+      selectConversation(d.id);
+    } catch (err) {
+      setListError(errorMessage(err));
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function handleSend(e?: FormEvent) {
+    e?.preventDefault();
+    const text = draft.trim();
+    if (!detail || !text || sendingFor) return;
+    const convId = detail.id;
+    setSendingFor(convId);
+    setPendingText(text);
+    setDraft("");
+    setChatError(null);
+    try {
+      applyDetail(await sendMessage(convId, text));
+    } catch (err) {
+      if (convId === selectedIdRef.current) {
+        setChatError(errorMessage(err));
+        setDraft(text);
+      }
+    } finally {
+      setSendingFor(null);
+      setPendingText(null);
+    }
+  }
+
+  async function handleSelectItinerary(itineraryId: string) {
+    setSelectingId(itineraryId);
+    setChatError(null);
+    try {
+      applyDetail(await selectItinerary(itineraryId));
+    } catch (err) {
+      setChatError(errorMessage(err));
+    } finally {
+      setSelectingId(null);
+    }
+  }
+
+  async function handleConfirmBooking(itineraryId: string) {
+    if (!detail) return;
+    const convId = detail.id;
+    let key = idempotencyKeys.current.get(itineraryId);
+    if (!key) {
+      key = uuid();
+      idempotencyKeys.current.set(itineraryId, key);
+    }
+    setBooking((b) => ({ ...b, [itineraryId]: { busy: true, error: null } }));
+    try {
+      await createBooking(itineraryId, key);
+      idempotencyKeys.current.delete(itineraryId);
+      setBooking((b) => ({ ...b, [itineraryId]: { busy: false, error: null } }));
+      await Promise.all([refreshDetail(convId), refreshList()]);
+    } catch (err) {
+      const definitive = err instanceof ApiError && err.status < 500;
+      // Esito definitivo (4xx): il prossimo tentativo usa una chiave nuova.
+      // Errore di rete o 5xx: esito ignoto, si conserva la chiave per un retry idempotente.
+      if (definitive) idempotencyKeys.current.delete(itineraryId);
+      const msg = definitive ? errorMessage(err) : `${errorMessage(err)}. Puoi riprovare in sicurezza.`;
+      setBooking((b) => ({ ...b, [itineraryId]: { busy: false, error: msg } }));
+      if (err instanceof ApiError && err.status === 409) {
+        await Promise.all([refreshDetail(convId), refreshList()]);
+      }
+    }
+  }
+
+  const sending = sendingFor !== null && sendingFor === detail?.id;
+  const onlyGreeting =
+    detail !== null &&
+    detail.phase === "COLLECTING_REQUIREMENTS" &&
+    !detail.messages.some((m) => m.role === "user") &&
+    !sending;
+
+  function pickSuggestion(text: string) {
+    setDraft(text);
+    requestAnimationFrame(() => {
+      const el = composerRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(text.length, text.length);
+    });
+  }
+
+  return (
+    <div className="flex h-full min-h-0">
+      <Drawer
+        side="left"
+        open={sidebarOpen}
+        onClose={closeSidebar}
+        inlineFrom="lg"
+        label="Conversazioni"
+        className="border-r border-zinc-200 bg-zinc-50 lg:bg-zinc-100/60 dark:border-zinc-800 dark:bg-zinc-950 lg:dark:bg-zinc-900/40"
+      >
+        <ConversationSidebar
+          conversations={conversations}
+          loading={listLoading}
+          selectedId={selectedId}
+          onSelect={(id) => selectConversation(id)}
+          onCreate={() => void handleCreate()}
+          creating={creating}
+          error={listError}
+          onClose={closeSidebar}
+        />
+      </Drawer>
+
+      <section className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-zinc-200 bg-white/70 px-3 backdrop-blur sm:px-4 dark:border-zinc-800 dark:bg-zinc-900/40">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            aria-label="Apri conversazioni"
+            aria-expanded={sidebarOpen}
+            onClick={() => setSidebarOpen(true)}
+          >
+            <PanelLeft className="size-4" aria-hidden />
+          </Button>
+          <h1 className="min-w-0 flex-1 truncate text-sm font-semibold">
+            {detail?.title || (selectedId ? "Nuova conversazione" : "Chat")}
+          </h1>
+          {detail && (
+            <Badge tone={PHASE_TONE[detail.phase]} className="hidden sm:inline-flex">
+              {PHASE_LABELS[detail.phase]}
+            </Badge>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="xl:hidden"
+            aria-label="Apri stato della conversazione"
+            aria-expanded={panelOpen}
+            onClick={() => setPanelOpen(true)}
+          >
+            <ListChecks className="size-4" aria-hidden />
+          </Button>
+        </header>
+
+        <div className="@container min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
+          <div className="mx-auto w-full max-w-6xl px-3 py-6 sm:px-6">
+            {!selectedId && !listLoading && (
+              <div className="mx-auto flex max-w-md flex-col items-center py-16 text-center">
+                <span className="flex size-14 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30">
+                  <Compass className="size-7" aria-hidden />
+                </span>
+                <h2 className="mt-5 text-xl font-semibold">Pianifica il tuo prossimo viaggio</h2>
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  Racconta budget, meta, mese e cosa ti piace fare. L'assistente raccoglie i requisiti, il sistema
+                  calcola itinerari completi entro il budget e tu prenoti con un clic.
+                </p>
+                <Button
+                  className="mt-6"
+                  onClick={() => void handleCreate()}
+                  loading={creating}
+                  icon={<Plus className="size-4" aria-hidden />}
+                >
+                  Nuova conversazione
+                </Button>
+              </div>
+            )}
+
+            {((selectedId && !detail && loadingDetail) || (!selectedId && listLoading)) && (
+              <div className="space-y-6" aria-label="Caricamento conversazione">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className={i % 2 ? "flex flex-row-reverse gap-3" : "flex gap-3"}>
+                    <Skeleton className="size-8 rounded-full" />
+                    <Skeleton className={i % 2 ? "h-12 w-1/3 rounded-2xl" : "h-20 w-1/2 rounded-2xl"} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {detailError && <Alert className="mb-4">{detailError}</Alert>}
+
+            {detail && (
+              <div className="space-y-6">
+                {detail.messages.map((m) => (
+                  <MessageItem
+                    key={m.id}
+                    message={m}
+                    conversation={detail}
+                    userName={userName}
+                    selectingId={selectingId}
+                    booking={booking}
+                    onSelectItinerary={(id) => void handleSelectItinerary(id)}
+                    onConfirmBooking={(id) => void handleConfirmBooking(id)}
+                  />
+                ))}
+                {sending && pendingText && (
+                  <div className="flex flex-row-reverse gap-3 opacity-70">
+                    <UserAvatar name={userName} />
+                    <div className="max-w-[min(85%,42rem)] rounded-2xl rounded-tr-md bg-indigo-600 px-4 py-2.5 text-[15px] leading-relaxed break-words whitespace-pre-wrap text-white dark:bg-indigo-500">
+                      {pendingText}
+                    </div>
+                  </div>
+                )}
+                {sending && <TypingIndicator />}
+                <div ref={endRef} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {detail && (
+          <div className="shrink-0 border-t border-zinc-200 bg-zinc-50/90 px-3 py-3 backdrop-blur sm:px-6 dark:border-zinc-800 dark:bg-zinc-950/80">
+            <div className="mx-auto max-w-4xl space-y-3">
+              {onlyGreeting && <SuggestionChips onPick={pickSuggestion} />}
+              {chatError && <Alert onDismiss={() => setChatError(null)}>{chatError}</Alert>}
+              <Composer
+                ref={composerRef}
+                value={draft}
+                onChange={setDraft}
+                onSubmit={() => void handleSend()}
+                disabled={sending}
+              />
+              <p className="hidden text-center text-[11px] text-zinc-400 sm:block dark:text-zinc-500">
+                Invio per inviare · Maiusc+Invio per andare a capo · prezzi e disponibilità sono sempre calcolati dal
+                sistema, mai dall'AI
+              </p>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <Drawer
+        side="right"
+        open={panelOpen}
+        onClose={closePanel}
+        inlineFrom="xl"
+        label="Stato della conversazione"
+        className="border-l border-zinc-200 bg-zinc-50 xl:bg-zinc-100/60 dark:border-zinc-800 dark:bg-zinc-950 xl:dark:bg-zinc-900/40"
+      >
+        <StatusPanel conversation={detail} onClose={closePanel} />
+      </Drawer>
+    </div>
+  );
+}
