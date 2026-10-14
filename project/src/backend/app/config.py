@@ -1,0 +1,41 @@
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    database_url: str = "postgresql+psycopg://travel:travel@localhost:5432/travel"
+
+    # OIDC (Keycloak). The issuer is the URL the browser sees; the JWKS URL may be internal to Docker.
+    oidc_issuer: str = "http://localhost:8080/realms/travel"
+    oidc_jwks_url: str = "http://localhost:8080/realms/travel/protocol/openid-connect/certs"
+    oidc_audience: str = "travel-api"
+
+    # RAG
+    chroma_path: str = "./data/chroma"
+    embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    embedding_cache_dir: str | None = None  # the Docker image pre-downloads the model here
+    # "chroma" (local embeddings) or "keyword" (no model; used by tests)
+    retriever: str = "chroma"
+
+    # Fallback chain order (ADR-0005). Providers without credentials are skipped.
+    llm_chain: str = "gemini,groq,lmstudio,mock"
+
+    # Per-user rate limit (ADR-0007)
+    rate_limit_messages: int = 20
+    rate_limit_window_seconds: int = 60
+    max_message_chars: int = 2000
+
+    # Logging (ADR-0017): "json" in Docker, "console" for local development
+    log_level: str = "INFO"
+    log_format: str = "console"
+
+    # Planner
+    max_trip_days: int = 14
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
