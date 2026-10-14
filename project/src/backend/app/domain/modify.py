@@ -70,7 +70,11 @@ def rehydrate(
 
 
 def replace_activity(
-    plan: PlannedItinerary, day: int, catalog: CountryCatalog, relevance: dict[str, float]
+    plan: PlannedItinerary,
+    day: int,
+    catalog: CountryCatalog,
+    relevance: dict[str, float],
+    category: str | None = None,
 ) -> tuple[PlannedItinerary, ActivityOption, ActivityOption]:
     """Swap the activity of ``day`` with the most relevant alternative that is available that day, not
     already in the trip, and keeps the total within budget. ``relevance`` ranks candidates for the
@@ -80,15 +84,19 @@ def replace_activity(
     target = plan.days_plan[day - 1]
     used = {d.activity.id for d in plan.days_plan}
     room = plan.budget - (plan.total_price - target.subtotal)
-    candidates = [
-        a
-        for a in catalog.activities
-        if a.id not in used
-        and a.availability.get(target.date, 0) >= plan.travelers
-        and a.price * plan.travelers <= room
-    ]
+    pool = [a for a in catalog.activities if category is None or a.category == category]
+    unused = [a for a in pool if a.id not in used]
+    available = [a for a in unused if a.availability.get(target.date, 0) >= plan.travelers]
+    candidates = [a for a in available if a.price * plan.travelers <= room]
     if not candidates:
-        raise ModificationError(f"Per il giorno {day} non ci sono alternative disponibili che rientrino nel budget.")
+        kind = f" di tipo {category}" if category else ""
+        if not unused:
+            reason = f"tutte le attività{kind} sono già nel programma del viaggio"
+        elif not available:
+            reason = f"le attività{kind} rimaste non sono disponibili il giorno {day}"
+        else:
+            reason = f"le attività{kind} disponibili superano il budget residuo ({room} €)"
+        raise ModificationError(f"Non posso sostituire il giorno {day}: {reason}.")
     best = max(candidates, key=lambda a: (relevance.get(a.id, 0.0), -a.price))
     new_day = PlannedDay(day=target.day, date=target.date, activity=best, subtotal=best.price * plan.travelers)
     days_plan = [new_day if d.day == day else d for d in plan.days_plan]

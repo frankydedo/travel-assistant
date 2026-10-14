@@ -428,7 +428,14 @@ def choose_tool(message: str, proposals: list[dict], phase: str) -> tuple[str, d
         return "flag_out_of_scope", {}
     day = re.search(SWAP_PATTERN, text)
     if day and target and re.search(CHANGE_WORDS, text):
-        return "swap_activity", {"variant": target, "day": int(day.group(1) or day.group(2)), "request": message}
+        found = parse_preferences(text, message)
+        category = found["categories"][0] if found and len(found["categories"]) == 1 else "qualsiasi"
+        return "swap_activity", {
+            "variant": target,
+            "day": int(day.group(1) or day.group(2)),
+            "request": message,
+            "category": category,
+        }
     if re.search(r"\b(hotel|albergo)", text) and target:
         if re.search(HOTEL_BETTER, text):
             return "change_hotel", {"variant": target, "direction": "better"}
@@ -479,27 +486,27 @@ def write_reply(kind: str, facts: dict) -> str:
         for v in facts["variants"]:
             acts = ", ".join(v["top_activities"][:2])
             lines.append(
-                f"• {VARIANT_LABELS[v['variant']]}: {v['destination']}, {v['days']} giorni "
+                f"- **{VARIANT_LABELS[v['variant']]}**: {v['destination']}, {v['days']} giorni "
                 f"dal {day_it(v['start_date'])}, "
-                f"hotel {v['hotel']} ({v['stars']}★), {eur(v['total_price'])} su {eur(v['budget'])}. "
+                f"hotel {v['hotel']} ({v['stars']}★), **{eur(v['total_price'])}** su {eur(v['budget'])}. "
                 f"Tra le attività: {acts}."
             )
-        lines.append("Quale preferisci? Puoi anche chiedermi di cambiare un requisito.")
+        lines.append("\nQuale preferisci? Puoi anche chiedermi di cambiare un requisito.")
         return "\n".join(lines)
     if kind == "infeasible":
         alternatives = facts.get("alternatives", [])
         text = f"Con questi requisiti non riesco a costruire un itinerario: {facts['reason']}"
         if alternatives:
-            text += " Ecco cosa possiamo fare:\n" + "\n".join(f"• {a}" for a in alternatives)
-            text += "\nDimmi quale preferisci (per esempio scrivendo il nuovo valore)."
+            text += " Ecco cosa possiamo fare:\n\n" + "\n".join(f"- {a}" for a in alternatives)
+            text += "\n\nDimmi quale preferisci (per esempio scrivendo il nuovo valore)."
         return text
     if kind == "confirm_summary":
         return (
-            f"Ottima scelta: variante {VARIANT_LABELS[facts['variant']]}, {facts['destination']}, "
+            f"Ottima scelta: variante **{VARIANT_LABELS[facts['variant']]}**, {facts['destination']}, "
             f"{facts['days']} giorni dal {day_it(facts['start_date'])} al {day_it(facts['end_date'])} "
             f"per {facts['travelers']} "
-            f"{'persona' if facts['travelers'] == 1 else 'persone'}, totale {eur(facts['total_price'])}. "
-            "Per prenotare premi «Conferma e prenota»: la prenotazione parte solo con il tuo clic."
+            f"{'persona' if facts['travelers'] == 1 else 'persone'}, totale **{eur(facts['total_price'])}**. "
+            "Per prenotare premi **Conferma e prenota**: la prenotazione parte solo con il tuo clic."
         )
     if kind == "answer":
         if facts.get("phase") == "AWAITING_CONFIRMATION":

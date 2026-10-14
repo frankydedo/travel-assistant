@@ -44,7 +44,6 @@ from app.rag.retriever import SemanticIndex, score_activities
 from app.services.proposal_tools import SPECS as PROPOSAL_TOOLS
 from app.services.proposal_tools import ProposalToolbox
 from app.services.views import itinerary_view
-from app.textfmt import plain_text
 
 log = logging.getLogger(__name__)
 
@@ -587,7 +586,7 @@ class ConversationService:
             conversation_id=conv.id,
             seq=len(conv.messages) + 1,
             role=role,
-            content=plain_text(content) if role == "assistant" else content,
+            content=content,
             provider=result.provider if result else provider,
             model=result.model if result else None,
             itinerary_ids=itinerary_ids or [],

@@ -1,3 +1,4 @@
+import { Markdown } from "./Markdown";
 import type { ConversationDetail, Message } from "../api/types";
 import { formatClock, formatDateTime } from "../lib/format";
 import { AssistantAvatar, UserAvatar } from "./Avatar";
@@ -76,8 +77,12 @@ export function MessageItem({
                 : "rounded-2xl rounded-tr-md bg-indigo-600 text-white shadow-sm shadow-indigo-600/20 dark:bg-indigo-500",
             )}
           >
-            {/* Testo mostrato così com'è: nessun dato strutturato viene estratto dal testo dell'LLM. */}
-            <div className="break-words whitespace-pre-wrap">{message.content}</div>
+            {/* Solo resa grafica: nessun dato strutturato viene estratto dal testo dell'LLM. */}
+            {isAssistant ? (
+              <Markdown text={message.content} />
+            ) : (
+              <div className="break-words whitespace-pre-wrap">{message.content}</div>
+            )}
           </div>
           {!isAssistant && <Timestamp iso={message.created_at} align="end" />}
         </div>

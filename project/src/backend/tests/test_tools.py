@@ -17,7 +17,7 @@ def say(client, conv: dict, text: str) -> dict:
 def test_swap_activity_creates_a_new_validated_itinerary(client):
     conv = plan_trip(client)
     before = active(conv)["balanced"]
-    conv = say(client, conv, "Nella bilanciata, il giorno 2 vorrei qualcosa di più rilassante, magari al mare")
+    conv = say(client, conv, "Nella bilanciata, il giorno 2 vorrei fare qualcosa di diverso")
     after = active(conv)["balanced"]
     assert after["id"] != before["id"]  # never edited in place
     assert {i["id"]: i["status"] for i in conv["itineraries"]}[before["id"]] == "discarded"
@@ -73,3 +73,15 @@ def make_toolbox(session, conversation_id: str) -> ProposalToolbox:
 
     service = ConversationService(session, get_interpreter(), index_factory, get_settings())
     return ProposalToolbox(service, session.get(Conversation, conversation_id))
+
+
+def test_swap_respects_the_requested_category(client):
+    conv = plan_trip(client)
+    before = active(conv)["balanced"]
+    used_relax = sum(d["activity"]["category"] == "relax" for d in before["days_plan"])
+    conv = say(client, conv, "Nella bilanciata, il giorno 2 vorrei qualcosa di rilassante")
+    after = active(conv)["balanced"]
+    if after["id"] == before["id"]:  # no relax option left: explained, nothing silently replaced
+        assert used_relax > 0 and "Non posso sostituire il giorno 2" in conv["messages"][-1]["content"]
+    else:
+        assert after["days_plan"][1]["activity"]["category"] == "relax"

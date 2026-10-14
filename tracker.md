@@ -68,6 +68,7 @@ Stato di avanzamento del progetto, organizzato per le fasi di [ADR-0015](docs/ad
 - [~] Dashboard prenotazioni
 - [~] Storico conversazioni (elenco + ripresa)
 - [x] Rinomina ed eliminazione delle conversazioni (le prenotazioni confermate restano)
+- [x] Rendering Markdown sicuro delle risposte dell'assistente (anche durante lo streaming)
 
 ### Qualità
 
@@ -136,6 +137,7 @@ Le scelte prese durante l'implementazione che non meritano un ADR, ma che vanno 
 - **Endpoint SSE con thread worker e sessione propria**: l'orchestratore è sincrono e la sessione della dipendenza FastAPI può chiudersi prima della fine dello stream; il contesto copiato mantiene `request_id` e `user_id` nei log.
 - **Tool calling: l'LLM non vede mai un id**. Si riferisce a "variante + giorno" e il codice risolve il riferimento. Gli argomenti dei tool sono solo stringhe, interi ed enum, perché i provider supportano sottoinsiemi diversi di JSON Schema. Le modifiche creano un nuovo itinerario validato e quello vecchio viene scartato; i tool che cambiano fase sono terminali e restituiscono il controllo all'orchestratore.
 - **`thought_signature` di Gemini 3**: le chiamate di tool vanno rimandate indietro con i campi specifici del provider, altrimenti Gemini risponde 400. Ogni tool call conserva quei campi, che vengono riallegati solo allo stesso provider che li ha prodotti.
-- **Markdown ripulito dal codice** prima di salvare i messaggi dell'assistente (la chat mostra testo semplice): una garanzia, non una richiesta al modello.
+- **Risposte in Markdown**: i prompt chiedono sempre Markdown, nel sottoinsieme che la UI mostra (grassetto, corsivo, elenchi, codice, citazioni). Il frontend non esegue HTML e non mostra link, immagini, titoli e tabelle, perché il testo di un LLM è non fidato e un link iniettato via prompt injection porterebbe ovunque. Anche mock e messaggi di sistema usano Markdown, così l'aspetto non dipende dal provider.
 - **Eliminazione delle conversazioni**: messaggi e proposte non prenotate vengono cancellati davvero. Se ci sono prenotazioni confermate resta solo una riga di conversazione svuotata e nascosta (`deleted_at`), necessaria all'itinerario prenotato.
 - **Limiti noti della UI**: su mobile Esc chiude insieme la finestra di conferma dell'eliminazione e il pannello laterale; se si elimina una conversazione mentre una risposta è ancora in streaming, a fine risposta la conversazione può ricomparire nell'elenco.
+- **`swap_activity` con categoria esplicita**: chiedendo "qualcosa di culturale" con poco budget residuo, il sistema sceglieva l'attività più simile tra quelle economiche, cioè una corsa allo stadio (sport). Ora il tool riceve la categoria e, se nessuna attività di quella categoria è disponibile, risponde con il motivo preciso (già nel programma, non disponibile quel giorno, fuori budget) invece di sostituire con altro.

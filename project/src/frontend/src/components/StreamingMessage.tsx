@@ -1,3 +1,4 @@
+import { Markdown } from "./Markdown";
 import type { StreamProviderInfo } from "../api/types";
 import { AssistantAvatar } from "./Avatar";
 import { ASSISTANT_BUBBLE } from "./MessageItem";
@@ -48,9 +49,9 @@ export function StreamingMessage({ stream }: { stream: StreamingState }) {
           )}
         >
           {stream.text ? (
-            // Testo in chiaro come nei messaggi definitivi: nessun dato strutturato viene estratto da qui.
-            <div className="break-words whitespace-pre-wrap">
-              {stream.text}
+            // Markdown come nei messaggi definitivi (anche parziale): nessun dato strutturato viene estratto da qui.
+            <div>
+              <Markdown text={stream.text} />
               <span
                 aria-hidden
                 className="ml-0.5 inline-block h-[1.1em] w-0.5 translate-y-[0.2em] rounded-full bg-current opacity-60 motion-safe:animate-caret"

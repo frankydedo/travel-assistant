@@ -48,6 +48,9 @@ class SwapActivityArgs(BaseModel):
     variant: Variant
     day: int = Field(ge=1, le=14, description="Numero del giorno del viaggio (1 = primo giorno)")
     request: str = Field(description="Che tipo di attività vuole l'utente al posto di quella attuale")
+    category: Literal["cultura", "sport", "relax", "nightlife", "natura", "gastronomia", "qualsiasi"] = Field(
+        description="Categoria richiesta dall'utente; 'qualsiasi' se non ne indica una"
+    )
 
 
 class ChangeHotelArgs(BaseModel):
@@ -189,7 +192,8 @@ class ProposalToolbox:
         old = self._itinerary(args.variant)
         catalog, plan = self._rehydrate(old)
         relevance = self._relevance(args.request, old)
-        new_plan, before, after = replace_activity(plan, args.day, catalog, relevance)
+        category = None if args.category == "qualsiasi" else args.category
+        new_plan, before, after = replace_activity(plan, args.day, catalog, relevance, category)
         new = self._replace(old, new_plan)
         summary = (
             f"Nella variante {VARIANT_LABELS[old.variant]} ho sostituito «{before.name}» del giorno {args.day} "
