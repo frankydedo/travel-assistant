@@ -1,0 +1,83 @@
+name: travel-assistant
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: travel
+      POSTGRES_PASSWORD: travel
+      POSTGRES_DB: travel
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travel -d travel"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: travel
+      KC_DB_PASSWORD: travel
+      # Tokens are issued for the URL the browser uses; the backend reaches Keycloak on the internal network.
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./infra/keycloak/travel-realm.json:/opt/keycloak/data/import/travel-realm.json:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  backend:
+    build: ./src/backend
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+psycopg://travel:travel@postgres:5432/travel
+      OIDC_ISSUER: http://localhost:8080/realms/travel
+      OIDC_JWKS_URL: http://keycloak:8080/realms/travel/protocol/openid-connect/certs
+      OIDC_AUDIENCE: travel-api
+      CHROMA_PATH: /data/chroma
+      LOG_FORMAT: json
+    volumes:
+      - backend-data:/data
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # LM Studio running on the host (ADR-0005)
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./src/frontend
+      args:
+        VITE_KEYCLOAK_URL: http://localhost:8080
+        VITE_KEYCLOAK_REALM: travel
+        VITE_KEYCLOAK_CLIENT_ID: travel-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+      - keycloak
+
+volumes:
+  pgdata:
+  backend-data:

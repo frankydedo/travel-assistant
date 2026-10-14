@@ -1,0 +1,65 @@
+{
+  "realm": "travel",
+  "enabled": true,
+  "displayName": "Assistente viaggi",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "rememberMe": true,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["it", "en"],
+  "defaultLocale": "it",
+  "accessTokenLifespan": 900,
+  "clients": [
+    {
+      "clientId": "travel-frontend",
+      "name": "Assistente viaggi (frontend)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:3000/*", "http://localhost:5173/*"],
+      "webOrigins": ["http://localhost:3000", "http://localhost:5173"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*##http://localhost:5173/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience travel-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "travel-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "demo",
+      "enabled": true,
+      "email": "demo@example.com",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Viaggiatore",
+      "credentials": [{ "type": "password", "value": "demo", "temporary": false }]
+    },
+    {
+      "username": "reviewer",
+      "enabled": true,
+      "email": "reviewer@example.com",
+      "emailVerified": true,
+      "firstName": "Reviewer",
+      "lastName": "Test",
+      "credentials": [{ "type": "password", "value": "reviewer", "temporary": false }]
+    }
+  ]
+}
