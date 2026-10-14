@@ -15,7 +15,7 @@ from app.domain.requirements import (
     DestinationType,
     RequirementsUpdate,
 )
-from app.llm.base import LLMError, LLMResult, LLMTask
+from app.llm.base import LLMError, LLMResult, LLMTask, ToolCall
 from app.llm.interpreter import DestinationChoice, Extraction, ProposalAction
 from app.textfmt import day_it, eur
 
@@ -410,6 +410,42 @@ def interpret_proposal(message: str, variants: list[str]) -> ProposalAction:
     return ProposalAction(action="question")
 
 
+SWAP_PATTERN = r"\bgiorno\s+(\d{1,2})\b|\b(\d{1,2})[°º]?\s*giorno\b"
+CHANGE_WORDS = r"cambi|sostitu|vorrei|preferi|altr[oa]|divers|invece|più |meno "
+HOTEL_BETTER = r"miglior|più bello|più stelle|superiore|lusso|più confortevole"
+HOTEL_CHEAPER = r"econom|meno car|risparm|più basso|costa meno"
+SEARCH_PATTERN = r"(che|quali) attivit|cosa (c'è|ce|si può|posso) fare|attività (ci sono|disponibili)|cosa offre"
+
+
+def choose_tool(message: str, proposals: list[dict], phase: str) -> tuple[str, dict] | None:
+    """Rule-based emulation of the proposal-phase tool choice; ``None`` means a plain text answer."""
+    text = message.lower()
+    variants = [p["variant"] for p in proposals]
+    mentioned = _last_match({v: w for v, w in VARIANT_WORDS.items() if v in variants}, text, prefix=True)
+    chosen = next((p["variant"] for p in proposals if p.get("stato") == "scelta"), None)
+    target = mentioned or chosen or ("balanced" if "balanced" in variants else (variants[0] if variants else None))
+    if is_off_topic_request(text):
+        return "flag_out_of_scope", {}
+    day = re.search(SWAP_PATTERN, text)
+    if day and target and re.search(CHANGE_WORDS, text):
+        return "swap_activity", {"variant": target, "day": int(day.group(1) or day.group(2)), "request": message}
+    if re.search(r"\b(hotel|albergo)", text) and target:
+        if re.search(HOTEL_BETTER, text):
+            return "change_hotel", {"variant": target, "direction": "better"}
+        if re.search(HOTEL_CHEAPER, text):
+            return "change_hotel", {"variant": target, "direction": "cheaper"}
+    if re.search(SEARCH_PATTERN, text):
+        return "search_activities", {"query": message}
+    action = interpret_proposal(message, variants)
+    if action.action == "select_variant":
+        return "select_variant", {"variant": action.variant}
+    if action.action == "update_requirements":
+        return "update_requirements", {"change": message}
+    if action.action == "out_of_scope":
+        return "flag_out_of_scope", {}
+    return None
+
+
 def _join(items: list[str]) -> str:
     return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " e " + items[-1]
 
@@ -485,7 +521,10 @@ class MockProvider:
     def is_configured(self) -> bool:
         return True
 
-    def generate(self, task: LLMTask) -> LLMResult:
+    def __init__(self, stream_delay_ms: int = 0):
+        self.stream_delay_ms = stream_delay_ms  # optional pacing so streaming is visible in demos
+
+    def generate(self, task: LLMTask, on_token=None) -> LLMResult:
         started = time.perf_counter()
         ctx = task.context
         parsed = None
@@ -496,8 +535,6 @@ class MockProvider:
             else:
                 update = extract(ctx["message"], ctx.get("missing", []))
                 parsed = Extraction(in_scope=is_in_scope(ctx["message"], update), requirements=update)
-        elif task.name == "interpret_proposal_reply":
-            parsed = interpret_proposal(ctx["message"], ctx["variants"])
         elif task.name == "choose_destination":
             best = max(ctx["feasible"], key=lambda c: (c["preference_score"], -c["min_cost"]))
             parsed = DestinationChoice(
@@ -505,12 +542,34 @@ class MockProvider:
                 reason=f"Ti consiglio {best['name']} ({best['destination']}): tra le mete che rientrano nel budget "
                 "è quella con le attività più vicine ai tuoi gusti.",
             )
+        elif task.name == "proposal_tools":
+            if ctx["tool_summaries"]:  # second step: report what the tools did (code-written summaries)
+                text = " ".join(ctx["tool_summaries"])
+            else:
+                choice = choose_tool(ctx["message"], ctx["proposals"], ctx["phase"])
+                if choice is not None:
+                    name, arguments = choice
+                    return LLMResult(
+                        text="",
+                        parsed=None,
+                        provider=self.name,
+                        model=self.model,
+                        input_tokens=0,
+                        output_tokens=0,
+                        tool_calls=[ToolCall(id=f"mock-{name}", name=name, arguments=arguments)],
+                    )
+                text = write_reply("answer", {"phase": ctx["phase"]})
         elif task.name.startswith("reply:"):
             text = write_reply(ctx["kind"], ctx)
         else:
             raise LLMError(f"mock: unknown task {task.name}")
         if parsed is not None:
             text = parsed.model_dump_json()
+        elif on_token is not None:
+            for word in re.findall(r"\S+\s*", text):
+                on_token(word)
+                if self.stream_delay_ms:
+                    time.sleep(self.stream_delay_ms / 1000)
         return LLMResult(
             text=text,
             parsed=parsed,

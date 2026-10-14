@@ -5,6 +5,7 @@ structured context the deterministic mock needs. This lets the rule-based mock s
 chain as the real providers.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Protocol
 
@@ -23,6 +24,29 @@ class TransientError(LLMError):
     """Timeout or 5xx: worth a retry with backoff."""
 
 
+class Unavailable(LLMError):
+    """Unreachable, no model loaded or invalid credentials: skip the provider for a while (cooldown)."""
+
+
+@dataclass(frozen=True)
+class ToolSpec:
+    """A tool the LLM may call. Arguments are validated against ``parameters`` by the code that runs it."""
+
+    name: str
+    description: str
+    parameters: type[BaseModel]
+
+
+@dataclass
+class ToolCall:
+    id: str
+    name: str
+    arguments: dict
+    provider: str = ""
+    # Provider-specific fields to send back unchanged, e.g. Gemini's thought_signature (``extra_content``).
+    extra: dict = field(default_factory=dict)
+
+
 @dataclass
 class LLMTask:
     name: str
@@ -31,6 +55,9 @@ class LLMTask:
     output_schema: type[BaseModel] | None = None
     context: dict = field(default_factory=dict)  # structured inputs for the rule-based mock
     prompt_version: str = ""
+    tools: list[ToolSpec] | None = None
+    # Extra turns after the user message (assistant tool calls and tool results) in OpenAI chat format.
+    followups: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -50,6 +77,7 @@ class LLMResult:
     output_tokens: int | None = None
     latency_ms: int = 0
     attempts: list[Attempt] = field(default_factory=list)
+    tool_calls: list[ToolCall] = field(default_factory=list)
 
     @property
     def fell_back(self) -> bool:
@@ -62,4 +90,6 @@ class LLMProvider(Protocol):
 
     def is_configured(self) -> bool: ...
 
-    def generate(self, task: LLMTask) -> LLMResult: ...
+    def generate(self, task: LLMTask, on_token: Callable[[str], None] | None = None) -> LLMResult:
+        """``on_token`` receives text chunks as they arrive (text tasks only)."""
+        ...

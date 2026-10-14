@@ -11,7 +11,7 @@ Questo documento visualizza il percorso completo, dalla prima frase dell'utente 
 | **Keycloak** | identity provider | Autentica l'utente e rilascia il JWT |
 | **Orchestratore** | codice deterministico | State machine delle fasi: decide le transizioni, valida ed esegue i tool, chiama planner e validatore |
 | **Interprete LLM** | probabilistico | Comprende il linguaggio (estrae i requisiti) e spiega i risultati (domande, presentazione delle varianti). Può **proporre** tool call, non eseguirle |
-| **Gateway LLM** | codice deterministico | Catena di fallback Gemini → Groq → LM Studio → Mock, con cooldown; registra il provider di ogni risposta |
+| **Gateway LLM** | codice deterministico | Catena di fallback Groq → Gemini → LM Studio → Mock, con cooldown; registra il provider di ogni risposta |
 | **Tool di fase** | codice deterministico | Operazioni disponibili all'Interprete nella fase corrente, con argomenti validati da schema |
 | **RAG (Chroma)** | indice vettoriale | Ordina le attività per pertinenza alle preferenze, con filtro obbligatorio su paese e mese |
 | **Planner** | codice deterministico | Costruisce 3 varianti di itinerario (greedy) |
@@ -52,7 +52,7 @@ flowchart LR
 
     subgraph DET["Zona deterministica: il codice decide e garantisce"]
         ORCH["⚙️ Orchestratore<br/>state machine delle fasi"]
-        GW["Gateway LLM<br/>Gemini → Groq → LM Studio → Mock<br/>cooldown · tag provider"]
+        GW["Gateway LLM<br/>Groq → Gemini → LM Studio → Mock<br/>cooldown · tag provider"]
         TOOLS["🔧 Tool di fase<br/>schema Pydantic · ID verificati"]
         RAG[("Chroma<br/>RAG attività")]
         PLAN["Planner greedy<br/>3 varianti"]
@@ -157,7 +157,7 @@ sequenceDiagram
         FE->>OR: POST /chat con JWT, risposta in SSE
         OR->>OR: valida JWT, rate limit, carica lo stato
         OR->>LLM: messaggio + stato + schema dei requisiti
-        Note right of LLM: fallback Gemini → Groq → LM Studio → Mock
+        Note right of LLM: fallback Groq → Gemini → LM Studio → Mock
         LLM-->>OR: aggiornamento parziale in JSON
         OR->>OR: validazione Pydantic e merge nello stato
         OR->>LLM: formula la domanda sui campi mancanti

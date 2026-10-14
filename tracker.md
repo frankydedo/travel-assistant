@@ -57,6 +57,8 @@ Stato di avanzamento del progetto, organizzato per le fasi di [ADR-0015](docs/ad
 
 ### Frontend
 
+- [x] Landing page con «Accedi con SSO» / «Crea un account» (check-sso silenzioso con fallback)
+- [x] Interruttore tema chiaro/scuro (solo due stati; al primo accesso il valore iniziale viene dal sistema), persistito, senza flash
 - [~] Redesign moderno (Tailwind, icone, tema chiaro/scuro) con marcatura dei contenuti generati da AI
 
 - [~] Login/registrazione via Keycloak — flusso OIDC verificato; interfaccia da provare nel browser
@@ -65,6 +67,7 @@ Stato di avanzamento del progetto, organizzato per le fasi di [ADR-0015](docs/ad
 - [~] Card degli itinerari (3 varianti) e pulsante di conferma
 - [~] Dashboard prenotazioni
 - [~] Storico conversazioni (elenco + ripresa)
+- [x] Rinomina ed eliminazione delle conversazioni (le prenotazioni confermate restano)
 
 ### Qualità
 
@@ -74,11 +77,12 @@ Stato di avanzamento del progetto, organizzato per le fasi di [ADR-0015](docs/ad
 
 ## Fase 2 — LLM reali
 
-- [ ] Provider OpenAI-compatibile: Gemini, Groq, LM Studio
+- [x] Provider OpenAI-compatibile: Gemini, Groq, LM Studio (httpx, classificazione degli errori, modelli configurabili) — verificato con chiavi reali
 - [x] Catena di fallback con retry, backoff e cooldown (gateway generico, testato con provider finti)
-- [ ] Output strutturato con ripiego (JSON in testo + validazione + retry)
-- [ ] Tool calling nella fase di proposta (es. sostituzione di un'attività)
-- [ ] Streaming SSE (backend + client `fetch` + `ReadableStream`)
+- [x] Output strutturato adattivo: `json_schema` → `json_object` → solo prompt, validazione Pydantic e un retry con l'errore
+- [x] Tool calling nativo nella fase di proposta: `select_variant`, `update_requirements`, `swap_activity`, `change_hotel`, `search_activities`, `get_itinerary_details`, `flag_out_of_scope`; loop limitato a 3 passi; verificato con Gemini e Groq reali
+- [x] Streaming SSE lato backend (`progress`, `provider`, `token`, `reset`, `done`, `error`)
+- [x] Streaming SSE lato client (`fetch` + `ReadableStream`, parser testato su chunk spezzati) — eventi verificati attraverso nginx senza buffering
 
 ## Fase 3 — Osservabilità
 
@@ -124,3 +128,14 @@ Le scelte prese durante l'implementazione che non meritano un ADR, ma che vanno 
 - **Tutti gli id sono UUID** (colonne `uuid` native in PostgreSQL, stringhe in Python): anche voli, hotel, attività, righe d'itinerario, chiave di idempotenza e `X-Request-ID`. Gli id del catalogo sono deterministici (uuid5 dallo slug del fixture o da volo e data), così il seed resta riproducibile; quelli creati a runtime sono casuali (uuid4). I codici ISO dei paesi e IATA degli aeroporti restano chiavi naturali. Gli id malformati vengono rifiutati con 422.
 - **Migrazioni riunite**: il passaggio a UUID è stato fatto rigenerando un'unica migrazione iniziale invece di una conversione, perché il progetto non è mai stato rilasciato. Dopo il cambio serve `docker compose down -v`.
 - **Posizione esplicita delle righe d'itinerario** (`itinerary_items.position`): con id casuali l'ordine non si può più ricavare dalla chiave.
+- **Modelli scelti con un benchmark sul task reale** (estrazione di una richiesta complessa + messaggio fuori scope). `gemini-2.5-flash` restituiva 404 (ritirato per i nuovi utenti), `gemini-3.8-flash` era accurato ma lento e spesso in 503, `gemini-flash-latest` impiegava oltre 30 s; `qwen3.8-27b` estraeva vuoto. Default: `gemini-flash-lite-latest` e `openai/gpt-oss-120b`, entrambi configurabili da `.env`. Con gli alias `-latest` viene registrato il modello restituito dall'API.
+- **`reasoning_effort=low`** sui modelli con ragionamento, per contenere la latenza; se un'API non lo accetta il provider smette di inviarlo.
+- **Schema JSON inviato una sola volta**: era incluso tre volte (prompt dell'Interprete, suggerimento del provider, `response_format`), con circa 1.800 token per estrazione e quote dei free tier esaurite prima. Ora viaggia nel prompt solo quando il provider non supporta `json_schema`.
+- **404 = provider non disponibile** (modello inesistente o ritirato), con cooldown, invece di un "formato non supportato".
+- **Streaming e fallback**: se un provider fallisce dopo aver emesso token, il gateway emette `reset` e il client scarta il testo parziale prima che risponda il provider successivo.
+- **Endpoint SSE con thread worker e sessione propria**: l'orchestratore è sincrono e la sessione della dipendenza FastAPI può chiudersi prima della fine dello stream; il contesto copiato mantiene `request_id` e `user_id` nei log.
+- **Tool calling: l'LLM non vede mai un id**. Si riferisce a "variante + giorno" e il codice risolve il riferimento. Gli argomenti dei tool sono solo stringhe, interi ed enum, perché i provider supportano sottoinsiemi diversi di JSON Schema. Le modifiche creano un nuovo itinerario validato e quello vecchio viene scartato; i tool che cambiano fase sono terminali e restituiscono il controllo all'orchestratore.
+- **`thought_signature` di Gemini 3**: le chiamate di tool vanno rimandate indietro con i campi specifici del provider, altrimenti Gemini risponde 400. Ogni tool call conserva quei campi, che vengono riallegati solo allo stesso provider che li ha prodotti.
+- **Markdown ripulito dal codice** prima di salvare i messaggi dell'assistente (la chat mostra testo semplice): una garanzia, non una richiesta al modello.
+- **Eliminazione delle conversazioni**: messaggi e proposte non prenotate vengono cancellati davvero. Se ci sono prenotazioni confermate resta solo una riga di conversazione svuotata e nascosta (`deleted_at`), necessaria all'itinerario prenotato.
+- **Limiti noti della UI**: su mobile Esc chiude insieme la finestra di conferma dell'eliminazione e il pannello laterale; se si elimina una conversazione mentre una risposta è ancora in streaming, a fine risposta la conversazione può ricomparire nell'elenco.

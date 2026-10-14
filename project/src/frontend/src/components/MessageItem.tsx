@@ -18,7 +18,7 @@ interface Props {
   onConfirmBooking: (itineraryId: string) => void;
 }
 
-const ASSISTANT_BUBBLE: Record<Provenance | "none", string> = {
+export const ASSISTANT_BUBBLE: Record<Provenance | "none", string> = {
   // Accento AI: bordo sfumato violet/indigo e fondo appena tinto.
   ai: "border border-violet-200/80 bg-linear-to-br from-violet-50/80 via-white to-indigo-50/40 shadow-sm shadow-violet-500/5 dark:border-violet-400/40 dark:from-violet-500/15 dark:via-zinc-900 dark:to-indigo-500/10",
   rules: "border border-dashed border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900",

@@ -1,6 +1,6 @@
 # Frontend
 
-React 18 + TypeScript (strict) + Vite. Autenticazione con Keycloak (OIDC, Authorization Code + PKCE) tramite `keycloak-js`. Stile con Tailwind CSS v4 (plugin `@tailwindcss/vite`, tema chiaro/scuro via `prefers-color-scheme`) e icone `lucide-react`. Nessuna libreria di componenti o di stato.
+React 18 + TypeScript (strict) + Vite. Autenticazione con Keycloak (OIDC, Authorization Code + PKCE) tramite `keycloak-js`. Stile con Tailwind CSS v4 (plugin `@tailwindcss/vite`, tema chiaro/scuro con un interruttore: dark mode a classe `.dark` su `<html>`, scelta salvata in localStorage e applicata da uno script inline in `index.html` per evitare il lampo del tema sbagliato; al primo accesso il valore iniziale viene dal sistema) e icone `lucide-react`. Nessuna libreria di componenti o di stato.
 
 ## Comandi
 

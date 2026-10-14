@@ -65,6 +65,8 @@ Il parallelo è voluto: **in entrambi i livelli l'AI non ha l'ultima parola sull
 | Contenuti AI nella UI | — | **Ogni contenuto generato da AI è marcato** con l'icona delle stelline; il mock (regole) e il codice hanno marcature diverse | **Io**: requisito; **l'AI** ha proposto di distinguere AI, regole e codice e di esporre la provenienza come dato dell'API |
 | Logging | — | **JSON su stdout**, eventi dal nome stabile, nessun contenuto dei messaggi; separato da trace LLM e audit (ADR-0017) | **Io**: scelta della destinazione dei log; **l'AI** ha proposto la separazione in tre canali |
 | Identificatori | Id interi per voli e righe d'itinerario, slug per hotel e attività | **Tutti gli id sono UUID**, deterministici per il catalogo (seed riproducibile) e casuali a runtime | **Io**: requisito; **l'AI** ha proposto gli UUID deterministici per non perdere la riproducibilità del seed |
+| Tool calling | Due opzioni: azioni strutturate estese o tool calling nativo | **Tool calling nativo**, loop limitato, l'LLM non vede mai un id | **Io**: scelta del nativo; **l'AI** ha proposto i vincoli di sicurezza (niente id, tool terminali, nuovo itinerario validato) |
+| Eliminazione delle conversazioni | — | Cancellazione reale di messaggi e proposte; resta solo il minimo necessario alle prenotazioni confermate | **Io**: requisito; **l'AI** ha segnalato il vincolo delle prenotazioni |
 | Streaming | SSE o WebSocket | **SSE** | **Io**: WebSocket è eccessivo per una comunicazione unidirezionale |
 | Multimodalità | Opzionale, con due approcci possibili | **Esclusa** | **Io**: non rafforza il nucleo e aggiunge superficie di attacco |
 | Message broker | (proposto da me) | **Escluso e documentato** | **L'AI** l'ha sconsigliato come over-engineering; **io** ho accettato, chiedendo di motivare tutte le esclusioni |
@@ -95,6 +97,11 @@ Casi reali emersi durante l'implementazione. Nessuno è stato trovato rileggendo
 | Il costo minimo stimato ignorava che le attività devono essere distinte e sottostimava il costo | Unit test con budget esattamente pari al minimo | Stima con attività distinte |
 | Con "agosto" tutte le varianti partivano il 31 agosto (settembre costa meno): corretto per il codice, assurdo per l'utente | Esecuzione end-to-end di una conversazione | Il viaggio si svolge nel mese quando possibile; assunzione documentata |
 | Il file di migrazione generato conteneva una data, in contrasto con una regola di progetto | Controllo dei file generati | Data rimossa dal file e dal template |
+| Lo schema JSON dell'output veniva inviato tre volte per ogni chiamata (circa 1.800 token) | Benchmark con le chiavi reali: Groq ha risposto 429 dopo una sola chiamata | Schema inviato una sola volta, e nel prompt solo se il provider non supporta `json_schema` |
+| Un modello ritirato (404) veniva trattato come "formato non supportato", scalando i formati inutilmente | Prova con la chiave Gemini reale | Il 404 rende il provider non disponibile, con cooldown |
+| Con un LLM reale la risposta a "chiedi l'aeroporto di partenza" era «Buongiorno!», e le varianti venivano chiamate "economy/balanced" | Conversazioni di prova con Gemini | Prompt di scrittura riformulato, etichette italiane nei dati passati al modello |
+| Gemini falliva sempre al secondo passo del loop di tool, e il fallback su Groq lo nascondeva | Log `llm.provider_failed` e riproduzione diretta della chiamata | La `thought_signature` di Gemini 3 viene rimandata allo stesso provider |
+| Dopo una modifica il modello scriveva «il totale rimane» con un totale diverso, e presentava il nuovo hotel come quello "già" previsto | Conversazioni di prova con il tool calling | I risultati dei tool riportano anche il valore precedente (attività, hotel, totale) |
 
 
 

@@ -4,6 +4,7 @@ import { Activity, LogOut, MessagesSquare, Plane, Ticket, type LucideIcon } from
 import { getMe } from "./api/client";
 import { logout, tokenDisplayName } from "./auth/keycloak";
 import { UserAvatar } from "./components/Avatar";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { Button } from "./components/ui/Button";
 import { cn } from "./components/ui/cn";
 import { CatalogProvider } from "./lib/catalog";
@@ -62,8 +63,9 @@ export function App() {
             </div>
           </nav>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <UserAvatar name={userName} />
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <ThemeToggle className="sm:mr-1" />
+            <UserAvatar name={userName} className="hidden min-[400px]:flex" />
             <span className="hidden max-w-40 truncate text-sm font-medium lg:inline">{userName}</span>
             <Button variant="ghost" size="icon" onClick={logout} aria-label="Esci" title="Esci">
               <LogOut className="size-4" aria-hidden />

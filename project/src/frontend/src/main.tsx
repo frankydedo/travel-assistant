@@ -1,34 +1,57 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { Plane } from "lucide-react";
 import { App } from "./App";
 import { initKeycloak } from "./auth/keycloak";
+import { LandingPage } from "./pages/LandingPage";
+import "./theme/theme";
 import "./styles.css";
 
 const rootEl = document.getElementById("root")!;
 const root = createRoot(rootEl);
 
-// Keycloak va inizializzato una sola volta, fuori da React (StrictMode esegue gli effect due volte).
-initKeycloak()
-  .then((authenticated) => {
-    if (!authenticated) return; // login-required: keycloak-js ha già rediretto al login.
+type AuthState = "loading" | "anonymous" | "unavailable" | "authenticated";
+let state: AuthState = "loading";
+
+function render(next: AuthState) {
+  state = next;
+  if (next === "loading") {
     root.render(
-      <StrictMode>
+      <div className="flex h-full items-center justify-center" role="status" aria-label="Caricamento">
+        <span className="flex size-10 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30 motion-safe:animate-pulse">
+          <Plane className="size-5 -rotate-12" aria-hidden />
+        </span>
+      </div>,
+    );
+    return;
+  }
+  root.render(
+    <StrictMode>
+      {next === "authenticated" ? (
         <BrowserRouter>
           <App />
         </BrowserRouter>
-      </StrictMode>,
-    );
-  })
+      ) : (
+        // Nessuna chiamata API dalla landing: l'utente non è autenticato.
+        <LandingPage authUnavailable={next === "unavailable"} />
+      )}
+    </StrictMode>,
+  );
+}
+
+render("loading");
+
+// Keycloak va inizializzato una sola volta, fuori da React (StrictMode esegue gli effect due volte).
+initKeycloak()
+  .then((authenticated) => render(authenticated ? "authenticated" : "anonymous"))
   .catch(() => {
-    root.render(
-      <div className="flex min-h-full items-center justify-center p-6">
-        <div className="max-w-md rounded-2xl border border-rose-200 bg-white p-6 shadow-sm dark:border-rose-500/30 dark:bg-zinc-900">
-          <h1 className="text-lg font-semibold">Autenticazione non disponibile</h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Impossibile contattare Keycloak. Verifica che il servizio sia avviato e ricarica la pagina.
-          </p>
-        </div>
-      </div>,
-    );
+    // Keycloak non raggiungibile: si mostra comunque la landing, con un avviso.
+    if (state !== "authenticated") render("unavailable");
   });
+
+// Il check silenzioso di keycloak-js non ha un timeout proprio: se l'iframe non risponde
+// non si resta bloccati sullo splash. Se poi la verifica riesce, si passa all'app.
+window.setTimeout(() => {
+  if (state === "loading") render("anonymous");
+}, 8000);

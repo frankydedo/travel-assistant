@@ -4,13 +4,12 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.domain.requirements import TripRequirements
+from app.llm.registry import AI_PROVIDERS  # noqa: F401  (re-exported for the presenters)
 
 Provider = Literal["GEMINI", "GROQ", "LMSTUDIO", "MOCK", "SYSTEM"]
-# Only these produce generative-AI text. MOCK is deterministic rules, SYSTEM is code.
-AI_PROVIDERS = {"GEMINI", "GROQ", "LMSTUDIO"}
 
 
 class MessageOut(BaseModel):
@@ -111,6 +110,18 @@ class ConversationDetail(ConversationSummary):
     missing_fields: list[str]
     messages: list[MessageOut]
     itineraries: list[ItineraryOut]
+
+
+class RenameConversation(BaseModel):
+    title: str
+
+    @field_validator("title")
+    @classmethod
+    def _clean(cls, value: str) -> str:
+        value = " ".join(value.split())
+        if not 1 <= len(value) <= 80:
+            raise ValueError("il titolo deve avere tra 1 e 80 caratteri")
+        return value
 
 
 class SendMessage(BaseModel):

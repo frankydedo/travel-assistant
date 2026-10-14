@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Dark mode a classe: `.dark` su <html> è gestita da src/theme/theme.ts (Chiaro / Scuro / Sistema). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Token del tema. Superfici neutre (zinc), un solo accento (indigo/violet),
    colori semantici per le varianti: economica = emerald, bilanciata = sky, premium = amber. */
 @theme {
@@ -10,11 +13,39 @@
     0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
     30% { transform: translateY(-3px); opacity: 1; }
   }
+
+  /* Animazioni decorative della landing (usate solo con motion-safe:). */
+  --animate-float: float 7s ease-in-out infinite;
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  --animate-dash: dash 1.6s linear infinite;
+  @keyframes dash {
+    to { stroke-dashoffset: -28; }
+  }
+  --animate-pin-pulse: pin-pulse 2.8s ease-out infinite;
+  @keyframes pin-pulse {
+    0% { transform: scale(0.6); opacity: 0.7; }
+    80%, 100% { transform: scale(2.2); opacity: 0; }
+  }
+  --animate-drift: drift 24s ease-in-out infinite alternate;
+  @keyframes drift {
+    from { transform: translateX(-12px); }
+    to { transform: translateX(14px); }
+  }
+  --animate-caret: caret 1s steps(2, start) infinite;
+  @keyframes caret {
+    to { visibility: hidden; }
+  }
 }
 
 @layer base {
   :root {
-    color-scheme: light dark;
+    color-scheme: light;
+  }
+  :root.dark {
+    color-scheme: dark;
   }
   html, body, #root {
     height: 100%;

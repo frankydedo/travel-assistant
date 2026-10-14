@@ -10,7 +10,10 @@ import { cn } from "./ui/cn";
 
 export type Provenance = "ai" | "rules" | "system";
 
-export function messageProvenance(m: Message): Provenance | null {
+/** Campi di provenienza di un messaggio (anche di uno ancora in streaming). */
+export type ProvenanceSource = Pick<Message, "role" | "provider" | "model" | "ai_generated">;
+
+export function messageProvenance(m: ProvenanceSource): Provenance | null {
   if (m.role !== "assistant") return null;
   if (m.ai_generated) return "ai";
   if (m.provider === "MOCK") return "rules";
@@ -21,7 +24,7 @@ export function messageProvenance(m: Message): Provenance | null {
 const PILL = "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset";
 
 /** Etichetta sopra il testo di un messaggio dell'assistente. */
-export function MessageProvenanceBadge({ message }: { message: Message }) {
+export function MessageProvenanceBadge({ message }: { message: ProvenanceSource }) {
   const kind = messageProvenance(message);
   if (kind === "ai") {
     const provider = message.provider ?? "LLM";

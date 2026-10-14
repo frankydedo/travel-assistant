@@ -25,7 +25,7 @@ Quasi tutti gli ADR applicano questo principio a un punto specifico del sistema.
 | [0002](0002-requisiti-strutturati-valori-flessibili.md) | Requisiti strutturati, tutti obbligatori, con valori flessibili | Accettata |
 | [0003](0003-planner-greedy-tre-varianti.md) | Planner greedy sostituibile, 3 varianti, validatore deterministico | Accettata |
 | [0004](0004-rag-chroma-embedding-locali.md) | RAG con Chroma, embedding locali e filtri sui metadati | Accettata |
-| [0005](0005-provider-llm-catena-fallback.md) | Adapter LLM e catena di fallback con tag del provider | Accettata |
+| [0005](0005-provider-llm-catena-fallback.md) | Adapter LLM e catena di fallback con tag del provider | Accettata (ordine sostituito da 0018) |
 | [0006](0006-prenotazione-sicura.md) | Prenotazione sicura: conferma esplicita, transazione, idempotenza | Accettata |
 | [0007](0007-guardrail-sicurezza-ai.md) | Guardrail di sicurezza specifici per l'AI | Accettata |
 | [0008](0008-valutazione-golden-set-judge.md) | Valutazione: golden set, metriche deterministiche, LLM-as-judge | Accettata |
@@ -38,3 +38,4 @@ Quasi tutti gli ADR applicano questo principio a un punto specifico del sistema.
 | [0015](0015-perimetro-priorita-esclusioni.md) | Perimetro, priorità ed esclusioni consapevoli | Accettata |
 | [0016](0016-guardrail-di-dominio.md) | Guardrail di dominio: rifiuto delle richieste fuori scope | Accettata (estende 0007) |
 | [0017](0017-logging-strutturato.md) | Logging strutturato su stdout, separato da trace LLM e audit | Accettata |
+| [0018](0018-ordine-catena-groq-prima.md) | Ordine della catena: Groq prima di Gemini | Accettata (sostituisce l'ordine di 0005) |

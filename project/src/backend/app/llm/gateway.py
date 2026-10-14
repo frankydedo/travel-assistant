@@ -6,7 +6,16 @@ from collections.abc import Callable
 
 from pydantic import ValidationError
 
-from app.llm.base import Attempt, LLMError, LLMProvider, LLMResult, LLMTask, RateLimited, TransientError
+from app.llm.base import (
+    Attempt,
+    LLMError,
+    LLMProvider,
+    LLMResult,
+    LLMTask,
+    RateLimited,
+    TransientError,
+    Unavailable,
+)
 
 log = logging.getLogger(__name__)
 
@@ -33,8 +42,24 @@ class Gateway:
         self.sleep = sleep
         self._cooldown_until: dict[str, float] = {}
 
-    def generate(self, task: LLMTask) -> LLMResult:
+    def generate(
+        self,
+        task: LLMTask,
+        on_token: Callable[[str], None] | None = None,
+        on_reset: Callable[[], None] | None = None,
+        on_attempt: Callable[[str, str], None] | None = None,
+    ) -> LLMResult:
+        """Run the task on the first healthy provider. With streaming, a provider that fails after emitting
+        tokens triggers ``on_reset`` so the client discards the partial text before the next provider."""
         attempts: list[Attempt] = []
+        streamed = False
+
+        def relay(chunk: str) -> None:
+            nonlocal streamed
+            streamed = True
+            if on_token is not None:
+                on_token(chunk)
+
         for provider in self.providers:
             if not provider.is_configured():
                 attempts.append(Attempt(provider.name, "skipped", "not configured"))
@@ -43,8 +68,13 @@ class Gateway:
                 attempts.append(Attempt(provider.name, "cooldown"))
                 continue
             for attempt in range(self.retries + 1):
+                if streamed and on_reset is not None:
+                    on_reset()
+                streamed = False
+                if on_attempt is not None:
+                    on_attempt(provider.name, provider.model)
                 try:
-                    result = provider.generate(task)
+                    result = provider.generate(task, relay if on_token is not None else None)
                     self._check_schema(task, result)
                     attempts.append(Attempt(provider.name, "ok"))
                     result.attempts = attempts
@@ -62,9 +92,10 @@ class Gateway:
                         },
                     )
                     return result
-                except RateLimited as exc:
+                except (RateLimited, Unavailable) as exc:
                     self._cooldown_until[provider.name] = self.clock() + self.cooldown_seconds
-                    attempts.append(Attempt(provider.name, "rate_limited", str(exc)[:200]))
+                    outcome = "rate_limited" if isinstance(exc, RateLimited) else "unavailable"
+                    attempts.append(Attempt(provider.name, outcome, str(exc)[:200]))
                     break
                 except TransientError as exc:
                     if attempt < self.retries:
@@ -82,6 +113,8 @@ class Gateway:
                     "outcome": attempts[-1].outcome if attempts else None,
                 },
             )
+        if streamed and on_reset is not None:
+            on_reset()
         raise AllProvidersFailed(f"no provider could run task {task.name}: {attempts}")
 
     @staticmethod

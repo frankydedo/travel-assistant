@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Compass, ListChecks, PanelLeft, Plus } from "lucide-react";
+import { Compass, ListChecks, PanelLeft, Plus, Trash2 } from "lucide-react";
 import {
   ApiError,
   createBooking,
   createConversation,
+  deleteConversation,
   errorMessage,
   getConversation,
   listConversations,
+  renameConversation,
   selectItinerary,
-  sendMessage,
+  sendMessageStream,
+  StreamError,
+  StreamInterruptedError,
 } from "../api/client";
 import type { ConversationDetail, ConversationSummary } from "../api/types";
 import { UserAvatar } from "../components/Avatar";
@@ -18,10 +22,11 @@ import { ConversationSidebar } from "../components/ConversationSidebar";
 import { MessageItem, type BookingAttempt } from "../components/MessageItem";
 import { StatusPanel } from "../components/StatusPanel";
 import { SuggestionChips } from "../components/SuggestionChips";
-import { TypingIndicator } from "../components/TypingIndicator";
+import { StreamingMessage, type StreamingState } from "../components/StreamingMessage";
 import { Alert } from "../components/ui/Alert";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { Drawer } from "../components/ui/Drawer";
 import { Skeleton } from "../components/ui/Skeleton";
 import { PHASE_LABELS } from "../lib/format";
@@ -42,9 +47,13 @@ export function ChatPage({ userName }: { userName: string }) {
   selectedIdRef.current = selectedId;
 
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const conversationsRef = useRef(conversations);
+  conversationsRef.current = conversations;
   const [listError, setListError] = useState<string | null>(null);
   const [listLoading, setListLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [toDelete, setToDelete] = useState<ConversationSummary | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [detail, setDetail] = useState<ConversationDetail | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
@@ -54,6 +63,8 @@ export function ChatPage({ userName }: { userName: string }) {
   const [sendingFor, setSendingFor] = useState<string | null>(null);
   const [pendingText, setPendingText] = useState<string | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
+  // Risposta in arrivo via SSE per la conversazione in sendingFor.
+  const [stream, setStream] = useState<StreamingState | null>(null);
 
   const [selectingId, setSelectingId] = useState<string | null>(null);
   const [booking, setBooking] = useState<Record<string, BookingAttempt>>({});
@@ -136,9 +147,12 @@ export function ChatPage({ userName }: { userName: string }) {
     void refreshDetail(selectedId).finally(() => setLoadingDetail(false));
   }, [selectedId, refreshDetail]);
 
+  const streamText = stream?.text ?? "";
+  const streamStatus = stream?.status ?? null;
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [detail?.messages.length, pendingText]);
+    // Durante lo streaming del testo niente animazione: ogni token riavvierebbe lo scroll morbido.
+    endRef.current?.scrollIntoView({ behavior: streamText ? "auto" : "smooth", block: "end" });
+  }, [detail?.messages.length, pendingText, streamText, streamStatus]);
 
   // Su mobile, scegliere una conversazione chiude il drawer.
   useEffect(() => {
@@ -161,6 +175,56 @@ export function ChatPage({ userName }: { userName: string }) {
     }
   }
 
+  /** Applica un titolo a lista e dettaglio (usato sia per l'ottimistico sia per il rollback). */
+  const setTitle = useCallback((id: string, title: string | null) => {
+    setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, title } : c)));
+    setDetail((d) => (d && d.id === id ? { ...d, title } : d));
+  }, []);
+
+  async function handleRename(id: string, title: string) {
+    const previous = conversations.find((c) => c.id === id)?.title ?? null;
+    setTitle(id, title);
+    try {
+      const updated = await renameConversation(id, title);
+      setConversations((prev) => prev.map((c) => (c.id === id ? updated : c)).sort(byNewest));
+      setDetail((d) => (d && d.id === id ? { ...d, ...updated } : d));
+    } catch (err) {
+      setTitle(id, previous);
+      throw err;
+    }
+  }
+
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    setListError(null);
+    try {
+      await deleteConversation(id);
+    } catch (err) {
+      // 404: già eliminata altrove, la si toglie comunque dalla lista.
+      if (!(err instanceof ApiError && err.status === 404)) {
+        setListError(`Eliminazione non riuscita: ${errorMessage(err)}`);
+        setDeletingId(null);
+        return;
+      }
+    }
+    // Lista letta dal ref: dopo l'await lo stato catturato dalla closure può essere vecchio.
+    const remaining = conversationsRef.current.filter((c) => c.id !== id);
+    setConversations(remaining);
+    setDeletingId(null);
+    if (id === selectedIdRef.current) {
+      // Come all'avvio: si apre la più recente rimasta, altrimenti lo stato vuoto.
+      const next = [...remaining].sort(byNewest)[0];
+      setDetail(null);
+      if (next) {
+        selectedIdRef.current = next.id;
+        selectConversation(next.id, true);
+      } else {
+        selectedIdRef.current = null;
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }
+
   async function handleSend(e?: FormEvent) {
     e?.preventDefault();
     const text = draft.trim();
@@ -170,16 +234,32 @@ export function ChatPage({ userName }: { userName: string }) {
     setPendingText(text);
     setDraft("");
     setChatError(null);
+    const empty: StreamingState = { status: null, provider: null, text: "" };
+    setStream(empty);
     try {
-      applyDetail(await sendMessage(convId, text));
+      const d = await sendMessageStream(convId, text, {
+        onProgress: (p) => setStream((s) => s && { ...s, status: p.message }),
+        onProvider: (info) => setStream((s) => s && { ...s, provider: info }),
+        onToken: (t) => setStream((s) => s && { ...s, text: s.text + t }),
+        // Il provider è caduto a metà e il backend è passato a un altro: si riparte da capo.
+        onReset: () => setStream((s) => s && { ...s, provider: null, text: "" }),
+        onFallback: () => setStream(empty),
+      });
+      applyDetail(d);
     } catch (err) {
-      if (convId === selectedIdRef.current) {
+      if (err instanceof StreamError || err instanceof StreamInterruptedError) {
+        // Lo stream era partito: il server ha già il messaggio. Si mostra l'errore e si rilegge lo stato reale.
+        if (convId === selectedIdRef.current) setChatError(errorMessage(err));
+        await Promise.all([refreshDetail(convId), refreshList()]);
+      } else if (convId === selectedIdRef.current) {
+        // Errore prima dello stream (4xx, rete): il messaggio non è stato accettato, lo si rimette nel composer.
         setChatError(errorMessage(err));
         setDraft(text);
       }
     } finally {
       setSendingFor(null);
       setPendingText(null);
+      setStream(null);
     }
   }
 
@@ -257,9 +337,31 @@ export function ChatPage({ userName }: { userName: string }) {
           onCreate={() => void handleCreate()}
           creating={creating}
           error={listError}
+          onRename={handleRename}
+          onDelete={(id) => setToDelete(conversations.find((c) => c.id === id) ?? null)}
+          deletingId={deletingId}
           onClose={closeSidebar}
         />
       </Drawer>
+
+      <ConfirmDialog
+        open={toDelete !== null}
+        tone="danger"
+        icon={
+          <span className="flex size-10 items-center justify-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300">
+            <Trash2 className="size-5" aria-hidden />
+          </span>
+        }
+        title="Eliminare la conversazione?"
+        description="Messaggi e proposte verranno eliminati definitivamente. Le prenotazioni confermate restano nella pagina Prenotazioni."
+        confirmLabel="Elimina"
+        onConfirm={() => {
+          const target = toDelete;
+          setToDelete(null);
+          if (target) void handleDelete(target.id);
+        }}
+        onCancel={() => setToDelete(null)}
+      />
 
       <section className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 shrink-0 items-center gap-2 border-b border-zinc-200 bg-white/70 px-3 backdrop-blur sm:px-4 dark:border-zinc-800 dark:bg-zinc-900/40">
@@ -351,7 +453,7 @@ export function ChatPage({ userName }: { userName: string }) {
                     </div>
                   </div>
                 )}
-                {sending && <TypingIndicator />}
+                {sending && stream && <StreamingMessage stream={stream} />}
                 <div ref={endRef} />
               </div>
             )}

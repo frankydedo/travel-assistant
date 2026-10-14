@@ -1,5 +1,6 @@
 """API integration tests with the mock provider (no network, no keys)."""
 
+import json
 import uuid
 
 from sqlalchemy import select
@@ -226,3 +227,72 @@ def test_ids_are_uuids_and_malformed_ids_are_rejected(client):
     response = client.post("/api/bookings", json={"itinerary_id": itinerary_id}, headers={"Idempotency-Key": "abc"})
     assert response.status_code == 422  # the idempotency key must be a UUID as well
     assert uuid.UUID(response.headers["X-Request-ID"])
+
+
+def parse_sse(body: str) -> list[tuple[str, dict]]:
+    events = []
+    for block in body.strip().split("\n\n"):
+        lines = dict(line.split(": ", 1) for line in block.splitlines())
+        events.append((lines["event"], json.loads(lines["data"])))
+    return events
+
+
+def test_streaming_turn(client):
+    conv = new_conversation(client)
+    response = client.post(f"/api/conversations/{conv['id']}/messages/stream", json={"content": TRIP})
+    assert response.status_code == 200 and response.headers["content-type"].startswith("text/event-stream")
+    events = parse_sse(response.text)
+    names = [name for name, _ in events]
+    assert names[0] == "progress" and names[-1] == "done"
+    assert {"planning", "validating", "writing"} <= {d["stage"] for n, d in events if n == "progress"}
+    provider = next(d for n, d in events if n == "provider")
+    assert provider == {"provider": "MOCK", "model": "rules-v1", "ai_generated": False}
+    streamed = "".join(d["text"] for n, d in events if n == "token")
+    detail = events[-1][1]
+    assert detail["phase"] == "PROPOSING" and streamed.strip() == detail["messages"][-1]["content"]
+
+
+def test_streaming_errors_before_the_stream_are_plain_http(client, users):
+    conv = new_conversation(client)
+    users.current = "mallory"
+    response = client.post(f"/api/conversations/{conv['id']}/messages/stream", json={"content": "ciao"})
+    assert response.status_code == 404
+
+
+def test_rename_conversation(client, users):
+    conv = new_conversation(client)
+    response = client.patch(f"/api/conversations/{conv['id']}", json={"title": "  Estate   in Grecia "})
+    assert response.status_code == 200 and response.json()["title"] == "Estate in Grecia"
+    assert client.patch(f"/api/conversations/{conv['id']}", json={"title": "   "}).status_code == 422
+    assert client.patch(f"/api/conversations/{conv['id']}", json={"title": "x" * 81}).status_code == 422
+    users.current = "mallory"
+    assert client.patch(f"/api/conversations/{conv['id']}", json={"title": "mio"}).status_code == 404
+
+
+def test_delete_conversation_removes_messages_and_proposals(client, session):
+    conv = plan_trip(client)
+    assert client.delete(f"/api/conversations/{conv['id']}").status_code == 204
+    assert client.get(f"/api/conversations/{conv['id']}").status_code == 404
+    assert all(c["id"] != conv["id"] for c in client.get("/api/conversations").json())
+    from app.models import Conversation, Itinerary, Message
+
+    assert session.get(Conversation, conv["id"]) is None
+    assert session.scalars(select(Message).where(Message.conversation_id == conv["id"])).first() is None
+    assert session.scalars(select(Itinerary).where(Itinerary.conversation_id == conv["id"])).first() is None
+
+
+def test_delete_keeps_confirmed_bookings(client, session):
+    conv = selected(client, plan_trip(client))
+    itinerary_id = conv["messages"][-1]["ui"]["itinerary_id"]
+    booking = client.post(
+        "/api/bookings", json={"itinerary_id": itinerary_id}, headers={"Idempotency-Key": str(uuid.uuid4())}
+    ).json()
+    assert client.delete(f"/api/conversations/{conv['id']}").status_code == 204
+    assert client.get(f"/api/conversations/{conv['id']}").status_code == 404
+    bookings = client.get("/api/bookings").json()
+    assert [b["id"] for b in bookings] == [booking["id"]] and bookings[0]["itinerary"]["id"] == itinerary_id
+    from app.models import Itinerary, Message
+
+    assert session.scalars(select(Message).where(Message.conversation_id == conv["id"])).first() is None
+    remaining = session.scalars(select(Itinerary.id).where(Itinerary.conversation_id == conv["id"])).all()
+    assert remaining == [itinerary_id]  # only the booked itinerary survives

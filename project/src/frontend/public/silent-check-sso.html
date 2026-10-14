@@ -1,0 +1,9 @@
+<!doctype html>
+<html>
+  <body>
+    <script>
+      // Pagina di ritorno del check-sso silenzioso di keycloak-js: inoltra l'URL (con code/state) alla finestra padre.
+      parent.postMessage(location.href, location.origin);
+    </script>
+  </body>
+</html>

@@ -5,16 +5,17 @@ builds a task and sends it through the gateway; the caller always validates what
 """
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
 from app.domain.requirements import CATEGORIES, FIELD_LABELS, RequirementsUpdate, TripRequirements
-from app.llm.base import LLMResult, LLMTask
+from app.llm.base import LLMResult, LLMTask, ToolSpec
 from app.llm.gateway import Gateway
 
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v3"
 
 SYSTEM_BASE = (
     "Sei l'assistente di un'agenzia di viaggi. Parli italiano, con tono cordiale e conciso. "
@@ -68,7 +69,6 @@ class Interpreter:
     def extract_requirements(
         self, message: str, current: TripRequirements, history: list[dict]
     ) -> Interpreted[Extraction]:
-        schema_hint = json.dumps(Extraction.model_json_schema(), ensure_ascii=False)
         task = LLMTask(
             name="extract_requirements",
             system=(
@@ -80,8 +80,7 @@ class Interpreter:
                 f"{', '.join(CATEGORIES)}; preferences.notes = la descrizione libera dei gusti; month 1-12; "
                 "duration in giorni (N notti = N+1 giorni), min_days=max_days se fissa; departure_airport "
                 "codice IATA (Roma=FCO, Milano=MXP, Napoli=NAP); travelers intero.\n"
-                f"{SCOPE_RULE} Imposta in_scope=false se il messaggio è fuori scope.\n"
-                f"Schema JSON: {schema_hint}"
+                f"{SCOPE_RULE} Imposta in_scope=false se il messaggio è fuori scope."
             ),
             user=json.dumps(
                 {"requisiti_attuali": current.model_dump(), "storia_recente": history[-6:], "messaggio": message},
@@ -93,24 +92,36 @@ class Interpreter:
         result = self._run(task)
         return Interpreted(Extraction.model_validate(result.parsed.model_dump()), result)
 
-    def interpret_proposal_reply(
-        self, message: str, variants: list[str], current: TripRequirements
-    ) -> Interpreted[ProposalAction]:
+    def proposal_step(
+        self,
+        message: str,
+        proposals: list[dict],
+        tools: list[ToolSpec],
+        followups: list[dict],
+        tool_summaries: list[str],
+        phase: str,
+    ) -> LLMResult:
+        """One step of the proposal-phase tool loop: the model calls tools or answers in text."""
         task = LLMTask(
-            name="interpret_proposal_reply",
+            name="proposal_tools",
             system=(
-                f"{SYSTEM_BASE}\nL'utente sta valutando le varianti di itinerario {variants} "
-                "(economy=economica, balanced=bilanciata, premium=premium). Classifica il messaggio: "
-                "'select_variant' se sceglie una variante (indica quale), 'update_requirements' se cambia un "
-                "requisito (riporta solo i campi cambiati), 'out_of_scope' se il messaggio è fuori scope, "
-                f"altrimenti 'question'. {SCOPE_RULE} Rispondi in JSON."
+                f"{SYSTEM_BASE}\nL'utente sta valutando queste proposte, calcolate dal sistema (fase: {phase}):\n"
+                f"{json.dumps(proposals, ensure_ascii=False)}\n"
+                "Usa gli strumenti per agire: select_variant per scegliere una variante; update_requirements per "
+                "cambiare budget, mese, durata, destinazione, partenza, viaggiatori o preferenze; swap_activity per "
+                "sostituire l'attività di un giorno; change_hotel per un hotel migliore o più economico; "
+                "search_activities per domande sulle attività disponibili; get_itinerary_details per i dettagli; "
+                "flag_out_of_scope se il messaggio è fuori ambito. Se l'utente non indica la variante, usa quella "
+                "scelta o, se nessuna è scelta, chiediglielo. Dopo i risultati degli strumenti rispondi in 1-3 frasi "
+                "usando solo quei dati, senza markdown e chiamando le varianti con il loro nome_variante. "
+                f"{SCOPE_RULE}"
             ),
-            user=json.dumps({"requisiti_attuali": current.model_dump(), "messaggio": message}, ensure_ascii=False),
-            output_schema=ProposalAction,
-            context={"message": message, "variants": variants, "missing": []},
+            user=message,
+            tools=tools,
+            followups=followups,
+            context={"message": message, "proposals": proposals, "tool_summaries": tool_summaries, "phase": phase},
         )
-        result = self._run(task)
-        return Interpreted(ProposalAction.model_validate(result.parsed.model_dump()), result)
+        return self._run(task)
 
     def choose_destination(self, feasible: list[dict], preferences: dict) -> Interpreted[DestinationChoice]:
         """``feasible`` comes from code: the LLM may only pick one of these countries."""
@@ -129,7 +140,14 @@ class Interpreter:
 
     # --- Explaining -----------------------------------------------------------------
 
-    def write(self, kind: str, facts: dict) -> LLMResult:
+    def write(
+        self,
+        kind: str,
+        facts: dict,
+        on_token: Callable[[str], None] | None = None,
+        on_reset: Callable[[], None] | None = None,
+        on_attempt: Callable[[str, str], None] | None = None,
+    ) -> LLMResult:
         """Natural-language reply built only from ``facts`` (computed by code)."""
         instructions = {
             "ask_missing": "Chiedi all'utente le informazioni mancanti elencate, in modo naturale e in una sola "
@@ -143,14 +161,23 @@ class Interpreter:
             "answer": "Rispondi alla domanda dell'utente usando solo i fatti forniti, poi riporta la conversazione "
             "sulla scelta della variante.",
         }[kind]
-        return self._run(
-            LLMTask(
-                name=f"reply:{kind}",
-                system=f"{SYSTEM_BASE}\n{instructions}",
-                user=json.dumps(facts, ensure_ascii=False, default=str),
-                context={"kind": kind, **facts},
-            )
+        task = LLMTask(
+            name=f"reply:{kind}",
+            system=(
+                f"{SYSTEM_BASE}\nStai scrivendo il prossimo messaggio dell'assistente in una chat già avviata: "
+                "niente saluti iniziali, niente markdown, da 1 a 4 frasi (un elenco puntato con • solo se serve "
+                "confrontare opzioni). Non usare chiavi interne o termini tecnici (per esempio economy, balanced, "
+                "premium, phase): chiama le varianti con il loro nome_variante. Importi in euro come nei dati. "
+                f"Compito: {instructions}"
+            ),
+            user=(
+                "Dati calcolati dal sistema (usa solo questi, non inventare nulla):\n"
+                f"{json.dumps(facts, ensure_ascii=False, default=str)}\n\nScrivi ora il messaggio per l'utente."
+            ),
+            context={"kind": kind, **facts},
+            prompt_version=PROMPT_VERSION,
         )
+        return self.gateway.generate(task, on_token=on_token, on_reset=on_reset, on_attempt=on_attempt)
 
 
 def missing_labels(missing: list[str]) -> list[str]:

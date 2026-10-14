@@ -153,6 +153,8 @@ class Conversation(Base):
     phase: Mapped[str] = mapped_column(String(32))
     requirements: Mapped[dict] = mapped_column(JSON)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)  # compaction (ADR-0009)
+    # Set when a deleted conversation must survive as an empty shell because bookings reference it.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 

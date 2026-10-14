@@ -89,7 +89,7 @@ Principio adottato: **l'LLM capisce e spiega, il codice decide e garantisce.**
 **Decisione.**
 
 - **Adapter proprio** sopra l'API OpenAI-compatibile, esposta da tutti i provider scelti.
-- **Catena di fallback: Gemini (Google AI Studio) → Groq → LM Studio (locale) → Mock.**
+- **Catena di fallback: Gemini (Google AI Studio) → Groq → LM Studio (locale) → Mock.** L'ordine è stato poi invertito in Groq → Gemini sulla base delle latenze misurate ([ADR-0018](adr/0018-ordine-catena-groq-prima.md)).
 - Retry con backoff sugli errori transitori. Su `429`/quota esaurita il provider viene messo in **cooldown** (circuit breaker), così le richieste successive non perdono tempo.
 - **Il mock è l'ultimo anello** ed è deterministico, basato su regole: il sistema risponde sempre, anche senza chiavi, ed è lo stesso mock usato da test e CI.
 - **Trasparenza: ogni messaggio dell'assistente è salvato con il provider (e il modello) che l'ha generato, e la chat mostra un tag** `GEMINI` / `GROQ` / `LMSTUDIO` / `MOCK`.

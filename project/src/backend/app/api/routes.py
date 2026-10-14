@@ -1,20 +1,27 @@
+import contextvars
+import json
 import logging
+import queue
+import threading
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi.responses import Response, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api import schemas
-from app.api.deps import get_conversation_service, get_rate_limiter
+from app.api.deps import get_conversation_service, get_interpreter, get_rate_limiter, index_factory
 from app.auth import get_current_user
 from app.config import Settings, get_settings
-from app.db import get_session
+from app.db import get_session, session_factory
 from app.domain.requirements import CATEGORIES, TripRequirements
+from app.llm.interpreter import Interpreter
 from app.logging_setup import conversation_id_var
 from app.models import Airport, Booking, Conversation, Country, Itinerary, Message, User
 from app.ratelimit import RateLimiter
 from app.services import booking as booking_service
+from app.services import conversations_admin
 from app.services.conversation import ConversationService, InvalidRequest
 
 router = APIRouter(prefix="/api")
@@ -79,7 +86,7 @@ def _booking(b: Booking) -> schemas.BookingOut:
 
 def _own_conversation(session: Session, user: User, conversation_id: str) -> Conversation:
     conv = session.get(Conversation, conversation_id)
-    if conv is None or conv.user_id != user.id:  # never reveal other users' conversations
+    if conv is None or conv.user_id != user.id or conv.deleted_at is not None:  # never reveal others' data
         raise _error(404, "not_found", "Conversazione non trovata.")
     conversation_id_var.set(conv.id)
     return conv
@@ -114,7 +121,9 @@ def list_conversations(
     session: Session = Depends(get_session), user: User = Depends(get_current_user)
 ) -> list[schemas.ConversationSummary]:
     rows = session.scalars(
-        select(Conversation).where(Conversation.user_id == user.id).order_by(Conversation.updated_at.desc())
+        select(Conversation)
+        .where(Conversation.user_id == user.id, Conversation.deleted_at.is_(None))
+        .order_by(Conversation.updated_at.desc())
     )
     return [
         schemas.ConversationSummary(
@@ -140,6 +149,27 @@ def get_conversation(
     return _detail(session, _own_conversation(session, user, str(conversation_id)))
 
 
+@router.patch("/conversations/{conversation_id}", response_model=schemas.ConversationSummary)
+def rename_conversation(
+    conversation_id: UUID,
+    body: schemas.RenameConversation,
+    session: Session = Depends(get_session),
+    user: User = Depends(get_current_user),
+) -> schemas.ConversationSummary:
+    conv = conversations_admin.rename(session, _own_conversation(session, user, str(conversation_id)), body.title)
+    return schemas.ConversationSummary(
+        id=conv.id, title=conv.title, phase=conv.phase, created_at=conv.created_at, updated_at=conv.updated_at
+    )
+
+
+@router.delete("/conversations/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_conversation(
+    conversation_id: UUID, session: Session = Depends(get_session), user: User = Depends(get_current_user)
+) -> Response:
+    conversations_admin.delete(session, _own_conversation(session, user, str(conversation_id)))
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.post("/conversations/{conversation_id}/messages", response_model=schemas.ConversationDetail)
 def send_message(
     conversation_id: UUID,
@@ -158,6 +188,59 @@ def send_message(
     conv = _own_conversation(session, user, str(conversation_id))
     service.handle_message(conv, body.content)
     return _detail(session, conv)
+
+
+@router.post("/conversations/{conversation_id}/messages/stream")
+def send_message_stream(
+    conversation_id: UUID,
+    body: schemas.SendMessage,
+    user: User = Depends(get_current_user),
+    limiter: RateLimiter = Depends(get_rate_limiter),
+    settings: Settings = Depends(get_settings),
+    interpreter: Interpreter = Depends(get_interpreter),
+) -> StreamingResponse:
+    """Same turn as ``send_message``, streamed as Server-Sent Events (ADR-0011).
+
+    Events: ``progress``, ``provider``, ``token``, ``reset`` (provider switched mid-stream: discard the
+    partial text), ``done`` (the full conversation detail) and ``error``. Errors found before the stream
+    starts (404, 422, 429) are plain HTTP errors, like the non-streaming endpoint.
+    """
+    if len(body.content) > settings.max_message_chars:
+        raise _error(422, "message_too_long", f"Il messaggio supera i {settings.max_message_chars} caratteri.")
+    if not limiter.allow(user.id):
+        log.warning("ratelimit.exceeded")
+        raise _error(429, "rate_limited", "Troppi messaggi, riprova tra poco.")
+    with session_factory()() as session:
+        _own_conversation(session, user, str(conversation_id))
+
+    events: queue.Queue[tuple[str, dict] | None] = queue.Queue()
+
+    def worker() -> None:
+        # Own session: the request-scoped one may be closed before the stream ends.
+        with session_factory()() as session:
+            try:
+                conv = _own_conversation(session, user, str(conversation_id))
+                service = ConversationService(session, interpreter, index_factory, settings)
+                service.emit = lambda event, data: events.put((event, data))
+                service.handle_message(conv, body.content)
+                events.put(("done", _detail(session, conv).model_dump(mode="json", by_alias=True)))
+            except Exception:
+                log.exception("sse.turn_failed")
+                events.put(("error", {"code": "internal_error", "message": "Si è verificato un errore, riprova."}))
+            finally:
+                events.put(None)
+
+    # The copied context keeps request_id and user_id on the worker's log lines.
+    threading.Thread(target=contextvars.copy_context().run, args=(worker,), daemon=True).start()
+
+    def stream():
+        while (item := events.get()) is not None:
+            event, data = item
+            yield f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False, default=str)}\n\n"
+
+    return StreamingResponse(
+        stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+    )
 
 
 @router.post("/itineraries/{itinerary_id}/select", response_model=schemas.ConversationDetail)

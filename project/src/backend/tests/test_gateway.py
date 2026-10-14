@@ -17,7 +17,7 @@ class Fake:
     def is_configured(self):
         return self.configured
 
-    def generate(self, task):
+    def generate(self, task, on_token=None):
         self.calls += 1
         outcome = self.behaviour[min(self.calls, len(self.behaviour)) - 1]
         if isinstance(outcome, Exception):

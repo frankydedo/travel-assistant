@@ -140,3 +140,23 @@ export interface Me {
   email: string | null;
   name: string | null;
 }
+
+// --- Streaming SSE di un turno di chat (POST /conversations/{id}/messages/stream) ---
+
+export type StreamStage = "interpreting" | "planning" | "validating" | "writing";
+
+export interface StreamProgress {
+  stage: StreamStage;
+  message: string;
+}
+
+export interface StreamProviderInfo {
+  provider: Provider;
+  model: string | null;
+  ai_generated: boolean;
+}
+
+export interface StreamErrorPayload {
+  code: string;
+  message: string;
+}

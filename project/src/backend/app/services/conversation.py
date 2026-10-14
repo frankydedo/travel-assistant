@@ -5,6 +5,7 @@ feasible, which itineraries reach the user (only validated ones), what gets pers
 """
 
 import calendar
+import json
 import logging
 import time
 from collections.abc import Callable
@@ -16,7 +17,14 @@ from sqlalchemy.orm import Session
 from app.catalog import SqlInventory, catalog_facts, load_catalogs, resolve_month
 from app.config import Settings
 from app.domain.phases import Phase, change_phase
-from app.domain.planner import CountryCatalog, GreedyPlanner, Planner, PlanningRequest, minimum_cost
+from app.domain.planner import (
+    CountryCatalog,
+    GreedyPlanner,
+    PlannedItinerary,
+    Planner,
+    PlanningRequest,
+    minimum_cost,
+)
 from app.domain.requirements import (
     MONTHS_IT,
     Destination,
@@ -29,9 +37,14 @@ from app.domain.validator import draft_from_plan, validate
 from app.llm.base import LLMResult
 from app.llm.gateway import AllProvidersFailed
 from app.llm.interpreter import Interpreter, missing_labels
+from app.llm.mock import VARIANT_LABELS
+from app.llm.registry import AI_PROVIDERS
 from app.models import Activity, Conversation, Country, Itinerary, ItineraryItem, Message
 from app.rag.retriever import SemanticIndex, score_activities
+from app.services.proposal_tools import SPECS as PROPOSAL_TOOLS
+from app.services.proposal_tools import ProposalToolbox
 from app.services.views import itinerary_view
+from app.textfmt import plain_text
 
 log = logging.getLogger(__name__)
 
@@ -62,6 +75,14 @@ OUT_OF_SCOPE_NEXT_STEP = {
 }
 ACTIVE_STATUSES = ("proposed", "selected")
 RELAXATION_MONTH_OFFSETS = (1, -1, 2, -2, 3, -3)
+MAX_TOOL_STEPS = 3  # bounded loop: the model cannot keep calling tools forever
+TOOL_PROGRESS = {
+    "swap_activity": "Cerco un'attività alternativa…",
+    "change_hotel": "Cerco un altro hotel…",
+    "search_activities": "Cerco nel catalogo…",
+    "get_itinerary_details": "Recupero i dettagli…",
+    "update_requirements": "Aggiorno i requisiti…",
+}
 
 
 class InvalidRequest(Exception):
@@ -94,6 +115,24 @@ class ConversationService:
         self.settings = settings
         self.planner = planner or GreedyPlanner()
         self.today = today
+        self.emit: Callable[[str, dict], None] = lambda event, data: None  # SSE sink (ADR-0011)
+        self._last_user_text = ""
+
+    def _progress(self, stage: str, message: str) -> None:
+        self.emit("progress", {"stage": stage, "message": message})
+
+    def _write(self, kind: str, facts: dict) -> LLMResult:
+        """Generate a reply, streaming tokens (and provider switches) to the SSE sink."""
+        self._progress("writing", "Preparo la risposta…")
+        return self.interpreter.write(
+            kind,
+            {**facts, "ultimo_messaggio_utente": self._last_user_text},
+            on_token=lambda text: self.emit("token", {"text": text}),
+            on_reset=lambda: self.emit("reset", {}),
+            on_attempt=lambda provider, model: self.emit(
+                "provider", {"provider": provider, "model": model, "ai_generated": provider in AI_PROVIDERS}
+            ),
+        )
 
     # --- Public API -------------------------------------------------------------------
 
@@ -111,6 +150,8 @@ class ConversationService:
 
     def handle_message(self, conv: Conversation, text: str) -> None:
         self._add_message(conv, "user", text)
+        self._last_user_text = text
+        self._progress("interpreting", "Sto leggendo la tua richiesta…")
         if conv.title is None:
             conv.title = text.strip()[:60]
         try:
@@ -142,10 +183,11 @@ class ConversationService:
         itinerary.status = "selected"
         change_phase(conv, Phase.AWAITING_CONFIRMATION)
         view = itinerary.view
-        result = self.interpreter.write(
+        result = self._write(
             "confirm_summary",
             {
                 "variant": itinerary.variant,
+                "nome_variante": VARIANT_LABELS[itinerary.variant],
                 "destination": view["destination"],
                 "start_date": view["start_date"],
                 "end_date": view["end_date"],
@@ -182,21 +224,63 @@ class ConversationService:
     # --- Phases ---------------------------------------------------------------------------
 
     def _proposal_reply(self, conv: Conversation, text: str) -> None:
-        current = self._requirements(conv)
-        active = {it.variant: it for it in self._active_itineraries(conv)}
-        interpreted = self.interpreter.interpret_proposal_reply(text, list(active), current)
-        action = interpreted.value
-        if action.action == "select_variant" and action.variant in active:
-            self.select(conv, active[action.variant])
-            return
-        if action.action == "update_requirements" and action.requirements and not action.requirements.is_empty():
-            self._apply_update(conv, current, action.requirements)
-            return
-        if action.action == "out_of_scope":
-            self._refuse(conv)
-            return
-        result = self.interpreter.write("answer", {"question": text, "phase": conv.phase, "variants": list(active)})
-        self._add_message(conv, "assistant", result.text, result=result)
+        """Bounded tool loop inside the proposal phase (ADR-0001): the LLM picks tools, the code validates
+        and runs them. Terminal tools hand control back to the orchestrator, which writes the reply."""
+        toolbox = ProposalToolbox(self, conv)
+        followups: list[dict] = []
+        summaries: list[str] = []
+        new_ids: list[str] = []
+        final: LLMResult | None = None
+        for _ in range(MAX_TOOL_STEPS):
+            result = self.interpreter.proposal_step(
+                text, toolbox.context(), PROPOSAL_TOOLS, followups, summaries, conv.phase
+            )
+            if not result.tool_calls:
+                final = result
+                break
+            followups.append(
+                {
+                    "role": "assistant",
+                    "content": result.text or None,
+                    "tool_calls": [
+                        {
+                            "id": c.id,
+                            "type": "function",
+                            "function": {"name": c.name, "arguments": json.dumps(c.arguments, ensure_ascii=False)},
+                            "_provider": c.provider,  # provider-specific fields are re-attached for it only
+                            "_extra": c.extra,
+                        }
+                        for c in result.tool_calls
+                    ],
+                }
+            )
+            for call in result.tool_calls:
+                self._progress("tool", TOOL_PROGRESS.get(call.name, "Elaboro la richiesta…"))
+                outcome = toolbox.execute(call)
+                if outcome.terminal:
+                    return  # select / update / refuse: their flow already wrote the reply
+                summaries.append(outcome.summary)
+                new_ids += outcome.itinerary_ids
+                followups.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": call.id,
+                        "content": json.dumps(outcome.content, ensure_ascii=False, default=str),
+                    }
+                )
+        if final is not None and final.text:
+            self.emit(
+                "provider",
+                {"provider": final.provider, "model": final.model, "ai_generated": final.provider in AI_PROVIDERS},
+            )
+            self.emit("token", {"text": final.text})
+            self._add_message(conv, "assistant", final.text, result=final, itinerary_ids=new_ids)
+        else:
+            # Loop exhausted or empty answer: report what the code did, in its own words.
+            reply = " ".join(summaries) or "Puoi dirmi quale variante preferisci o cosa vuoi cambiare?"
+            self.emit("provider", {"provider": "SYSTEM", "model": None, "ai_generated": False})
+            self.emit("token", {"text": reply})
+            self._add_message(conv, "assistant", reply, provider="SYSTEM", itinerary_ids=new_ids)
 
     def _apply_update(self, conv: Conversation, current: TripRequirements, update: RequirementsUpdate) -> None:
         merged = current.merge(update)
@@ -205,7 +289,7 @@ class ConversationService:
         if issues or not merged.is_complete():
             change_phase(conv, Phase.COLLECTING_REQUIREMENTS)
             missing = merged.missing_fields()
-            result = self.interpreter.write(
+            result = self._write(
                 "ask_missing",
                 {
                     "missing_fields": missing,
@@ -236,9 +320,11 @@ class ConversationService:
         else:
             codes = [req.destination.country_code]  # type: ignore[list-item]
 
+        self._progress("planning", "Cerco voli, hotel e attività…")
         started = time.perf_counter()
         catalogs = self._load(codes, req, start_dates)
         plans = self.planner.plan(self._planning_request(req, start_dates, codes), catalogs)
+        self._progress("validating", "Verifico budget e disponibilità…")
         valid = []
         inventory = SqlInventory(self.session)
         for plan in plans:
@@ -265,50 +351,20 @@ class ConversationService:
         for old in self._active_itineraries(conv):
             old.status = "discarded"
         countries = {c.code: c for c in self.session.scalars(select(Country).where(Country.code.in_(codes)))}
-        saved: list[Itinerary] = []
-        for plan in valid:
-            country = countries[plan.country_code]
-            itinerary = Itinerary(
-                conversation_id=conv.id,
-                user_id=conv.user_id,
-                variant=plan.variant,
-                status="proposed",
-                country_code=plan.country_code,
-                start_date=plan.start_date,
-                end_date=plan.end_date,
-                travelers=plan.travelers,
-                rooms=plan.rooms,
-                total_price=plan.total_price,
-                budget_total=plan.budget,
-                view=itinerary_view(plan, country.name, country.destination),
-            )
-            items = draft_from_plan(plan, req.departure_airport).items  # type: ignore[arg-type]
-            for position, item in enumerate(items):
-                itinerary.items.append(
-                    ItineraryItem(
-                        position=position,
-                        kind=item.kind,
-                        ref_id=item.ref_id,
-                        date=item.date,
-                        unit_price=item.unit_price,
-                        quantity=item.quantity,
-                        subtotal=item.subtotal,
-                    )
-                )
-            self.session.add(itinerary)
-            saved.append(itinerary)
+        saved = [self.save_plan(conv, plan, countries[plan.country_code], req.departure_airport) for plan in valid]
         self.session.flush()
 
         change_phase(conv, Phase.PROPOSING)
         names = sorted({countries[p.country_code].name for p in valid})
         conv.title = f"{' / '.join(names)} · {MONTHS_IT[req.month - 1]}"
-        result = self.interpreter.write(
+        result = self._write(
             "present_itineraries",
             {
                 "destination_reason": destination_reason,
                 "variants": [
                     {
                         "variant": it.variant,
+                        "nome_variante": VARIANT_LABELS[it.variant],
                         "destination": it.view["destination"],
                         "days": it.view["days"],
                         "start_date": it.view["start_date"],
@@ -394,7 +450,7 @@ class ConversationService:
                 reason = "non riesco a combinare voli, hotel e attività distinte per ogni giorno entro il budget."
             alternatives += self._relaxations(req, codes, start_dates)
         change_phase(conv, Phase.COLLECTING_REQUIREMENTS)
-        result = self.interpreter.write("infeasible", {"reason": reason, "alternatives": alternatives})
+        result = self._write("infeasible", {"reason": reason, "alternatives": alternatives})
         self._add_message(conv, "assistant", result.text, result=result)
 
     def _relaxations(self, req: TripRequirements, codes: list[str], start_dates: list[date]) -> list[str]:
@@ -441,6 +497,37 @@ class ConversationService:
         return found
 
     # --- Helpers ----------------------------------------------------------------------------
+
+    def save_plan(self, conv: Conversation, plan: PlannedItinerary, country: Country, departure: str) -> Itinerary:
+        """Persist a validated plan as a new proposed itinerary (view snapshot + items)."""
+        itinerary = Itinerary(
+            conversation_id=conv.id,
+            user_id=conv.user_id,
+            variant=plan.variant,
+            status="proposed",
+            country_code=plan.country_code,
+            start_date=plan.start_date,
+            end_date=plan.end_date,
+            travelers=plan.travelers,
+            rooms=plan.rooms,
+            total_price=plan.total_price,
+            budget_total=plan.budget,
+            view=itinerary_view(plan, country.name, country.destination),
+        )
+        for position, item in enumerate(draft_from_plan(plan, departure).items):
+            itinerary.items.append(
+                ItineraryItem(
+                    position=position,
+                    kind=item.kind,
+                    ref_id=item.ref_id,
+                    date=item.date,
+                    unit_price=item.unit_price,
+                    quantity=item.quantity,
+                    subtotal=item.subtotal,
+                )
+            )
+        self.session.add(itinerary)
+        return itinerary
 
     def _refuse(self, conv: Conversation) -> None:
         """Out-of-scope message: fixed reply, phase and requirements untouched."""
@@ -500,7 +587,7 @@ class ConversationService:
             conversation_id=conv.id,
             seq=len(conv.messages) + 1,
             role=role,
-            content=content,
+            content=plain_text(content) if role == "assistant" else content,
             provider=result.provider if result else provider,
             model=result.model if result else None,
             itinerary_ids=itinerary_ids or [],
