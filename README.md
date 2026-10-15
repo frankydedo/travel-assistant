@@ -24,6 +24,9 @@ docker compose up --build
 | API (OpenAPI) | <http://localhost:8000/docs> | |
 | Keycloak | <http://localhost:8080> | `admin` / `admin` |
 | Langfuse (tracing) | <http://localhost:3001> | `admin@travel.local` / `travel-langfuse` |
+| Database (pgweb, sola lettura) | <http://localhost:8081> | nessun login |
+
+Con pgweb si può controllare cosa garantisce il codice: `bookings` (snapshot del prezzo, chiave di idempotenza), `hotel_availability.rooms_left` e `activity_availability.spots_left` (scendono dopo una prenotazione e risalgono dopo un annullamento), `conversations.requirements` e il provider di ogni riga di `messages`. L'accesso è in sola lettura su due livelli, un ruolo PostgreSQL con il solo `SELECT` e la sessione read-only di pgweb, così i dati li modifica solo l'applicazione.
 
 Ci si può anche registrare dalla pagina di login. Le credenziali qui sopra, come le chiavi Langfuse `pk-lf-travel-local` / `sk-lf-travel-local` nel compose, valgono solo in locale.
 
@@ -31,16 +34,21 @@ Al primo avvio il backend applica le migrazioni, genera il catalogo sintetico, i
 
 ### Chat precaricate
 
-Gli utenti `demo` e `reviewer` trovano già quattro conversazioni, generate dall'orchestratore reale con il provider mock (per questo hanno il tag `MOCK` e sono identiche su ogni macchina):
+Gli utenti `demo` e `reviewer` trovano cinque conversazioni **registrate con gli LLM reali** (Groq, tag `GROQ`; i messaggi `SYSTEM` sono testi fissi scritti dal codice). Sono state fatte via API da un tester che si comportava come un utente, anche «difficile», e poi esportate in un fixture (`app/seed/fixtures/demo_conversations.json`). Il seed le ricarica così come sono, senza chiamare nessun LLM e senza chiavi: quello che si legge è ciò che hanno scritto davvero i modelli.
 
 | Conversazione | Cosa mostra |
 |---|---|
-| Consigliami tu · giugno | La meta la sceglie l'assistente, solo tra i paesi che rientrano nel budget |
-| Giappone con 300 € · caso infattibile | Vincoli bloccanti e rilassamenti concreti proposti dal planner |
-| Barcellona a maggio · prenotata | Variante scelta e prenotata, visibile nella dashboard prenotazioni |
-| Grecia ad agosto · proposte e modifica | Tre varianti, sostituzione di un'attività, domanda fuori scope rifiutata |
+| Coppia indecisa · terme e buon cibo, consigliami tu · prenotata | Richiesta vaga raccolta in più turni, meta scelta dall'assistente tra quelle fattibili, domanda su un'attività con risposta ancorata al catalogo («nel catalogo non è indicato»), prenotazione con doppio invio registrata una volta sola |
+| I soldi non sono un problema · ovunque, tre mete, poi un tetto di 1500 € | Valori «qualsiasi» ([ADR-0021](docs/adr/0021-valori-qualsiasi-espliciti.md)), tre paesi e aeroporti diversi ([ADR-0022](docs/adr/0022-varianti-con-budget-illimitato-e-ovunque.md)), cambio di budget a metà, sostituzione di un'attività indicata per nome |
+| Giappone, voli notturni · «prenota tu», annullata e riprenotata | Giorni di viaggio per gli orari dei voli ([ADR-0023](docs/adr/0023-giorni-di-viaggio.md)), variante mancante spiegata, data esatta, «prenota tu» che porta solo alla selezione, annullamento che riapre la chat ([ADR-0024](docs/adr/0024-annullamento-riapre-la-conversazione.md)) e nuova prenotazione |
+| Cliente difficile · injection, richieste impossibili, budget troppo basso | Prompt injection e fuori tema rifiutati con testi fissi, valori fuori catalogo spiegati dal codice, budget infattibile con costo minimo stimato, «non voglio la premium» che non seleziona nulla |
+| Famiglia con bambini · Spagna a luglio, attività per famiglie | Pubblico di riferimento delle attività, una sostituzione sbagliata corretta dopo l'insistenza dell'utente, hotel migliore rifiutato perché fuori budget, variante in attesa di conferma |
 
-Le chat vengono create una sola volta per utente: quelle eliminate non ricompaiono al riavvio. Per ripartire da zero: `docker compose down -v`.
+Le trascrizioni contengono anche le risposte imperfette dei modelli: è voluto, e l'analisi è in [docs/conversazioni-reali.md](docs/conversazioni-reali.md).
+
+- **Catalogo:** il catalogo è deterministico per mese di generazione, e le chat valgono per quello con cui sono state registrate (`catalog_start` nel fixture). Se il seed gira in un altro mese le chat restano leggibili come storico (le card sono istantanee salvate), ma le prenotazioni registrate non riprendono l'inventario e le proposte potrebbero non essere più modificabili.
+- **Una volta per utente:** le chat vengono create solo per un utente nuovo, quindi quelle eliminate non ricompaiono al riavvio. Per ripartire da zero: `docker compose down -v`.
+- **Registrarne di nuove:** dopo aver chattato come `reviewer`, `docker compose exec -T backend python -m app.seed.demo export > src/backend/app/seed/fixtures/demo_conversations.json` (da `project/`).
 
 ### Tracing
 
@@ -87,14 +95,17 @@ Le esclusioni volute (message broker, multimodale, solver ILP, login social, Web
 
 ## Requisiti mancanti nella traccia e assunzioni
 
-La traccia non specifica alcuni dati indispensabili. Sono gestiti in modo esplicito: **tutti i requisiti sono obbligatori** e l'assistente li chiede finché non li ha (nessun default silenzioso). Vedi [ADR-0002](docs/adr/0002-requisiti-strutturati-valori-flessibili.md).
+La traccia non specifica alcuni dati indispensabili. Sono gestiti in modo esplicito: **tutti i requisiti sono obbligatori** e l'assistente li chiede finché non li ha (nessun default silenzioso). Vedi [ADR-0002](docs/adr/0002-requisiti-strutturati-valori-flessibili.md). Un valore «qualsiasi» è accettato solo se l'utente lo dice: il codice lo verifica sul suo messaggio, così l'LLM non può usarlo per riempire un dato mancante ([ADR-0021](docs/adr/0021-valori-qualsiasi-espliciti.md)).
 
 | Dato | Come è gestito |
 |---|---|
 | Durata | Obbligatoria: un valore fisso o un intervallo (es. 5-7 giorni) |
-| Aeroporto di partenza | Obbligatorio: Roma Fiumicino, Milano Malpensa o Napoli |
+| Budget | Obbligatorio: un importo totale, oppure «illimitato» se l'utente lo dice esplicitamente |
+| Preferenze | Obbligatorie: una o più categorie, oppure «nessuna preferenza» detto esplicitamente |
+| Aeroporto di partenza | Obbligatorio: Roma Fiumicino, Milano Malpensa, Napoli o «qualsiasi aeroporto» (il planner li confronta; il costo per raggiungere l'aeroporto non è considerato) |
 | Numero di viaggiatori | Obbligatorio, da 1 a 9 |
-| Date precise | L'utente indica solo il mese; la data di partenza la sceglie il planner |
+| Date precise | L'utente indica solo il mese; la data di partenza la sceglie il planner (una data esatta riceve una nota che lo spiega) |
+| Orari dei voli | Il primo e l'ultimo giorno hanno un'attività solo se i voli lasciano tempo (arrivo + 1,5 ore, partenza − 2,5 ore); altrimenti sono giorni di viaggio dichiarati ([ADR-0023](docs/adr/0023-giorni-di-viaggio.md)) |
 
 Assunzioni sul modello dei costi:
 

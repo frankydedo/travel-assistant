@@ -42,16 +42,17 @@ Principio adottato: **l'LLM capisce e spiega, il codice decide e garantisce.**
 
 | Campo | Valori ammessi |
 |---|---|
-| Budget totale | importo in € (> 0) |
+| Budget totale | importo in € (> 0) · **"illimitato"** ([ADR-0021](adr/0021-valori-qualsiasi-espliciti.md)) |
 | Destinazione | un paese del catalogo · **"consigliami tu"** · **"ovunque"** |
-| Preferenze attività | una o più categorie (cultura, sport, relax, nightlife, natura, gastronomia) + testo libero per il RAG |
+| Preferenze attività | una o più categorie (cultura, sport, relax, nightlife, natura, gastronomia) + testo libero per il RAG · **"nessuna preferenza"** (ADR-0021) |
 | Mese | un mese; la data di partenza esatta la sceglie il planner (es. "5 giorni a dicembre") |
 | Durata | un valore fisso o un **intervallo** (es. 5-7 giorni) |
-| Aeroporto di partenza | uno degli aeroporti del catalogo |
-| Numero di viaggiatori | intero ≥ 1 |
+| Aeroporto di partenza | uno degli aeroporti del catalogo · **"qualsiasi aeroporto"** (ADR-0021) |
+| Numero di viaggiatori | intero da 1 a 9 |
 
 - **"Consigliami tu"**: l'LLM sceglie la destinazione, ma **solo tra i paesi che il codice ha già verificato come fattibili** (mese, budget, aeroporto). Spiega la scelta, che resta modificabile.
 - **"Ovunque"**: nessun filtro sul paese, e il planner valuta tutte le destinazioni in modo deterministico.
+- **Valori «qualsiasi»** per budget, preferenze e partenza ([ADR-0021](adr/0021-valori-qualsiasi-espliciti.md)): sono accettati solo se l'utente li dice, e il codice lo verifica sul suo messaggio. Mese e durata non hanno un «qualsiasi».
 
 **Motivazione.** I campi obbligatori rendono esplicito il gap della traccia invece di nasconderlo dietro default arbitrari. I valori flessibili riflettono come le persone pianificano davvero un viaggio ("5-7 giorni", "consigliami tu") e spostano la scelta fine sul planner, che la fa meglio. Limitare "consigliami tu" ai paesi fattibili evita che l'LLM proponga una destinazione che poi non entra nel budget.
 
