@@ -68,6 +68,20 @@ services:
       postgres:
         condition: service_healthy
 
+  # Read-only database UI for the reviewer: read-only role + read-only session, locked to the app database.
+  pgweb:
+    image: sosedoff/pgweb:0.16.2
+    command: ["--readonly", "--lock-session"]
+    environment:
+      PGWEB_DATABASE_URL: postgres://travel_readonly:travel_readonly@postgres:5432/travel?sslmode=disable
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
   frontend:
     build:
       context: ./src/frontend
