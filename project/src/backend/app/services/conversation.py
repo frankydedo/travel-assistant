@@ -7,9 +7,11 @@ feasible, which itineraries reach the user (only validated ones), what gets pers
 import calendar
 import json
 import logging
+import re
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from dataclasses import replace as dc_replace
 from datetime import date, timedelta
 
 from sqlalchemy import select
@@ -27,26 +29,31 @@ from app.domain.planner import (
     minimum_cost,
 )
 from app.domain.requirements import (
+    ANY_AIRPORT,
+    CATEGORIES,
     MONTHS_IT,
     Destination,
     DestinationType,
     RequirementsUpdate,
     TripRequirements,
+    keep_explicit_any,
     mentions_exact_date,
     validate_against_catalog,
 )
 from app.domain.validator import draft_from_plan, validate
 from app.llm.base import LLMResult
 from app.llm.gateway import AllProvidersFailed
+from app.llm.grounding import strip_field_labels, ungrounded_amounts
 from app.llm.interpreter import PROMPT_VERSION, Interpreter, missing_labels
-from app.llm.mock import VARIANT_LABELS
+from app.llm.mock import VARIANT_LABELS, VARIANT_WORDS, write_reply
 from app.llm.registry import AI_PROVIDERS
 from app.models import Activity, Conversation, Country, Itinerary, ItineraryItem, Message
 from app.observability import get_observability
-from app.rag.retriever import SemanticIndex, score_activities
+from app.rag.retriever import SemanticIndex, audience_of, score_activities, with_audience
 from app.services.proposal_tools import SPECS as PROPOSAL_TOOLS
 from app.services.proposal_tools import ProposalToolbox
 from app.services.views import itinerary_view
+from app.textfmt import budget_value, period_it
 
 log = logging.getLogger(__name__)
 
@@ -82,6 +89,26 @@ OUT_OF_SCOPE_NEXT_STEP = {
 }
 ACTIVE_STATUSES = ("proposed", "selected")
 RELAXATION_MONTH_OFFSETS = (1, -1, 2, -2, 3, -3)
+NEUTRAL_SCORE = 0.5
+CHECK_CARDS_REPLY = (
+    "Trovi prezzi e dettagli aggiornati nelle card delle proposte: dimmi quale preferisci o cosa cambiare."
+)
+# Choosing or booking a named variant, without asking to change it ("scelgo la bilanciata", "prenota la premium").
+CHOICE_INTENT = (
+    r"\b(scelgo|scegliamo|prendo|prendiamo|opto|optiamo|confermo|voglio la|vogliamo la|"
+    r"prenota|prenotami|prenotala|prenotiamo|prenotate)\b"
+)
+# Not a choice: a change ("ma cambia..."), a negation ("non voglio la premium") or a question.
+CHANGE_WORDS_IN_CHOICE = (
+    r"\b(ma|però|cambi\w*|sostitu\w*|invece|senza|tranne|modific\w*|con)\b|\?|"
+    r"\bnon (voglio|vogliamo|prendo|prendiamo|scelgo|scegliamo|prenot\w*)"
+)
+# Why each variant is what it is, written by code (the strategies of ADR-0003).
+VARIANT_WHY = {
+    "economy": "punta sul prezzo più basso",
+    "balanced": "bilancia prezzo e qualità di hotel e attività",
+    "premium": "punta su hotel e attività migliori",
+}
 MAX_TOOL_STEPS = 3  # bounded loop: the model cannot keep calling tools forever
 TOOL_PROGRESS = {
     "swap_activity": "Cerco un'attività alternativa…",
@@ -133,15 +160,41 @@ class ConversationService:
     def _write(self, kind: str, facts: dict) -> LLMResult:
         """Generate a reply, streaming tokens (and provider switches) to the SSE sink."""
         self._progress("writing", "Preparo la risposta…")
-        return self.interpreter.write(
+        facts = {**facts, "ultimo_messaggio_utente": self._last_user_text}
+        result = self.interpreter.write(
             kind,
-            {**facts, "ultimo_messaggio_utente": self._last_user_text},
+            facts,
             on_token=lambda text: self.emit("token", {"text": text}),
             on_reset=lambda: self.emit("reset", {}),
             on_attempt=lambda provider, model: self.emit(
                 "provider", {"provider": provider, "model": model, "ai_generated": provider in AI_PROVIDERS}
             ),
         )
+        if result.provider not in AI_PROVIDERS:
+            return result
+        if wrong := ungrounded_amounts(result.text, facts):
+            return self._replace_ungrounded(result, wrong, write_reply(kind, facts), task=f"reply:{kind}")
+        if (clean := strip_field_labels(result.text)) != result.text:
+            self.emit("reset", {})  # the reply was already streamed with the labels
+            self.emit("token", {"text": clean})
+            result = dc_replace(result, text=clean)
+        return result
+
+    def _replace_ungrounded(
+        self, result: LLMResult, wrong: list[int], text: str, task: str, streamed: bool = True
+    ) -> LLMResult:
+        """ADR-0025: an amount the code did not compute never reaches the user. The reply written by code
+        replaces the LLM's one (SYSTEM tag); the event goes to the logs and to the trace."""
+        log.warning("llm.ungrounded_amount", extra={"task": task, "provider": result.provider, "amounts": wrong})
+        with self.tracer.observation(
+            "guardrail.ungrounded_amount", as_type="guardrail", level="WARNING", input=result.text, output=text
+        ):
+            pass
+        if streamed:
+            self.emit("reset", {})
+        self.emit("provider", {"provider": "SYSTEM", "model": None, "ai_generated": False})
+        self.emit("token", {"text": text})
+        return dc_replace(result, text=text, provider="SYSTEM", model="")
 
     # --- Public API -------------------------------------------------------------------
 
@@ -210,6 +263,7 @@ class ConversationService:
                 "destination": view["destination"],
                 "start_date": view["start_date"],
                 "end_date": view["end_date"],
+                "periodo": period_it(view["start_date"], view["end_date"]),
                 "days": view["days"],
                 "travelers": view["travelers"],
                 "total_price": itinerary.total_price,
@@ -292,12 +346,27 @@ class ConversationService:
                         "content": json.dumps(outcome.content, ensure_ascii=False, default=str),
                     }
                 )
+        no_tools_ran = not followups  # a modification already made must keep its own reply and card
+        if final is not None and final.text and no_tools_ran and (chosen := self._explicit_choice(conv, text)):
+            # The user named a variant to choose or book and the model only answered in words: without the
+            # selection the confirm button never appears (ADR-0006). Code makes the choice it was asked for.
+            log.info("proposal.selection_forced", extra={"variant": chosen.variant})
+            self._select(conv, chosen)
+            return
         if final is not None and final.text:
-            self.emit(
-                "provider",
-                {"provider": final.provider, "model": final.model, "ai_generated": final.provider in AI_PROVIDERS},
-            )
-            self.emit("token", {"text": final.text})
+            # Checked before anything is streamed: the proposal step does not stream, so an unchecked amount
+            # never reaches the browser (ADR-0025).
+            grounding = [toolbox.context(), *(m["content"] for m in followups if m.get("role") == "tool"), summaries]
+            if final.provider in AI_PROVIDERS and (wrong := ungrounded_amounts(final.text, *grounding)):
+                fallback = " ".join(summaries) or CHECK_CARDS_REPLY
+                final = self._replace_ungrounded(final, wrong, fallback, task="proposal_tools", streamed=False)
+            else:
+                final = dc_replace(final, text=strip_field_labels(final.text))
+                self.emit(
+                    "provider",
+                    {"provider": final.provider, "model": final.model, "ai_generated": final.provider in AI_PROVIDERS},
+                )
+                self.emit("token", {"text": final.text})
             self._add_message(conv, "assistant", final.text, result=final, itinerary_ids=new_ids)
         else:
             # Loop exhausted or empty answer: report what the code did, in its own words.
@@ -307,6 +376,7 @@ class ConversationService:
             self._add_message(conv, "assistant", reply, provider="SYSTEM", itinerary_ids=new_ids)
 
     def _apply_update(self, conv: Conversation, current: TripRequirements, update: RequirementsUpdate) -> None:
+        update = keep_explicit_any(update, self._last_user_text, current.missing_fields())
         merged = current.merge(update)
         merged, issues = validate_against_catalog(merged, catalog_facts(self.session, self.settings.max_trip_days))
         conv.requirements = merged.model_dump(mode="json")
@@ -320,6 +390,7 @@ class ConversationService:
                     "missing": missing_labels(missing),
                     "issues": issues,
                     "known": not update.is_empty(),
+                    "già_noto": self._known_requirements(merged),
                 },
             )
             self._add_message(conv, "assistant", result.text, result=result)
@@ -334,6 +405,7 @@ class ConversationService:
             return
 
         destination_reason = None
+        anywhere = req.destination.type == DestinationType.ANYWHERE
         if req.destination.type == DestinationType.SUGGEST:
             chosen = self._suggest(conv, req, start_dates)
             if chosen is None:
@@ -370,7 +442,7 @@ class ConversationService:
         valid = []
         inventory = SqlInventory(self.session)
         for plan in plans:
-            errors = validate(draft_from_plan(plan, req.departure_airport), inventory)  # type: ignore[arg-type]
+            errors = validate(draft_from_plan(plan, plan.outbound.origin), inventory)
             if errors:
                 # A planner bug caught by the second line of defence: never shown to the user.
                 log.error("validator.rejected", extra={"variant": plan.variant, "errors": errors[:5]})
@@ -401,7 +473,7 @@ class ConversationService:
         for old in self._active_itineraries(conv):
             old.status = "discarded"
         countries = {c.code: c for c in self.session.scalars(select(Country).where(Country.code.in_(codes)))}
-        saved = [self.save_plan(conv, plan, countries[plan.country_code], req.departure_airport) for plan in valid]
+        saved = [self.save_plan(conv, plan, countries[plan.country_code], plan.outbound.origin) for plan in valid]
         self.session.flush()
 
         change_phase(conv, Phase.PROPOSING)
@@ -411,24 +483,107 @@ class ConversationService:
             "present_itineraries",
             {
                 "destination_reason": destination_reason,
+                "decisioni_prese": self._planning_choices(req, anywhere, codes),
+                "varianti_mancanti": self._missing_variants({it.variant for it in saved}),
                 "variants": [
                     {
                         "variant": it.variant,
                         "nome_variante": VARIANT_LABELS[it.variant],
+                        "perché": VARIANT_WHY[it.variant],
+                        "country": it.view["country_name"],
                         "destination": it.view["destination"],
                         "days": it.view["days"],
                         "start_date": it.view["start_date"],
+                        "periodo": period_it(it.view["start_date"], it.view["end_date"]),
                         "total_price": it.total_price,
-                        "budget": it.budget_total,
+                        "budget": budget_value(it.budget_total),
+                        "departure_airport": it.view["flights"]["outbound"]["origin"],
                         "hotel": it.view["hotel"]["name"],
                         "stars": it.view["hotel"]["stars"],
-                        "top_activities": [d["activity"]["name"] for d in it.view["days_plan"]][:3],
+                        "top_activities": [d["activity"]["name"] for d in it.view["days_plan"] if d["activity"]][:3],
+                        "giorni_di_viaggio": [
+                            f"giorno {d['day']}: {d['travel_note']}"
+                            for d in it.view["days_plan"]
+                            if d.get("travel_day")
+                        ],
                     }
                     for it in saved
                 ],
             },
         )
         self._add_message(conv, "assistant", result.text, result=result, itinerary_ids=[it.id for it in saved])
+
+    def _known_requirements(self, req: TripRequirements) -> list[str]:
+        """What has been understood so far, in words: the question can acknowledge it before asking."""
+        known: list[str] = []
+        if req.budget_total is not None:
+            known.append("budget illimitato" if req.budget_limit is None else f"budget {req.budget_limit} €")
+        if req.destination is not None:
+            if req.destination.type == DestinationType.SUGGEST:
+                known.append("meta da consigliare")
+            elif req.destination.type == DestinationType.ANYWHERE:
+                known.append("meta: ovunque")
+            elif (country := self.session.get(Country, req.destination.country_code)) is not None:
+                known.append(f"meta: {country.name}")
+        if req.preferences is not None:
+            if req.preferences.none:
+                known.append("nessuna preferenza sulle attività")
+            else:
+                known.append(req.preferences.notes or ", ".join(CATEGORIES[c] for c in req.preferences.categories))
+        if req.month is not None:
+            known.append(MONTHS_IT[req.month - 1])
+        if req.duration is not None:
+            d = req.duration
+            known.append(f"{d.min_days} giorni" if d.min_days == d.max_days else f"{d.min_days}-{d.max_days} giorni")
+        if req.departure_airport is not None:
+            known.append(
+                "partenza da qualsiasi aeroporto" if req.any_airport else f"partenza da {req.departure_airport}"
+            )
+        if req.travelers is not None:
+            known.append(f"{req.travelers} {'persona' if req.travelers == 1 else 'persone'}")
+        return known
+
+    def _missing_variants(self, proposed: set[str]) -> list[str]:
+        """Why a variant is absent, so the reply can say it instead of silently showing two (ADR-0025)."""
+        reasons = getattr(self.planner, "missing", {})
+        notes = []
+        for variant in ("economy", "balanced", "premium"):
+            if variant in proposed:
+                continue
+            why = reasons.get(variant, "")
+            if why.startswith("same_as:"):
+                other = VARIANT_LABELS[why.removeprefix("same_as:")]
+                notes.append(
+                    f"La {VARIANT_LABELS[variant]} coinciderebbe con la {other}: con questo budget non c'è "
+                    "un'alternativa diversa."
+                )
+            else:
+                notes.append(f"Per la {VARIANT_LABELS[variant]} non c'è un itinerario possibile con questi requisiti.")
+        return notes
+
+    def _planning_choices(self, req: TripRequirements, anywhere: bool, codes: list[str]) -> list[str]:
+        """What the code decided on the user's behalf for the "any" values, in words (ADR-0021, ADR-0022):
+        the reply explains these choices instead of just listing the variants."""
+        choices: list[str] = []
+        if req.budget_limit is None:
+            choices.append(
+                "Budget illimitato: nessun limite di spesa, contano solo le disponibilità; la Bilanciata pesa il "
+                "prezzo rispetto al costo della Premium."
+            )
+        if anywhere:
+            names = sorted(c.name for c in self.session.scalars(select(Country).where(Country.code.in_(codes))))
+            choices.append(
+                f"Destinazione «ovunque»: ho confrontato {len(names)} paesi ({', '.join(names)}) e, quando "
+                "possibile, ogni variante porta in un paese diverso."
+            )
+        if req.any_airport:
+            choices.append(
+                "Partenza da qualsiasi aeroporto: ho confrontato Roma Fiumicino, Milano Malpensa e Napoli, e ogni "
+                "variante parte da quello che le conviene di più."
+            )
+        if req.preferences is not None and req.preferences.none:
+            choices.append("Nessuna preferenza sulle attività: a parità di interesse decide il prezzo.")
+        return choices
 
     def _suggest(
         self, conv: Conversation, req: TripRequirements, start_dates: list[date]
@@ -437,29 +592,42 @@ class ConversationService:
         all_codes = sorted(self.session.scalars(select(Country.code)))
         catalogs = self._load(all_codes, req, start_dates)
         request = self._planning_request(req, start_dates, [], scored=False)
-        costs = {c.code: minimum_cost(request, c) for c in catalogs}
-        feasible = [c for c in catalogs if costs[c.code] is not None and costs[c.code] <= req.budget_total]  # type: ignore[operator]
-        if not feasible:
+        costs: dict[str, int | None] = {}
+        for c in catalogs:  # with "any airport" a country has one catalog per departure airport
+            cost = minimum_cost(request, c)
+            if cost is not None and (costs.get(c.code) is None or cost < costs[c.code]):  # type: ignore[operator]
+                costs[c.code] = cost
+            costs.setdefault(c.code, None)
+        budget = req.budget_limit
+        feasible_codes = [
+            code for code, cost in costs.items() if cost is not None and (budget is None or cost <= budget)
+        ]
+        if not feasible_codes:
             self._infeasible(conv, req, None, all_codes, start_dates)
             return None
-        feasible_codes = [c.code for c in feasible]
         scores = self._scores(req, feasible_codes)
         rows = self.session.execute(
-            select(Activity.id, Activity.country_code).where(Activity.country_code.in_(feasible_codes))
+            select(Activity.id, Activity.country_code, Activity.name).where(Activity.country_code.in_(feasible_codes))
         )
-        activity_country = {aid: code for aid, code in rows}
+        activity_country, activity_name = {}, {}
+        for aid, code, name in rows:
+            activity_country[aid], activity_name[aid] = code, name
         countries = {c.code: c for c in self.session.scalars(select(Country).where(Country.code.in_(feasible_codes)))}
         options = []
-        for c in feasible:
-            top = sorted((s for aid, s in scores.items() if activity_country.get(aid) == c.code), reverse=True)[:5]
+        for code in feasible_codes:
+            ranked = sorted(((s, aid) for aid, s in scores.items() if activity_country.get(aid) == code), reverse=True)[
+                :5
+            ]
+            top = [s for s, _ in ranked]
             options.append(
                 {
-                    "code": c.code,
-                    "name": countries[c.code].name,
-                    "destination": countries[c.code].destination,
-                    "description": countries[c.code].description,
-                    "min_cost": costs[c.code],
+                    "code": code,
+                    "name": countries[code].name,
+                    "destination": countries[code].destination,
+                    "description": countries[code].description,
+                    "min_cost": costs[code],
                     "preference_score": round(sum(top) / len(top), 3) if top else 0.0,
+                    "attività_adatte": [activity_name[aid] for _, aid in ranked[:3]],
                 }
             )
         choice = self.interpreter.choose_destination(options, req.preferences.model_dump())  # type: ignore[union-attr]
@@ -490,10 +658,10 @@ class ConversationService:
             request = self._planning_request(req, start_dates, [], scored=False)
             costs = [c for c in (minimum_cost(request, cat) for cat in catalogs) if c is not None]
             lowest = min(costs) if costs else None
-            budget = req.budget_total or 0
+            budget = req.budget_limit
             if lowest is None:
                 reason = "non ci sono abbastanza disponibilità (voli, hotel o attività) nelle date richieste."
-            elif lowest > budget:
+            elif budget is not None and lowest > budget:
                 reason = f"il viaggio più economico possibile costa circa {lowest} €, oltre il budget di {budget} €."
                 alternatives.append(f"aumentare il budget ad almeno {lowest} €")
             else:
@@ -505,8 +673,11 @@ class ConversationService:
 
     def _relaxations(self, req: TripRequirements, codes: list[str], start_dates: list[date]) -> list[str]:
         assert req.duration and req.month and req.destination and req.budget_total
-        budget = req.budget_total
+        budget = req.budget_limit
         found: list[str] = []
+
+        def fits(cost: int | None) -> bool:
+            return cost is not None and (budget is None or cost <= budget)
 
         def cheapest(r: TripRequirements, dates: list[date], country_codes: list[str]) -> int | None:
             catalogs = self._load(country_codes, r, dates)
@@ -519,7 +690,7 @@ class ConversationService:
                 update={"duration": req.duration.model_copy(update={"min_days": days, "max_days": days})}
             )
             cost = cheapest(shorter, start_dates, codes)
-            if cost is not None and cost <= budget:
+            if fits(cost):
                 found.append(f"ridurre la durata a {days} giorni (da circa {cost} €)")
                 break
         months = 0
@@ -529,7 +700,7 @@ class ConversationService:
             if not dates:
                 continue
             cost = cheapest(req.model_copy(update={"month": month}), dates, codes)
-            if cost is not None and cost <= budget:
+            if fits(cost):
                 found.append(f"partire a {MONTHS_IT[month - 1]} (da circa {cost} €)")
                 months += 1
                 if months == 2:
@@ -540,7 +711,7 @@ class ConversationService:
             options = []
             for code in others:
                 cost = cheapest(req, start_dates, [code])
-                if cost is not None and cost <= budget:
+                if fits(cost):
                     options.append((cost, code))
             for cost, code in sorted(options)[:2]:
                 found.append(f"scegliere {names[code]} (da circa {cost} €)")
@@ -603,6 +774,15 @@ class ConversationService:
         reply = OUT_OF_SCOPE_REPLIES[previous % len(OUT_OF_SCOPE_REPLIES)]
         self._add_message(conv, "assistant", f"{reply} {OUT_OF_SCOPE_NEXT_STEP[Phase(conv.phase)]}", provider="SYSTEM")
 
+    def _explicit_choice(self, conv: Conversation, text: str) -> Itinerary | None:
+        """A message that clearly chooses (or asks to book) exactly one of the active variants."""
+        lowered = text.lower()
+        if not re.search(CHOICE_INTENT, lowered) or re.search(CHANGE_WORDS_IN_CHOICE, lowered):
+            return None
+        active = {it.variant: it for it in self._active_itineraries(conv) if it.status == "proposed"}
+        named = [v for v, words in VARIANT_WORDS.items() if v in active and any(w in lowered for w in words)]
+        return active[named[0]] if len(named) == 1 else None
+
     def _refused(self, conv: Conversation) -> bool:
         last = next((m for m in reversed(conv.messages) if m.role == "assistant"), None)
         return last is not None and last.content.startswith(OUT_OF_SCOPE_REPLIES)
@@ -612,24 +792,31 @@ class ConversationService:
     ) -> PlanningRequest:
         assert req.budget_total and req.travelers and req.duration
         return PlanningRequest(
-            budget=req.budget_total,
+            budget=req.budget_limit,
             travelers=req.travelers,
             start_dates=start_dates,
             min_days=req.duration.min_days,
             max_days=req.duration.max_days,
             activity_scores=self._scores(req, codes) if scored and codes else {},
+            distinct_countries=req.destination is not None and req.destination.type == DestinationType.ANYWHERE,
         )
 
     def _scores(self, req: TripRequirements, codes: list[str]) -> dict[str, float]:
         assert req.preferences and req.month
         activities = list(self.session.scalars(select(Activity).where(Activity.country_code.in_(codes))))
+        audience = audience_of(req)
+        if req.preferences.none:
+            # "Nessuna preferenza" (ADR-0021): every activity is equally welcome, cost and variant decide.
+            return with_audience({a.id: NEUTRAL_SCORE for a in activities}, activities, audience)
         index = self.index_factory(activities)
         with self.tracer.observation(
             "rag.score_activities",
             as_type="retriever",
             input={"preferences": req.preferences.model_dump(), "countries": codes, "month": req.month},
         ) as span:
-            scores = score_activities(index, req.preferences, activities, codes, req.month)
+            scores = with_audience(
+                score_activities(index, req.preferences, activities, codes, req.month), activities, audience
+            )
             names = {a.id: a.name for a in activities}
             top = sorted(scores.items(), key=lambda kv: -kv[1])[:5]
             span.update(output=[{"activity": names[aid], "score": score} for aid, score in top])
@@ -638,7 +825,13 @@ class ConversationService:
     def _load(self, codes: list[str], req: TripRequirements, start_dates: list[date]) -> list[CountryCatalog]:
         assert req.departure_airport and req.duration
         date_to = start_dates[-1] + timedelta(days=req.duration.max_days)
-        return load_catalogs(self.session, codes, req.departure_airport, start_dates[0], date_to)
+        airports = (
+            sorted(catalog_facts(self.session, self.settings.max_trip_days).departure_airports)
+            if req.departure_airport == ANY_AIRPORT
+            else [req.departure_airport]
+        )
+        # "Any airport" (ADR-0021): one catalog per departure airport, the planner compares them all.
+        return [c for a in airports for c in load_catalogs(self.session, codes, a, start_dates[0], date_to)]
 
     def _requirements(self, conv: Conversation) -> TripRequirements:
         return TripRequirements.model_validate(conv.requirements)

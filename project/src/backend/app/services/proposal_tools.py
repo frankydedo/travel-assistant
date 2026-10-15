@@ -11,6 +11,7 @@ Design rules:
 """
 
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import TYPE_CHECKING, Literal
@@ -26,7 +27,8 @@ from app.domain.validator import draft_from_plan, validate
 from app.llm.base import ToolCall, ToolSpec
 from app.llm.mock import VARIANT_LABELS
 from app.models import Activity, Conversation, Country, Itinerary
-from app.textfmt import eur
+from app.rag.retriever import audience_of, with_audience
+from app.textfmt import budget_value, eur, of_budget
 
 if TYPE_CHECKING:
     from app.services.conversation import ConversationService
@@ -110,7 +112,7 @@ class ProposalToolbox:
         return [self._describe(it) for it in self.active().values()]
 
     @staticmethod
-    def _describe(it: Itinerary) -> dict:
+    def _describe(it: Itinerary, detailed: bool = False) -> dict:
         v = it.view
         return {
             "variant": it.variant,
@@ -123,17 +125,8 @@ class ProposalToolbox:
             "viaggiatori": v["travelers"],
             "hotel": f"{v['hotel']['name']} ({v['hotel']['stars']}★)",
             "totale_euro": it.total_price,
-            "budget_euro": it.budget_total,
-            "programma": [
-                {
-                    "giorno": d["day"],
-                    "data": d["date"],
-                    "attività": d["activity"]["name"],
-                    "categoria": d["activity"]["category"],
-                    "prezzo_a_persona": d["activity"]["price_per_person"],
-                }
-                for d in v["days_plan"]
-            ],
+            "budget_euro": budget_value(it.budget_total),
+            "programma": [_program_day(d, detailed) for d in v["days_plan"]],
         }
 
     # --- Execution ---------------------------------------------------------------------
@@ -180,7 +173,8 @@ class ProposalToolbox:
         extraction = self.service.interpreter.extract_requirements(
             args.change, current, self.service._history(self.conv)
         )
-        if extraction.value.requirements.is_empty():
+        update = extraction.value.requirements
+        if update.is_empty() or current.merge(update) == current:  # nothing would change: no replanning
             if mentions_exact_date(args.change) or mentions_exact_date(self.service._last_user_text or ""):
                 # Nothing to change: the orchestrator explains that dates are month-only (fixed text).
                 return ToolOutcome(content={"ok": True}, summary="", terminal=True)
@@ -189,7 +183,7 @@ class ProposalToolbox:
                 user_text="Non ho capito cosa vuoi cambiare: dimmi quale requisito modificare (budget, mese, "
                 "durata, partenza, numero di persone o interessi).",
             )
-        self.service._apply_update(self.conv, current, extraction.value.requirements)
+        self.service._apply_update(self.conv, current, update)
         return ToolOutcome(content={"ok": True}, summary="", terminal=True)
 
     def _flag_out_of_scope(self, args: NoArgs) -> ToolOutcome:
@@ -207,7 +201,7 @@ class ProposalToolbox:
         new = self._replace(old, new_plan)
         summary = (
             f"Nella variante {VARIANT_LABELS[old.variant]} ho sostituito «{before.name}» del giorno {args.day} "
-            f"con «{after.name}»: il nuovo totale è {eur(new.total_price)} su {eur(new.budget_total)}."
+            f"con «{after.name}»: il nuovo totale è {eur(new.total_price)}{of_budget(new.budget_total)}."
         )
         return ToolOutcome(
             content={
@@ -220,7 +214,7 @@ class ProposalToolbox:
                 "descrizione": after.description,
                 "totale_precedente_euro": old.total_price,
                 "nuovo_totale_euro": new.total_price,
-                "budget_euro": new.budget_total,
+                "budget_euro": budget_value(new.budget_total),
             },
             summary=summary,
             itinerary_ids=[new.id],
@@ -234,7 +228,7 @@ class ProposalToolbox:
         new = self._replace(old, new_plan)
         summary = (
             f"Nella variante {VARIANT_LABELS[old.variant]} ho sostituito {previous} con {hotel.name} "
-            f"({hotel.stars}★): il nuovo totale è {eur(new.total_price)} su {eur(new.budget_total)}."
+            f"({hotel.stars}★): il nuovo totale è {eur(new.total_price)}{of_budget(new.budget_total)}."
         )
         return ToolOutcome(
             content={
@@ -245,7 +239,7 @@ class ProposalToolbox:
                 "quartiere": hotel.neighborhood,
                 "totale_precedente_euro": old.total_price,
                 "nuovo_totale_euro": new.total_price,
-                "budget_euro": new.budget_total,
+                "budget_euro": budget_value(new.budget_total),
             },
             summary=summary,
             itinerary_ids=[new.id],
@@ -257,17 +251,23 @@ class ProposalToolbox:
         active = list(self.active().values())
         if not active:
             return self._error("Non ci sono proposte attive.")
-        reference = active[0]
-        relevance = self._relevance(args.query, reference)
-        activities = self.session.scalars(select(Activity).where(Activity.country_code == reference.country_code))
-        ranked = sorted(activities, key=lambda a: -relevance.get(a.id, 0.0))[:5]
-        trip_months = {reference.start_date.month, reference.end_date.month}
+        # Every country of the active variants: with «ovunque» each variant can be in a different one.
+        by_country = {it.country_code: it for it in sorted(active, key=lambda it: it.variant)}
+        relevance: dict[str, float] = {}
+        months: dict[str, set[int]] = {}
+        for code, it in by_country.items():
+            relevance.update(self._relevance(args.query, it))
+            months[code] = {it.start_date.month, it.end_date.month}
+        activities = self.session.scalars(select(Activity).where(Activity.country_code.in_(list(by_country))))
+        # Hybrid ranking: an activity named in the question ("cosa si fa alle Terme Segestane?") comes first
+        # even when the embedding misses it; semantic similarity orders the rest.
+        ranked = sorted(activities, key=lambda a: (-named(args.query, a.name), -relevance.get(a.id, 0.0)))[:5]
         results = [
             {
                 "attività": a.name,
                 "categoria": CATEGORIES.get(a.category, a.category),
                 "prezzo_a_persona": a.price,
-                "disponibile_nel_periodo": bool(trip_months & set(a.months)),
+                "disponibile_nel_periodo": bool(months[a.country_code] & set(a.months)),
                 "descrizione": a.description,
             }
             for a in ranked
@@ -279,7 +279,7 @@ class ProposalToolbox:
 
     def _get_itinerary_details(self, args: ItineraryDetailsArgs) -> ToolOutcome:
         it = self._itinerary(args.variant)
-        details = self._describe(it)
+        details = self._describe(it, detailed=True)  # with the catalog descriptions, to answer from them
         return ToolOutcome(
             content=details,
             summary=f"La variante {details['nome_variante']} costa {eur(it.total_price)}, hotel {details['hotel']}.",
@@ -301,7 +301,10 @@ class ProposalToolbox:
     def _relevance(self, request: str, reference: Itinerary) -> dict[str, float]:
         activities = list(self.session.scalars(select(Activity).where(Activity.country_code == reference.country_code)))
         index = self.service.index_factory(activities)
-        return index.similarities(request, [reference.country_code], reference.start_date.month)
+        similarity = index.similarities(request, [reference.country_code], reference.start_date.month)
+        # The same audience adjustment as the planner (targets: famiglie, coppie...), so a swap "for the kids"
+        # does not pick an activity aimed at young sporty people only because the words are close.
+        return with_audience(similarity, activities, audience_of(self.service._requirements(self.conv)))
 
     def _replace(self, old: Itinerary, plan) -> Itinerary:
         departure = old.view["flights"]["outbound"]["origin"]
@@ -317,3 +320,60 @@ class ProposalToolbox:
         if Phase(self.conv.phase) == Phase.AWAITING_CONFIRMATION:
             change_phase(self.conv, Phase.PROPOSING)  # the selected proposal changed: choose again
         return new
+
+
+def _program_day(d: dict, detailed: bool) -> dict:
+    day: dict = {"giorno": d["day"], "data": d["date"]}
+    if d.get("travel_note"):
+        day["voli"] = d["travel_note"]
+    if d["activity"] is None:
+        day["giorno_di_viaggio"] = True  # ADR-0023: the flights leave no time for an activity
+        return day
+    day.update(
+        {
+            "attività": d["activity"]["name"],
+            "categoria": d["activity"]["category"],
+            "prezzo_a_persona": d["activity"]["price_per_person"],
+            "durata_ore": d["activity"]["duration_hours"],
+        }
+    )
+    if detailed:
+        day["descrizione"] = d["activity"]["description"]
+    return day
+
+
+_WORDS = re.compile(r"[a-zà-ùþæðö]{4,}", re.IGNORECASE)
+# Words that appear in many activity names and say nothing about which one is meant.
+_GENERIC = {
+    "nella",
+    "nello",
+    "della",
+    "dello",
+    "delle",
+    "degli",
+    "alla",
+    "sulla",
+    "dalla",
+    "giorn",
+    "visit",
+    "tour",
+    "guida",
+    "passe",
+    "serat",
+    "corso",
+    "lezio",
+    "centr",
+    "stori",
+}
+
+
+def name_match(query: str, name: str) -> float:
+    """Share of the activity name's distinctive words (5-letter stems) that appear in the query."""
+    words = {w.lower()[:5] for w in _WORDS.findall(name)} - _GENERIC
+    said = {w.lower()[:5] for w in _WORDS.findall(query)}
+    return len(words & said) / len(words) if words else 0.0
+
+
+def named(query: str, name: str) -> float:
+    """1 when the question names the activity (most of its distinctive words), else 0."""
+    return 1.0 if name_match(query, name) >= 0.5 else 0.0

@@ -69,4 +69,5 @@ def test_phase_transitions():
     with pytest.raises(InvalidTransition):
         transition(Phase.COLLECTING_REQUIREMENTS, Phase.BOOKED)  # booking needs a confirmed proposal
     with pytest.raises(InvalidTransition):
-        transition(Phase.BOOKED, Phase.PROPOSING)
+        transition(Phase.BOOKED, Phase.AWAITING_CONFIRMATION)  # a cancellation reopens, never re-confirms
+    assert transition(Phase.BOOKED, Phase.PROPOSING) == Phase.PROPOSING  # ADR-0024: cancelled booking

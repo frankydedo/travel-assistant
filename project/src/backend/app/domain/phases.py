@@ -26,7 +26,9 @@ ALLOWED_TRANSITIONS: dict[Phase, set[Phase]] = {
         Phase.COLLECTING_REQUIREMENTS,
         Phase.BOOKED,
     },
-    Phase.BOOKED: set(),
+    # Cancelling a booking reopens the conversation (ADR-0024): back to the remaining proposals, or to
+    # collecting when none is left (complete requirements trigger a new plan at the next message).
+    Phase.BOOKED: {Phase.PROPOSING, Phase.COLLECTING_REQUIREMENTS},
 }
 
 

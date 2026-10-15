@@ -60,7 +60,15 @@ function SectionTitle({ children }: { children: ReactNode }) {
   );
 }
 
-function BudgetBar({ total, budget, barClass }: { total: number; budget: number; barClass: string }) {
+function BudgetBar({
+  total,
+  budget,
+  barClass,
+}: {
+  total: number;
+  budget: number;
+  barClass: string;
+}) {
   const pct = budget > 0 ? Math.round((total / budget) * 100) : 0;
   const over = total > budget;
   return (
@@ -74,12 +82,17 @@ function BudgetBar({ total, budget, barClass }: { total: number; budget: number;
         className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"
       >
         <div
-          className={cn("h-full rounded-full transition-[width]", over ? "bg-rose-500" : barClass)}
+          className={cn(
+            "h-full rounded-full transition-[width]",
+            over ? "bg-rose-500" : barClass,
+          )}
           style={{ width: `${Math.min(pct, 100)}%` }}
         />
       </div>
       <div className="mt-1.5 flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
-        <span className={cn(over && "font-medium text-rose-600 dark:text-rose-400")}>
+        <span
+          className={cn(over && "font-medium text-rose-600 dark:text-rose-400")}
+        >
           {pct}% del budget
         </span>
         <span>
@@ -93,19 +106,37 @@ function BudgetBar({ total, budget, barClass }: { total: number; budget: number;
   );
 }
 
-function StatTile({ icon, label, value }: { icon: ReactNode; label: string; value: number }) {
+function StatTile({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: number;
+}) {
   return (
     <div className="rounded-xl bg-zinc-50 px-2.5 py-2 dark:bg-zinc-800/60">
       <div className="flex items-center gap-1 text-[11px] text-zinc-500 dark:text-zinc-400">
         {icon}
         {label}
       </div>
-      <div className="mt-0.5 text-sm font-semibold tabular-nums">{formatEUR(value)}</div>
+      <div className="mt-0.5 text-sm font-semibold tabular-nums">
+        {formatEUR(value)}
+      </div>
     </div>
   );
 }
 
-function FlightRoute({ label, icon, flight }: { label: string; icon: ReactNode; flight: Flight }) {
+function FlightRoute({
+  label,
+  icon,
+  flight,
+}: {
+  label: string;
+  icon: ReactNode;
+  flight: Flight;
+}) {
   const { airportLabel } = useCatalog();
   return (
     <div className="rounded-xl border border-zinc-100 bg-zinc-50/70 p-3 dark:border-zinc-800 dark:bg-zinc-800/40">
@@ -120,25 +151,39 @@ function FlightRoute({ label, icon, flight }: { label: string; icon: ReactNode; 
       </div>
       <div className="mt-2 flex items-center gap-2">
         <div>
-          <abbr title={airportLabel(flight.origin)} className="text-base font-semibold no-underline">
+          <abbr
+            title={airportLabel(flight.origin)}
+            className="text-base font-semibold no-underline"
+          >
             {flight.origin}
           </abbr>
-          <div className="text-xs text-zinc-500 tabular-nums dark:text-zinc-400">{formatTime(flight.departure_time)}</div>
+          <div className="text-xs text-zinc-500 tabular-nums dark:text-zinc-400">
+            {formatTime(flight.departure_time)}
+          </div>
         </div>
-        <div className="flex flex-1 items-center gap-1 text-zinc-300 dark:text-zinc-600" aria-hidden>
+        <div
+          className="flex flex-1 items-center gap-1 text-zinc-300 dark:text-zinc-600"
+          aria-hidden
+        >
           <span className="h-px flex-1 border-t border-dashed border-current" />
           <Plane className="size-3.5 rotate-45 text-zinc-400 dark:text-zinc-500" />
           <span className="h-px flex-1 border-t border-dashed border-current" />
         </div>
         <div className="text-right">
-          <abbr title={airportLabel(flight.destination)} className="text-base font-semibold no-underline">
+          <abbr
+            title={airportLabel(flight.destination)}
+            className="text-base font-semibold no-underline"
+          >
             {flight.destination}
           </abbr>
-          <div className="text-xs text-zinc-500 tabular-nums dark:text-zinc-400">{formatTime(flight.arrival_time)}</div>
+          <div className="text-xs text-zinc-500 tabular-nums dark:text-zinc-400">
+            {formatTime(flight.arrival_time)}
+          </div>
         </div>
       </div>
       <div className="mt-1.5 text-[11px] text-zinc-500 tabular-nums dark:text-zinc-400">
-        {formatEUR(flight.price_per_person)} a persona · totale {formatEUR(flight.subtotal)}
+        {formatEUR(flight.price_per_person)} a persona · totale{" "}
+        {formatEUR(flight.subtotal)}
       </div>
     </div>
   );
@@ -149,13 +194,25 @@ function Stars({ n }: { n: number }) {
   return (
     <span className="inline-flex items-center" aria-label={`${count} stelle`}>
       {Array.from({ length: count }, (_, i) => (
-        <Star key={i} className="size-3 fill-amber-400 text-amber-400" aria-hidden />
+        <Star
+          key={i}
+          className="size-3 fill-amber-400 text-amber-400"
+          aria-hidden
+        />
       ))}
     </span>
   );
 }
 
-function DayItem({ d, last, dotClass }: { d: DayPlan; last: boolean; dotClass: string }) {
+function DayItem({
+  d,
+  last,
+  dotClass,
+}: {
+  d: DayPlan;
+  last: boolean;
+  dotClass: string;
+}) {
   const { categoryLabel } = useCatalog();
   const a = d.activity;
   return (
@@ -169,38 +226,82 @@ function DayItem({ d, last, dotClass }: { d: DayPlan; last: boolean; dotClass: s
         >
           {d.day}
         </span>
-        {!last && <span className="w-px flex-1 bg-zinc-200 dark:bg-zinc-700" aria-hidden />}
+        {!last && (
+          <span
+            className="w-px flex-1 bg-zinc-200 dark:bg-zinc-700"
+            aria-hidden
+          />
+        )}
       </div>
       <div className={cn("min-w-0", !last && "pb-4")}>
         <div className="text-[11px] text-zinc-500 capitalize dark:text-zinc-400">
           Giorno {d.day} · {formatDayDate(d.date)}
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-          <span className="text-sm font-medium">{a.name}</span>
-          <Badge tone="neutral">{categoryLabel(a.category)}</Badge>
-        </div>
-        {a.description && (
-          <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-            {a.description_ai_generated && (
-              <AiMarker label="Descrizione generata con AI e rivista" className="mr-1 align-[-3px]" />
-            )}
-            {a.description}
-          </p>
+        {d.travel_note && (
+          <div className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+            <Plane className="size-3" aria-hidden />
+            {d.travel_note}
+          </div>
         )}
-        <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-zinc-500 tabular-nums dark:text-zinc-400">
-          <span className="inline-flex items-center gap-1">
-            <Clock className="size-3" aria-hidden />
-            {a.duration_hours} h
-          </span>
-          <span>{formatEUR(a.price_per_person)} a persona</span>
-          <span className="font-medium text-zinc-700 dark:text-zinc-200">totale {formatEUR(a.subtotal)}</span>
-        </div>
+        {!a ? (
+          <p className="mt-0.5 text-sm text-zinc-600 dark:text-zinc-300">
+            Giorno di viaggio: con questi orari dei voli non c'è tempo per
+            un'attività.
+          </p>
+        ) : (
+          <DayActivity a={a} categoryLabel={categoryLabel} />
+        )}
       </div>
     </li>
   );
 }
 
-export function ItineraryCard({ itinerary: it, onSelect, canSelect = false, busy = false, selecting = false, className }: Props) {
+function DayActivity({
+  a,
+  categoryLabel,
+}: {
+  a: NonNullable<DayPlan["activity"]>;
+  categoryLabel: (category: string) => string;
+}) {
+  return (
+    <>
+      <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+        <span className="text-sm font-medium">{a.name}</span>
+        <Badge tone="neutral">{categoryLabel(a.category)}</Badge>
+      </div>
+      {a.description && (
+        <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+          {a.description_ai_generated && (
+            <AiMarker
+              label="Descrizione generata con AI e rivista"
+              className="mr-1 align-[-3px]"
+            />
+          )}
+          {a.description}
+        </p>
+      )}
+      <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-zinc-500 tabular-nums dark:text-zinc-400">
+        <span className="inline-flex items-center gap-1">
+          <Clock className="size-3" aria-hidden />
+          {a.duration_hours} h
+        </span>
+        <span>{formatEUR(a.price_per_person)} a persona</span>
+        <span className="font-medium text-zinc-700 dark:text-zinc-200">
+          totale {formatEUR(a.subtotal)}
+        </span>
+      </div>
+    </>
+  );
+}
+
+export function ItineraryCard({
+  itinerary: it,
+  onSelect,
+  canSelect = false,
+  busy = false,
+  selecting = false,
+  className,
+}: Props) {
   const v = VARIANT_STYLE[it.variant];
   return (
     <article
@@ -216,7 +317,12 @@ export function ItineraryCard({ itinerary: it, onSelect, canSelect = false, busy
       <div className="flex flex-1 flex-col gap-4 p-4">
         <header className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <span className={cn("inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase", v.text)}>
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase",
+                v.text,
+              )}
+            >
               <span className={cn("size-2 rounded-full", v.dot)} aria-hidden />
               {VARIANT_LABELS[it.variant]}
             </span>
@@ -228,7 +334,9 @@ export function ItineraryCard({ itinerary: it, onSelect, canSelect = false, busy
             </h4>
           </div>
           {it.status !== "proposed" && (
-            <Badge tone={ITINERARY_STATUS_TONE[it.status]}>{ITINERARY_STATUS_LABELS[it.status]}</Badge>
+            <Badge tone={ITINERARY_STATUS_TONE[it.status]}>
+              {ITINERARY_STATUS_LABELS[it.status]}
+            </Badge>
           )}
         </header>
 
@@ -236,30 +344,66 @@ export function ItineraryCard({ itinerary: it, onSelect, canSelect = false, busy
           <Chip icon={<CalendarDays className="size-3" aria-hidden />}>
             {formatDate(it.start_date)} – {formatDate(it.end_date)}
           </Chip>
-          <Chip icon={<Sun className="size-3" aria-hidden />}>{plural(it.days, "giorno", "giorni")}</Chip>
-          <Chip icon={<Moon className="size-3" aria-hidden />}>{plural(it.nights, "notte", "notti")}</Chip>
+          <Chip icon={<Sun className="size-3" aria-hidden />}>
+            {plural(it.days, "giorno", "giorni")}
+          </Chip>
+          <Chip icon={<Moon className="size-3" aria-hidden />}>
+            {plural(it.nights, "notte", "notti")}
+          </Chip>
           <Chip icon={<Users className="size-3" aria-hidden />}>
-            {plural(it.travelers, "viaggiatore", "viaggiatori")} · {plural(it.rooms, "camera", "camere")}
+            {plural(it.travelers, "viaggiatore", "viaggiatori")} ·{" "}
+            {plural(it.rooms, "camera", "camere")}
           </Chip>
         </div>
 
         <section aria-label="Prezzo">
           <div className="flex items-end justify-between gap-2">
             <div>
-              <div className="text-[11px] text-zinc-500 dark:text-zinc-400">Totale per il gruppo</div>
-              <div className="text-3xl font-bold tracking-tight tabular-nums">{formatEUR(it.total_price)}</div>
+              <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                Totale per il gruppo
+              </div>
+              <div className="text-3xl font-bold tracking-tight tabular-nums">
+                {formatEUR(it.total_price)}
+              </div>
             </div>
             <div className="pb-1 text-right text-xs text-zinc-500 dark:text-zinc-400">
-              budget <span className="tabular-nums">{formatEUR(it.budget_total)}</span>
+              {it.budget_total == null ? (
+                "budget illimitato"
+              ) : (
+                <>
+                  budget{" "}
+                  <span className="tabular-nums">
+                    {formatEUR(it.budget_total)}
+                  </span>
+                </>
+              )}
             </div>
           </div>
-          <div className="mt-2">
-            <BudgetBar total={it.total_price} budget={it.budget_total} barClass={v.bar} />
-          </div>
+          {it.budget_total != null && (
+            <div className="mt-2">
+              <BudgetBar
+                total={it.total_price}
+                budget={it.budget_total}
+                barClass={v.bar}
+              />
+            </div>
+          )}
           <div className="mt-3 grid grid-cols-3 gap-2">
-            <StatTile icon={<Plane className="size-3" aria-hidden />} label="Voli" value={it.cost_breakdown.flights} />
-            <StatTile icon={<BedDouble className="size-3" aria-hidden />} label="Hotel" value={it.cost_breakdown.hotel} />
-            <StatTile icon={<Ticket className="size-3" aria-hidden />} label="Attività" value={it.cost_breakdown.activities} />
+            <StatTile
+              icon={<Plane className="size-3" aria-hidden />}
+              label="Voli"
+              value={it.cost_breakdown.flights}
+            />
+            <StatTile
+              icon={<BedDouble className="size-3" aria-hidden />}
+              label="Hotel"
+              value={it.cost_breakdown.hotel}
+            />
+            <StatTile
+              icon={<Ticket className="size-3" aria-hidden />}
+              label="Attività"
+              value={it.cost_breakdown.activities}
+            />
           </div>
           <div className="mt-2">
             <ComputedMarker />
@@ -269,8 +413,16 @@ export function ItineraryCard({ itinerary: it, onSelect, canSelect = false, busy
         <section>
           <SectionTitle>Voli</SectionTitle>
           <div className="space-y-2">
-            <FlightRoute label="Andata" icon={<PlaneTakeoff className="size-3" aria-hidden />} flight={it.flights.outbound} />
-            <FlightRoute label="Ritorno" icon={<PlaneLanding className="size-3" aria-hidden />} flight={it.flights.return} />
+            <FlightRoute
+              label="Andata"
+              icon={<PlaneTakeoff className="size-3" aria-hidden />}
+              flight={it.flights.outbound}
+            />
+            <FlightRoute
+              label="Ritorno"
+              icon={<PlaneLanding className="size-3" aria-hidden />}
+              flight={it.flights.return}
+            />
           </div>
         </section>
 
@@ -286,11 +438,17 @@ export function ItineraryCard({ itinerary: it, onSelect, canSelect = false, busy
                 <Stars n={it.hotel.stars} />
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                {it.hotel.neighborhood} · {plural(it.hotel.nights, "notte", "notti")} · media{" "}
-                <span className="tabular-nums">{formatEUR(it.hotel.price_per_night_avg)}</span>/notte
+                {it.hotel.neighborhood} ·{" "}
+                {plural(it.hotel.nights, "notte", "notti")} · media{" "}
+                <span className="tabular-nums">
+                  {formatEUR(it.hotel.price_per_night_avg)}
+                </span>
+                /notte
               </div>
             </div>
-            <span className="text-sm font-semibold tabular-nums">{formatEUR(it.hotel.subtotal)}</span>
+            <span className="text-sm font-semibold tabular-nums">
+              {formatEUR(it.hotel.subtotal)}
+            </span>
           </div>
         </section>
 
@@ -298,19 +456,36 @@ export function ItineraryCard({ itinerary: it, onSelect, canSelect = false, busy
           <summary className="flex cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-medium select-none hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
             <span>Programma giorno per giorno</span>
             <span className="flex items-center gap-1.5 text-xs font-normal text-zinc-500 dark:text-zinc-400">
-              {plural(it.days_plan.length, "attività", "attività")}
-              <ChevronDown className="size-4 transition-transform group-open/days:rotate-180" aria-hidden />
+              {plural(
+                it.days_plan.filter((d) => d.activity).length,
+                "attività",
+                "attività",
+              )}
+              <ChevronDown
+                className="size-4 transition-transform group-open/days:rotate-180"
+                aria-hidden
+              />
             </span>
           </summary>
           <ol className="px-3 pt-1 pb-3">
             {it.days_plan.map((d, i) => (
-              <DayItem key={d.day} d={d} last={i === it.days_plan.length - 1} dotClass={v.dot} />
+              <DayItem
+                key={d.day}
+                d={d}
+                last={i === it.days_plan.length - 1}
+                dotClass={v.dot}
+              />
             ))}
           </ol>
         </details>
 
         {onSelect && canSelect && (
-          <Button className="mt-auto w-full" onClick={onSelect} disabled={busy} loading={selecting}>
+          <Button
+            className="mt-auto w-full"
+            onClick={onSelect}
+            disabled={busy}
+            loading={selecting}
+          >
             {selecting ? "Selezione…" : "Scegli questa"}
           </Button>
         )}

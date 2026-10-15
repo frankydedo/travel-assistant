@@ -15,7 +15,7 @@ from app.domain.requirements import CATEGORIES, FIELD_LABELS, RequirementsUpdate
 from app.llm.base import LLMResult, LLMTask, ToolSpec
 from app.llm.gateway import Gateway
 
-PROMPT_VERSION = "v5"
+PROMPT_VERSION = "v11"
 
 SYSTEM_BASE = (
     "Sei l'assistente di un'agenzia di viaggi. Parli italiano, con tono cordiale e conciso. "
@@ -82,9 +82,18 @@ class Interpreter:
                 "Regole: budget_total in euro interi per tutto il gruppo; destination.type = 'suggest' se "
                 "l'utente chiede di consigliare la meta, 'anywhere' se va bene qualsiasi meta, altrimenti "
                 "'country' con il codice ISO a 2 lettere; categorie ammesse: "
-                f"{', '.join(CATEGORIES)}; preferences.notes = la descrizione libera dei gusti; month 1-12; "
+                f"{', '.join(CATEGORIES)}; preferences.notes = i gusti in poche parole e con le parole dell'utente, "
+                "anche per chi è il viaggio (es. con bambini), ma senza budget, date, destinazione, partenza o numero "
+                "di persone (null se non ne parla); month 1-12; "
                 "duration in giorni (N notti = N+1 giorni), min_days=max_days se fissa; departure_airport "
-                "codice IATA (Roma=FCO, Milano=MXP, Napoli=NAP); travelers intero.\n"
+                "codice IATA (Roma=FCO, Milano=MXP, Napoli=NAP); travelers intero, anche quando si deduce senza "
+                "ambiguità da con chi viaggia ('con la mia compagna' = 2, 'da solo' = 1). Valori «qualsiasi», da usare "
+                "SOLO se l'utente lo dice esplicitamente, mai per riempire un dato non detto (resta null): "
+                "budget_total='unlimited' se non ha limiti di budget; departure_airport='ANY' se può partire "
+                "da qualsiasi aeroporto; preferences.categories=[] se non ha preferenze sulle attività.\n"
+                "Esempio: «Siamo in due, 2500 euro, Grecia ad agosto, da Napoli. Ci piacciono il mare e la vita "
+                "notturna, niente musei» → preferences = {categories: [relax, nightlife], notes: 'mare e vita "
+                "notturna, niente musei'}.\n"
                 f"{SCOPE_RULE} Imposta in_scope=false se il messaggio è fuori scope."
             ),
             user=json.dumps(
@@ -95,7 +104,9 @@ class Interpreter:
             context={"message": message, "missing": current.missing_fields()},
         )
         result = self._run(task)
-        return Interpreted(Extraction.model_validate(result.parsed.model_dump()), result)
+        # Second pass with the user's message as context: Preferences.notes is checked against it.
+        validated = Extraction.model_validate(result.parsed.model_dump(), context={"message": message})
+        return Interpreted(validated, result)
 
     def proposal_step(
         self,
@@ -117,7 +128,12 @@ class Interpreter:
                 "sostituire l'attività di un giorno; change_hotel per un hotel migliore o più economico; "
                 "search_activities per domande sulle attività disponibili; get_itinerary_details per i dettagli; "
                 "flag_out_of_scope se il messaggio è fuori ambito. Se l'utente non indica la variante, usa quella "
-                "scelta o, se nessuna è scelta, chiediglielo. Dopo i risultati degli strumenti rispondi in 1-3 frasi "
+                "scelta o, se nessuna è scelta, chiediglielo. Se l'utente sceglie una variante o chiede di "
+                "prenotarla, chiama select_variant: la conferma la dà lui con il pulsante. Per domande su "
+                "un'attività o un hotel usa get_itinerary_details o search_activities e rispondi solo con la "
+                "descrizione del catalogo: se un dettaglio non c'è (cosa portare, orari, servizi), di' che nel "
+                "catalogo non è indicato, senza aggiungere servizi, prezzi o caratteristiche. Dopo i risultati "
+                "degli strumenti rispondi in 1-3 frasi "
                 "usando solo quei dati e chiamando le varianti con il loro nome_variante; dopo una modifica riporta "
                 "il totale precedente e quello nuovo (non dire che il totale 'rimane' se è cambiato). "
                 f"{MARKDOWN_RULE} "
@@ -136,7 +152,9 @@ class Interpreter:
             name="choose_destination",
             system=(
                 f"{SYSTEM_BASE}\nScegli la destinazione più adatta alle preferenze dell'utente SOLO tra quelle "
-                "fornite (tutte rientrano nel budget). Restituisci il codice paese e una motivazione di una frase."
+                "fornite (tutte rientrano nel budget). Restituisci il codice paese e una motivazione di una frase "
+                "che colleghi le preferenze dell'utente alle 'attività_adatte' o alla descrizione del paese: non "
+                "aggiungere caratteristiche che non sono nei dati (per esempio quanto è affollato)."
             ),
             user=json.dumps({"destinazioni_fattibili": feasible, "preferenze": preferences}, ensure_ascii=False),
             output_schema=DestinationChoice,
@@ -157,14 +175,23 @@ class Interpreter:
     ) -> LLMResult:
         """Natural-language reply built only from ``facts`` (computed by code)."""
         instructions = {
-            "ask_missing": "Chiedi all'utente le informazioni mancanti elencate, in modo naturale e in una sola "
-            "domanda. Se ci sono problemi ('issues'), spiegali prima.",
+            "ask_missing": "Con una frase completa e naturale riprendi in breve ciò che hai capito ('già_noto', "
+            "se c'è) e chiedi le informazioni mancanti elencate in una sola domanda. Se ci sono problemi "
+            "('issues'), spiegali prima.",
             "present_itineraries": "Presenta brevemente le varianti di itinerario fornite (non ripetere tutti i "
-            "dettagli: l'utente li vede nelle card). Evidenzia le differenze e invita a sceglierne una.",
+            "dettagli: l'utente li vede nelle card). Se c'è 'destination_reason', apri spiegando con quella "
+            "motivazione perché hai scelto la meta. "
+            "Se ci sono 'decisioni_prese', spiegale in prima persona in una frase ('ho confrontato…'): "
+            "sono decisioni prese per conto dell'utente. Per ogni variante evidenzia la meta se cambia, cosa la "
+            "distingue ('perché'), il 'periodo' (scritto così, mai in formato numerico) e il prezzo; con budget "
+            "illimitato non parlare di budget residuo. Se ci sono 'varianti_mancanti', di' in una frase perché. "
+            "Se ci sono 'giorni_di_viaggio', segnala che quei giorni sono senza attività per gli orari dei voli. "
+            "Poi invita a "
+            "sceglierne una.",
             "infeasible": "Spiega che con i requisiti attuali non esiste un itinerario e proponi le alternative "
             "fornite, chiedendo quale preferisce.",
-            "confirm_summary": "Riassumi la variante scelta e spiega che per prenotare deve premere il pulsante "
-            "'Conferma e prenota'.",
+            "confirm_summary": "Riassumi la variante scelta (date come in 'periodo', mai in formato numerico) e "
+            "spiega che per prenotare deve premere il pulsante 'Conferma e prenota'.",
             "answer": "Rispondi alla domanda dell'utente usando solo i fatti forniti, poi riporta la conversazione "
             "sulla scelta della variante.",
         }[kind]
@@ -174,17 +201,27 @@ class Interpreter:
                 f"{SYSTEM_BASE}\nStai scrivendo il prossimo messaggio dell'assistente in una chat già avviata: "
                 "niente saluti iniziali, da 1 a 4 frasi o un breve elenco puntato se serve confrontare opzioni. "
                 f"{MARKDOWN_RULE} Non usare chiavi interne o termini tecnici (per esempio economy, balanced, "
-                "premium, phase): chiama le varianti con il loro nome_variante. Importi in euro come nei dati. "
+                "premium, phase) e non usare i nomi dei campi dei dati come etichette (per esempio 'perché:'): "
+                "chiama le varianti con il loro nome_variante. Importi in euro esattamente come nei dati. "
                 f"Compito: {instructions}"
             ),
             user=(
                 "Dati calcolati dal sistema (usa solo questi, non inventare nulla):\n"
-                f"{json.dumps(facts, ensure_ascii=False, default=str)}\n\nScrivi ora il messaggio per l'utente."
+                f"{json.dumps(_prune(facts), ensure_ascii=False, default=str)}\n\nScrivi ora il messaggio per l'utente."
             ),
             context={"kind": kind, **facts},
             prompt_version=PROMPT_VERSION,
         )
         return self.gateway.generate(task, on_token=on_token, on_reset=on_reset, on_attempt=on_attempt)
+
+
+def _prune(value):
+    """Empty facts are left out: models otherwise comment on them ("nessuna variante mancante")."""
+    if isinstance(value, dict):
+        return {k: _prune(v) for k, v in value.items() if v not in (None, "", [], {})}
+    if isinstance(value, list):
+        return [_prune(v) for v in value]
+    return value
 
 
 def missing_labels(missing: list[str]) -> list[str]:

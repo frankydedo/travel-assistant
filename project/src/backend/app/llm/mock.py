@@ -11,13 +11,20 @@ import time
 from pydantic import ValidationError
 
 from app.domain.requirements import (
+    ANY_AIRPORT,
+    ANY_AIRPORT_PATTERN,
+    GENERIC_ANY_PATTERN,
     MONTHS_IT,
+    NO_PREFERENCES_PATTERN,
+    NOTES_MAX_LENGTH,
+    UNLIMITED_BUDGET,
+    UNLIMITED_BUDGET_PATTERN,
     DestinationType,
     RequirementsUpdate,
 )
 from app.llm.base import LLMError, LLMResult, LLMTask, ToolCall
 from app.llm.interpreter import DestinationChoice, Extraction, ProposalAction
-from app.textfmt import day_it, eur
+from app.textfmt import eur, period_it
 
 NUMBER_WORDS = {
     "un": 1,
@@ -50,6 +57,7 @@ COUNTRY_WORDS = {
     "PT": ["portogallo", "lisbona"],
     "US": ["stati uniti", "new york", "usa"],
     "TH": ["thailandia"],
+    "BR": ["brasile", "rio de janeiro"],
     "EG": ["egitto"],
     "MA": ["marocco"],
     "HR": ["croazia"],
@@ -89,7 +97,7 @@ CATEGORY_STEMS = {
         "arrampic",
         "attività fisica",
     ],
-    "relax": ["relax", "rilass", "spa", "terme", "termal", "benessere", "spiagg", "mare", "tranquill", "onsen"],
+    "relax": ["relax", "rilass", r"spa\b", "terme", "termal", "benessere", "spiagg", "mare", "tranquill", "onsen"],
     "nightlife": [
         "nightlife",
         "vita notturna",
@@ -244,7 +252,9 @@ def _last_match(patterns: dict[str, list[str]], text: str, prefix: bool = False)
     return best
 
 
-def parse_budget(text: str) -> int | None:
+def parse_budget(text: str) -> int | str | None:
+    if re.search(UNLIMITED_BUDGET_PATTERN, text):
+        return UNLIMITED_BUDGET
     amount = r"(\d{1,3}(?:[.\s]\d{3})+|\d+(?:[.,]\d+)?)\s*(k|mila)?"
     patterns = [
         rf"{amount}\s*(?:€|euro|eur)\b",
@@ -313,9 +323,11 @@ def parse_travelers(text: str) -> int | None:
 
 
 def parse_departure(text: str, departure_missing: bool) -> str | None:
+    if re.search(ANY_AIRPORT_PATTERN, text):
+        return ANY_AIRPORT
     for code, cities in DEPARTURE_CITIES.items():
         for city in cities:
-            if re.search(rf"(?:da|parto da|partenza:?(?: da)?|partendo da|partiamo da)\s+{city}\b", text):
+            if re.search(rf"\b(?:da|parto da|partenza:?(?: da)?|partendo da|partiamo da)\s+{city}\b", text):
                 return code
     if departure_missing:
         stripped = re.sub(r"[^a-z ]", "", text).strip()
@@ -326,12 +338,15 @@ def parse_departure(text: str, departure_missing: bool) -> str | None:
 
 
 def parse_destination(text: str) -> dict | None:
+    # "Parto da qualsiasi aeroporto" or "attività indifferenti" are not about the destination.
+    for pattern in (ANY_AIRPORT_PATTERN, NO_PREFERENCES_PATTERN, UNLIMITED_BUDGET_PATTERN):
+        text = re.sub(pattern, " ", text)
     if any(re.search(p, text) for p in SUGGEST_PATTERNS):
         return {"type": DestinationType.SUGGEST}
     if any(re.search(p, text) for p in ANYWHERE_PATTERNS):
         return {"type": DestinationType.ANYWHERE}
     # Departure cities must not be read as destinations ("da Napoli").
-    cleaned = re.sub(r"(?:da|parto da|partenza da|partendo da|partiamo da)\s+\w+", " ", text)
+    cleaned = re.sub(r"\b(?:da|parto da|partenza da|partendo da|partiamo da)\s+\w+", " ", text)
     code = _last_match(COUNTRY_WORDS, cleaned)
     return {"type": DestinationType.COUNTRY, "country_code": code} if code else None
 
@@ -341,20 +356,47 @@ def parse_month(text: str) -> int | None:
     return int(found) if found else None
 
 
+def _mentions_category(text: str) -> bool:
+    # Stems must start a word: "arte" must not match "partenza".
+    return any(re.search(rf"\b{s}", text) for stems in CATEGORY_STEMS.values() for s in stems)
+
+
+def preference_notes(original: str) -> str | None:
+    """Only the parts of the message that talk about tastes: the notes feed the RAG query, and budget,
+    airport or travelers there would just add noise (country and month are metadata filters anyway)."""
+    fragments = [f.strip() for f in re.split(r"[,.;:!?\n]+", original)]
+    kept = [
+        f
+        for f in fragments
+        if _mentions_category(f.lower()) or any(re.search(p, f.lower()) for p in ALL_CATEGORIES_PATTERNS)
+    ]
+    return ", ".join(kept)[:NOTES_MAX_LENGTH] or None
+
+
 def parse_preferences(text: str, original: str) -> dict | None:
+    if re.search(NO_PREFERENCES_PATTERN, text):
+        return {"categories": [], "notes": None}  # nothing to describe
     if any(re.search(p, text) for p in ALL_CATEGORIES_PATTERNS):
         categories = list(CATEGORY_STEMS)
     else:
-        # Stems must start a word: "arte" must not match "partenza".
         categories = [c for c, stems in CATEGORY_STEMS.items() if any(re.search(rf"\b{s}", text) for s in stems)]
     if not categories:
         return None
-    return {"categories": categories, "notes": original.strip()[:300]}
+    return {"categories": categories, "notes": preference_notes(original)}
 
 
 def extract(message: str, missing: list[str]) -> RequirementsUpdate:
     text = message.lower()
     data: dict = {}
+    if re.search(GENERIC_ANY_PATTERN, text):
+        # A bare "indifferente" answers the pending question only: it must not rewrite a field already set.
+        answers = {
+            "budget_total": {"budget_total": UNLIMITED_BUDGET},
+            "departure_airport": {"departure_airport": ANY_AIRPORT},
+            "preferences": {"preferences": {"categories": [], "notes": None}},
+            "destination": {"destination": {"type": DestinationType.ANYWHERE}},
+        }
+        return RequirementsUpdate.model_validate(answers.get(missing[0], {}) if len(missing) == 1 else {})
     if (budget := parse_budget(text)) is not None:
         data["budget_total"] = budget
     if (duration := parse_duration(text)) is not None:
@@ -458,16 +500,28 @@ def _join(items: list[str]) -> str:
 
 
 FIELD_QUESTIONS = {
-    "budget_total": "quanto vuoi spendere in totale",
+    "budget_total": "quanto vuoi spendere in totale (o se non hai un limite)",
     "destination": "dove vorresti andare (Sicilia, Spagna, Grecia, Giappone o Islanda; oppure «consigliami tu» "
     "o «ovunque»)",
-    "preferences": "che attività ti piacciono (cultura, sport, relax, nightlife, natura, gastronomia)",
+    "preferences": "che attività ti piacciono (cultura, sport, relax, nightlife, natura, gastronomia; "
+    "oppure «nessuna preferenza»)",
     "month": "in che mese vuoi partire",
     "duration": "quanti giorni (va bene anche un intervallo, es. 5-7 giorni)",
-    "departure_airport": "da dove parti (Roma Fiumicino, Milano Malpensa o Napoli)",
+    "departure_airport": "da dove parti (Roma Fiumicino, Milano Malpensa, Napoli o «qualsiasi aeroporto»)",
     "travelers": "quante persone viaggiano",
 }
 VARIANT_LABELS = {"economy": "Economica", "balanced": "Bilanciata", "premium": "Premium"}
+
+
+AIRPORT_NAMES = {"FCO": "Roma Fiumicino", "MXP": "Milano Malpensa", "NAP": "Napoli"}
+
+
+def _of(budget: int | str) -> str:
+    return f" su {eur(budget)}" if isinstance(budget, int) else " (budget illimitato)"
+
+
+def _from(airport: str | None) -> str:
+    return f", partenza da {AIRPORT_NAMES.get(airport, airport)}" if airport else ""
 
 
 def write_reply(kind: str, facts: dict) -> str:
@@ -482,13 +536,16 @@ def write_reply(kind: str, facts: dict) -> str:
         lines = []
         if facts.get("destination_reason"):
             lines.append(facts["destination_reason"])
-        lines.append("Ecco le proposte che rispettano budget e disponibilità:")
+        lines += facts.get("decisioni_prese", [])
+        unlimited = any(not isinstance(v["budget"], int) for v in facts["variants"])
+        lines.append("Ecco le proposte:" if unlimited else "Ecco le proposte che rispettano budget e disponibilità:")
         for v in facts["variants"]:
             acts = ", ".join(v["top_activities"][:2])
             lines.append(
                 f"- **{VARIANT_LABELS[v['variant']]}**: {v['destination']}, {v['days']} giorni "
-                f"dal {day_it(v['start_date'])}, "
-                f"hotel {v['hotel']} ({v['stars']}★), **{eur(v['total_price'])}** su {eur(v['budget'])}. "
+                f"{v['periodo']}, "
+                f"hotel {v['hotel']} ({v['stars']}★), **{eur(v['total_price'])}**{_of(v['budget'])}"
+                f"{_from(v.get('departure_airport'))}: {v['perché']}. "
                 f"Tra le attività: {acts}."
             )
         lines.append("\nQuale preferisci? Puoi anche chiedermi di cambiare un requisito.")
@@ -503,7 +560,7 @@ def write_reply(kind: str, facts: dict) -> str:
     if kind == "confirm_summary":
         return (
             f"Ottima scelta: variante **{VARIANT_LABELS[facts['variant']]}**, {facts['destination']}, "
-            f"{facts['days']} giorni dal {day_it(facts['start_date'])} al {day_it(facts['end_date'])} "
+            f"{facts['days']} giorni {period_it(facts['start_date'], facts['end_date'])} "
             f"per {facts['travelers']} "
             f"{'persona' if facts['travelers'] == 1 else 'persone'}, totale **{eur(facts['total_price'])}**. "
             "Per prenotare premi **Conferma e prenota**: la prenotazione parte solo con il tuo clic."

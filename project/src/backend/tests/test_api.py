@@ -298,17 +298,47 @@ def test_delete_keeps_confirmed_bookings(client, session):
     assert remaining == [itinerary_id]  # only the booked itinerary survives
 
 
-def test_demo_conversations_are_seeded_once(session):
-    from app.config import get_settings
-    from app.models import Booking, Conversation, User
-    from app.seed.demo import DEMO_USERS, SCRIPTS, seed_demo
+def test_recorded_conversations_are_replayed_for_the_demo_users(client, session, tmp_path, monkeypatch):
+    """The demo chats are a recording (made with the real LLMs): seeding replays the rows for each demo user,
+    with new ids, the original provider tags, the bookings and their inventory, once per user."""
+    import json
 
-    assert seed_demo(session, get_settings()) == len(DEMO_USERS) * len(SCRIPTS)
-    assert seed_demo(session, get_settings()) == 0  # idempotent: existing users are left untouched
+    from app.models import Booking, Conversation, Flight, Message, User
+    from app.seed import demo
+
+    conv = selected(client, plan_trip(client))
+    itinerary = next(i for i in conv["itineraries"] if i["status"] == "selected")
+    client.post("/api/bookings", json={"itinerary_id": itinerary["id"]}, headers={"Idempotency-Key": str(uuid.uuid4())})
+    session.expire_all()
+    recording = demo.export_demo(session, "alice")
+    fixture = tmp_path / "demo.json"
+    fixture.write_text(json.dumps(recording))
+    monkeypatch.setattr(demo, "FIXTURE", fixture)
+    outbound = itinerary["flights"]["outbound"]["id"]
+    seats_before = session.get(Flight, outbound).seats_left
+
+    assert demo.seed_demo(session) == len(demo.DEMO_USERS) * len(recording["conversations"])
+    assert demo.seed_demo(session) == 0  # idempotent: existing users are left untouched
+    session.expire_all()
     reviewer = session.scalar(select(User).where(User.username == "reviewer"))
-    convs = session.scalars(select(Conversation).where(Conversation.user_id == reviewer.id)).all()
-    phases = {c.title: c.phase for c in convs}
-    assert phases["Barcellona a maggio · prenotata"] == "BOOKED"
-    assert phases["Giappone con 300 € · caso infattibile"] == "COLLECTING_REQUIREMENTS"
-    assert phases["Grecia ad agosto · proposte e modifica"] == "PROPOSING"
-    assert session.scalar(select(Booking).where(Booking.user_id == reviewer.id)) is not None
+    replayed = session.scalars(select(Conversation).where(Conversation.user_id == reviewer.id)).all()
+    assert [c.phase for c in replayed] == ["BOOKED"] and replayed[0].id != conv["id"]
+    messages = session.scalars(select(Message).where(Message.conversation_id == replayed[0].id)).all()
+    assert [m.provider for m in messages] == [m["provider"] for m in recording["conversations"][0]["messages"]]
+    assert all(m.trace_id is None for m in messages)
+    booking = session.scalar(select(Booking).where(Booking.user_id == reviewer.id))
+    assert booking.status == "confirmed" and booking.itinerary_id != itinerary["id"]
+    # Same catalog as the recording: a replayed booking takes its inventory again, all of it or none
+    # (then it is flagged and a cancellation gives nothing back).
+    demo_ids = [u.id for u in session.scalars(select(User).where(User.username.in_(["demo", "reviewer"])))]
+    replayed_bookings = session.scalars(select(Booking).where(Booking.user_id.in_(demo_ids))).all()
+    held = [b for b in replayed_bookings if b.price_snapshot["inventory_held"]]
+    assert session.get(Flight, outbound).seats_left == seats_before - len(held) * itinerary["travelers"]
+    seats = session.get(Flight, outbound).seats_left
+    for b in replayed_bookings:
+        user = session.get(User, b.user_id)
+        from app.services import booking as booking_service
+
+        booking_service.cancel(session, user.id, b.id)
+    session.expire_all()
+    assert session.get(Flight, outbound).seats_left == seats + len(held) * itinerary["travelers"]

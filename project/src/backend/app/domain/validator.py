@@ -10,6 +10,7 @@ from datetime import date, timedelta
 from typing import Protocol
 
 from app.domain.planner import PlannedItinerary
+from app.domain.schedule import arrival_window, departure_window
 
 
 @dataclass(frozen=True)
@@ -33,7 +34,7 @@ class ItineraryDraft:
     end_date: date
     travelers: int
     rooms: int
-    budget: int
+    budget: int | None  # None = unlimited (ADR-0021)
     items: tuple[DraftItem, ...]
 
     @property
@@ -48,6 +49,8 @@ class FlightFacts:
     date: date
     price: int
     seats_left: int
+    departure_time: str | None = None
+    arrival_time: str | None = None
 
 
 class InventoryReader(Protocol):
@@ -55,6 +58,7 @@ class InventoryReader(Protocol):
     def flight(self, flight_id: str) -> FlightFacts | None: ...
     def hotel_night(self, hotel_id: str, night: date) -> tuple[int, int] | None: ...  # (price, rooms_left)
     def activity(self, activity_id: str, day: date) -> tuple[int, int] | None: ...  # (price, spots_left)
+    def activity_duration(self, activity_id: str) -> int | None: ...  # hours
 
 
 def draft_from_plan(plan: PlannedItinerary, departure_airport: str) -> ItineraryDraft:
@@ -63,7 +67,11 @@ def draft_from_plan(plan: PlannedItinerary, departure_airport: str) -> Itinerary
         DraftItem("flight_back", plan.inbound.id, plan.inbound.date, plan.inbound.price, plan.travelers),
     ]
     items += [DraftItem("hotel_night", plan.hotel.id, night, price, plan.rooms) for night, price in plan.hotel_nights]
-    items += [DraftItem("activity", d.activity.id, d.date, d.activity.price, plan.travelers) for d in plan.days_plan]
+    items += [
+        DraftItem("activity", d.activity.id, d.date, d.activity.price, plan.travelers)
+        for d in plan.days_plan
+        if d.activity is not None  # travel days have no activity (ADR-0023)
+    ]
     return ItineraryDraft(
         country_code=plan.country_code,
         departure_airport=departure_airport,
@@ -85,7 +93,7 @@ def validate(draft: ItineraryDraft, inventory: InventoryReader) -> list[str]:
         if item.unit_price < 0 or item.quantity <= 0:
             errors.append(f"{item.kind} {item.ref_id}: invalid price or quantity")
 
-    if draft.total_price > draft.budget:
+    if draft.budget is not None and draft.total_price > draft.budget:
         errors.append(f"total {draft.total_price} exceeds budget {draft.budget}")
     if draft.end_date < draft.start_date:
         errors.append("end date before start date")
@@ -97,6 +105,7 @@ def validate(draft: ItineraryDraft, inventory: InventoryReader) -> list[str]:
         errors.append(f"unknown country {draft.country_code}")
 
     # Flights: exactly one each way, on the right dates and routes, with seats and the stored price.
+    free_hours: dict[date, float] = {}  # first/last day: hours left by the flights (ADR-0023)
     for kind, expected_date, origin, dest in (
         ("flight_out", draft.start_date, draft.departure_airport, destination),
         ("flight_back", draft.end_date, destination, draft.departure_airport),
@@ -118,6 +127,12 @@ def validate(draft: ItineraryDraft, inventory: InventoryReader) -> list[str]:
             errors.append(f"{kind} {item.ref_id}: price changed ({item.unit_price} -> {facts.price})")
         if facts.seats_left < draft.travelers or item.quantity != draft.travelers:
             errors.append(f"{kind} {item.ref_id}: not enough seats")
+        if kind == "flight_out" and facts.arrival_time:
+            free_hours[draft.start_date] = arrival_window(facts.arrival_time)
+        if kind == "flight_back" and facts.departure_time:
+            free_hours[draft.end_date] = min(
+                free_hours.get(draft.end_date, 24.0), departure_window(facts.departure_time)
+            )
 
     # Hotel: one hotel, one night for each night of the trip, enough rooms, stored price.
     nights = by_kind.get("hotel_night", [])
@@ -136,10 +151,17 @@ def validate(draft: ItineraryDraft, inventory: InventoryReader) -> list[str]:
         if rooms_left < draft.rooms or night.quantity != draft.rooms:
             errors.append(f"hotel {night.ref_id} {night.date}: not enough rooms")
 
-    # Activities: one distinct activity per day, available, with enough spots and the stored price.
+    # Activities: one distinct activity per day (the first and last day may be travel days), available, with
+    # enough spots, the stored price and, on a travel day, a duration that fits the time the flights leave.
     activities = by_kind.get("activity", [])
-    if sorted(a.date for a in activities) != trip_dates:
+    scheduled = sorted(a.date for a in activities)
+    if len(set(scheduled)) != len(scheduled) or not set(trip_dates[1:-1]) <= set(scheduled) <= set(trip_dates):
         errors.append("activities do not cover every day exactly once")
+    for act in activities:
+        if act.date in free_hours:
+            duration = inventory.activity_duration(act.ref_id)
+            if duration is not None and duration > free_hours[act.date]:
+                errors.append(f"activity {act.ref_id} {act.date}: does not fit around the flights")
     if len({a.ref_id for a in activities}) != len(activities):
         errors.append("the same activity is scheduled twice")
     for act in activities:

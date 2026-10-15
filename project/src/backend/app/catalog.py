@@ -157,7 +157,9 @@ class SqlInventory:
 
     def flight(self, flight_id: str) -> FlightFacts | None:
         f = self.session.get(Flight, flight_id)
-        return FlightFacts(f.origin, f.destination, f.date, f.price, f.seats_left) if f else None
+        if f is None:
+            return None
+        return FlightFacts(f.origin, f.destination, f.date, f.price, f.seats_left, f.departure_time, f.arrival_time)
 
     def hotel_night(self, hotel_id: str, night: date) -> tuple[int, int] | None:
         row = self.session.get(HotelAvailability, (hotel_id, night))
@@ -167,3 +169,7 @@ class SqlInventory:
         act = self.session.get(Activity, activity_id)
         row = self.session.get(ActivityAvailability, (activity_id, day))
         return (act.price, row.spots_left) if act and row else None
+
+    def activity_duration(self, activity_id: str) -> int | None:
+        act = self.session.get(Activity, activity_id)
+        return act.duration_hours if act else None

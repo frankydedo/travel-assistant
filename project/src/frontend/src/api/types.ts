@@ -10,7 +10,8 @@ export type Phase =
   | "BOOKED";
 
 export interface TripRequirements {
-  budget_total: number | null;
+  /** "unlimited" and departure "ANY" / categories [] are explicit "any" values (ADR-0021). */
+  budget_total: number | "unlimited" | null;
   destination: {
     type: "country" | "suggest" | "anywhere";
     country_code: string | null;
@@ -63,6 +64,10 @@ export type ItineraryStatus = "proposed" | "selected" | "booked" | "discarded";
 export interface DayPlan {
   day: number;
   date: string;
+  /** Giorno di viaggio: gli orari dei voli non lasciano tempo per un'attività (ADR-0023). */
+  travel_day?: boolean;
+  /** Primo/ultimo giorno: orario di arrivo o del volo di ritorno. */
+  travel_note?: string | null;
   activity: {
     id: string;
     name: string;
@@ -73,7 +78,7 @@ export interface DayPlan {
     subtotal: number;
     /** Descrizione del catalogo scritta con AI e rivista. */
     description_ai_generated: boolean;
-  };
+  } | null;
 }
 
 export interface Itinerary {
@@ -91,7 +96,7 @@ export interface Itinerary {
   travelers: number;
   rooms: number;
   total_price: number;
-  budget_total: number;
+  budget_total: number | null; // null = unlimited budget
   cost_breakdown: { flights: number; hotel: number; activities: number };
   flights: { outbound: Flight; return: Flight };
   hotel: {

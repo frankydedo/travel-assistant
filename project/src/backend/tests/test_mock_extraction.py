@@ -100,3 +100,28 @@ def test_out_of_scope_messages(message):
 )
 def test_in_scope_messages(message):
     assert is_in_scope(message, extract(message, ALL_MISSING))
+
+
+def test_preference_notes_keep_only_the_tastes():
+    """The notes feed the RAG query: budget, airport and travelers there would only add noise."""
+    update = extract("Grecia a giugno, 5 giorni, da Roma, in 2, budget 2200 euro, mare e cultura", [])
+    assert update.preferences.notes == "mare e cultura"
+    message = "Siamo in due, budget 2500 euro, partenza da Napoli. Ci piacciono il mare e la vita notturna."
+    assert extract(message, []).preferences.notes == "Ci piacciono il mare e la vita notturna"
+    assert extract("nessuna preferenza sulle attività", []).preferences.notes is None
+
+
+def test_preference_notes_are_validated_by_the_model():
+    """Pydantic cleans the notes for every provider: structured data out, tastes in, nothing invented."""
+    from app.domain.requirements import Preferences
+    from app.llm.interpreter import Extraction
+
+    dirty = {"categories": ["relax"], "notes": "budget 2000 euro, siamo in 2, a giugno, mare e spiagge"}
+    assert Preferences.model_validate(dirty).notes == "mare e spiagge"
+    invented = {"requirements": {"preferences": {"categories": ["sport"], "notes": "sci e montagna"}}}
+    parsed = Extraction.model_validate(invented, context={"message": "ci piace il mare"})
+    assert parsed.requirements.preferences.notes is None  # not said by the user: dropped, not rejected
+    assert parsed.requirements.preferences.categories == ["sport"]
+    # Who the trip is for is a taste (activities have a target audience), the head count is not.
+    family = {"categories": ["cultura"], "notes": "con i bambini, musei e parchi"}
+    assert Preferences.model_validate(family).notes == "con i bambini, musei e parchi"

@@ -67,7 +67,9 @@ class ActivityOut(BaseModel):
 class DayOut(BaseModel):
     day: int
     date: str
-    activity: ActivityOut
+    travel_day: bool = False  # ADR-0023: the flights leave no time for an activity
+    travel_note: str | None = None  # first/last day: arrival or departure time
+    activity: ActivityOut | None
 
 
 class CostBreakdown(BaseModel):
@@ -91,7 +93,7 @@ class ItineraryOut(BaseModel):
     travelers: int
     rooms: int
     total_price: int
-    budget_total: int
+    budget_total: int | None
     cost_breakdown: CostBreakdown
     flights: FlightsOut
     hotel: HotelOut

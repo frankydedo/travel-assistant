@@ -117,3 +117,32 @@ def test_streaming_text_and_usage():
 def test_providers_without_a_key_are_not_configured():
     assert provider(lambda request: completion("ok")).is_configured()
     assert not provider(lambda request: completion("ok"), key=None).is_configured()  # skipped by the gateway
+
+
+def test_tool_history_from_another_provider_is_replayed_as_text():
+    """A fallback in the middle of a tool loop: Gemini 3 rejects function calls without its own
+    thought_signature, so calls made by Groq reach Gemini as plain text, while Groq gets them natively."""
+    followups = [
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": "c1",
+                    "type": "function",
+                    "function": {"name": "search_activities", "arguments": '{"request": "terme"}'},
+                    "_provider": "GROQ",
+                    "_extra": {},
+                }
+            ],
+        },
+        {"role": "tool", "tool_call_id": "c1", "content": '{"attività": ["Terme Segestane"]}'},
+    ]
+    task = LLMTask(name="proposal_tools", system="sys", user="user", followups=followups)
+    gemini = OpenAICompatibleProvider("GEMINI", "https://api.test/v1", "k", "m")
+    replayed = gemini._messages(task)[2:]
+    assert all("tool_calls" not in m and m["role"] != "tool" for m in replayed)
+    assert "search_activities" in replayed[0]["content"] and "Terme Segestane" in replayed[1]["content"]
+    groq = OpenAICompatibleProvider("GROQ", "https://api.test/v1", "k", "m")
+    native = groq._messages(task)[2:]
+    assert native[0]["tool_calls"][0]["id"] == "c1" and native[1]["role"] == "tool"

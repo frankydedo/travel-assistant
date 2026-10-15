@@ -198,7 +198,7 @@ class Itinerary(Base):
     travelers: Mapped[int] = mapped_column(Integer)
     rooms: Mapped[int] = mapped_column(Integer)
     total_price: Mapped[int] = mapped_column(Integer)
-    budget_total: Mapped[int] = mapped_column(Integer)
+    budget_total: Mapped[int | None] = mapped_column(Integer, nullable=True)  # NULL = unlimited (ADR-0021)
     view: Mapped[dict] = mapped_column(JSON)  # rendered snapshot returned by the API
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 

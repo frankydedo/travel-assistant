@@ -1,6 +1,7 @@
 """Rendering of planned itineraries into the API view (the JSON the frontend renders as cards)."""
 
 from app.domain.planner import FlightOption, PlannedItinerary
+from app.domain.schedule import describe_arrival, describe_departure
 
 
 def _flight(f: FlightOption, travelers: int) -> dict:
@@ -51,21 +52,32 @@ def itinerary_view(plan: PlannedItinerary, country_name: str, destination: str) 
             "price_per_night_avg": round(plan.hotel_cost / plan.rooms / nights) if nights else 0,
             "subtotal": plan.hotel_cost,
         },
-        "days_plan": [
-            {
-                "day": d.day,
-                "date": d.date.isoformat(),
-                "activity": {
-                    "id": d.activity.id,
-                    "name": d.activity.name,
-                    "category": d.activity.category,
-                    "description": d.activity.description,
-                    "description_ai_generated": d.activity.description_ai_generated,
-                    "duration_hours": d.activity.duration_hours,
-                    "price_per_person": d.activity.price,
-                    "subtotal": d.subtotal,
-                },
-            }
-            for d in plan.days_plan
-        ],
+        "days_plan": [_day(d, plan) for d in plan.days_plan],
+    }
+
+
+def _day(d, plan: PlannedItinerary) -> dict:
+    note = None  # first and last day: what the flights leave (ADR-0023)
+    if d.day == 1:
+        note = describe_arrival(plan.outbound.arrival_time)
+    elif d.day == plan.days:
+        note = describe_departure(plan.inbound.departure_time)
+    activity = None
+    if d.activity is not None:
+        activity = {
+            "id": d.activity.id,
+            "name": d.activity.name,
+            "category": d.activity.category,
+            "description": d.activity.description,
+            "description_ai_generated": d.activity.description_ai_generated,
+            "duration_hours": d.activity.duration_hours,
+            "price_per_person": d.activity.price,
+            "subtotal": d.subtotal,
+        }
+    return {
+        "day": d.day,
+        "date": d.date.isoformat(),
+        "travel_day": d.activity is None,
+        "travel_note": note,
+        "activity": activity,
     }

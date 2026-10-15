@@ -119,8 +119,36 @@ class OpenAICompatibleProvider:
         return [
             {"role": "system", "content": task.system + extra_system},
             {"role": "user", "content": task.user},
-            *(self._followup(m) for m in task.followups),
+            *self._history(task.followups),
         ]
+
+    def _history(self, followups: list[dict]) -> list[dict]:
+        """Tool-call turns made by *another* provider are replayed as plain text. A fallback can happen in
+        the middle of a tool loop (e.g. Groq hits its rate limit after the first tool), and Gemini 3 rejects
+        any function call in the history that lacks its own thought_signature: native tool-call history
+        is portable only to the provider that produced it."""
+        foreign: dict[str, str] = {}  # tool_call_id -> tool name, for calls made by another provider
+        history: list[dict] = []
+        for message in followups:
+            calls = message.get("tool_calls") if message.get("role") == "assistant" else None
+            if calls and any(c.get("_provider") != self.name for c in calls):
+                used = []
+                for call in calls:
+                    foreign[call["id"]] = call["function"]["name"]
+                    used.append(f"{call['function']['name']}({call['function']['arguments']})")
+                text = f"{message.get('content') or ''}\nHo già usato questi strumenti: {'; '.join(used)}".strip()
+                history.append({"role": "assistant", "content": text})
+            elif message.get("role") == "tool" and message.get("tool_call_id") in foreign:
+                name = foreign[message["tool_call_id"]]
+                history.append(
+                    {
+                        "role": "user",
+                        "content": f"Risultato dello strumento {name} (dati del sistema): {message['content']}",
+                    }
+                )
+            else:
+                history.append(self._followup(message))
+        return history
 
     def _followup(self, message: dict) -> dict:
         """Tool-call turns carry provider-specific fields (Gemini 3 rejects a function call without its

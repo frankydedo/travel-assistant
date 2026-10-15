@@ -136,3 +136,36 @@ class KeywordIndex:
             tokens = {w[:5] for w in _WORD.findall(document_text(a).lower())}
             out[a.id] = len(query_tokens & tokens) / (len(query_tokens) or 1)
         return out
+
+
+# Who the trip is for, from the travellers and the notes ("con la mia compagna", "con i bambini"): the
+# activities carry a target audience in the catalog, and a nightlife spot "per giovani" should not win a
+# relaxing trip for a couple only because it matches the words.
+AUDIENCE_PATTERNS = {
+    "famiglie": r"bambin|figli|famiglia|nipotin",
+    "senior": r"anzian|nonn|senior|genitori|pensionat",
+    "coppie": r"compagn[ao]|moglie|marito|fidanzat|partner|coppia|luna di miele|anniversario",
+}
+AUDIENCE_WEIGHT = 0.15
+
+
+def audience_of(req) -> set[str]:
+    text = ((req.preferences.notes if req.preferences else None) or "").lower()
+    audience = {name for name, pattern in AUDIENCE_PATTERNS.items() if re.search(pattern, text)}
+    if req.travelers == 1:
+        audience.add("solo")
+    return audience
+
+
+def with_audience(scores: dict[str, float], activities: list, audience: set[str]) -> dict[str, float]:
+    """Small bonus for activities aimed at this audience, small malus for the ones aimed only at others."""
+    if not audience:
+        return scores
+    adjusted = {}
+    for a in activities:
+        if a.id not in scores:
+            continue
+        targets = set(getattr(a, "targets", None) or [])
+        bonus = AUDIENCE_WEIGHT if targets & audience else (-AUDIENCE_WEIGHT if targets else 0.0)
+        adjusted[a.id] = round(min(1.0, max(0.0, scores[a.id] + bonus)), 4)
+    return adjusted

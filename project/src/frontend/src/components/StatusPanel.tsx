@@ -21,7 +21,8 @@ const FIELDS: { key: RequirementField; label: string; icon: LucideIcon }[] = [
 function formatField(req: TripRequirements, key: RequirementField, cat: CatalogLookup): string | null {
   switch (key) {
     case "budget_total":
-      return req.budget_total == null ? null : formatEUR(req.budget_total);
+      if (req.budget_total == null) return null;
+      return req.budget_total === "unlimited" ? "Illimitato" : formatEUR(req.budget_total);
     case "destination": {
       const d = req.destination;
       if (!d) return null;
@@ -32,6 +33,7 @@ function formatField(req: TripRequirements, key: RequirementField, cat: CatalogL
     case "preferences": {
       const p = req.preferences;
       if (!p) return null;
+      if (p.categories.length === 0) return "Nessuna preferenza";
       const parts = [p.categories.map(cat.categoryLabel).join(", "), p.notes ?? ""].filter(Boolean);
       return parts.length ? parts.join(" · ") : "Nessuna preferenza";
     }
@@ -45,7 +47,8 @@ function formatField(req: TripRequirements, key: RequirementField, cat: CatalogL
         : `${d.min_days}-${d.max_days} giorni`;
     }
     case "departure_airport":
-      return req.departure_airport ? cat.airportLabel(req.departure_airport) : null;
+      if (!req.departure_airport) return null;
+      return req.departure_airport === "ANY" ? "Qualsiasi aeroporto" : cat.airportLabel(req.departure_airport);
     case "travelers":
       return req.travelers == null ? null : String(req.travelers);
   }

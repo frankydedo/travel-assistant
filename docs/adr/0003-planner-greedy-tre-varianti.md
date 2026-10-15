@@ -1,6 +1,6 @@
 # ADR-0003 — Planner greedy sostituibile, 3 varianti, validatore deterministico
 
-- **Stato:** Accettata
+- **Stato:** Accettata (estesa da [ADR-0022](0022-varianti-con-budget-illimitato-e-ovunque.md) per «ovunque»; regola «un'attività per ogni giorno» modificata da [ADR-0023](0023-giorni-di-viaggio.md))
 - **Riferimenti:** [engineering-challenges §A3](../engineering-challenges.md#a3-generazione-dellitinerario--adr-0003)
 
 ## Contesto

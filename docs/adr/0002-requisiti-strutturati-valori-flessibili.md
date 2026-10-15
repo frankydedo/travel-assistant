@@ -1,6 +1,6 @@
 # ADR-0002 — Requisiti strutturati, tutti obbligatori, con valori flessibili
 
-- **Stato:** Accettata
+- **Stato:** Accettata (estesa da [ADR-0021](0021-valori-qualsiasi-espliciti.md))
 - **Riferimenti:** [engineering-challenges §A2, §B1](../engineering-challenges.md#a2-raccolta-requisiti-slot-filling--adr-0002)
 
 ## Contesto

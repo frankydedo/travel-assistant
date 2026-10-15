@@ -25,7 +25,7 @@ from app.models import (
     Message,
     utcnow,
 )
-from app.textfmt import day_it, eur
+from app.textfmt import eur, period_it
 
 log = logging.getLogger(__name__)
 
@@ -139,8 +139,8 @@ def book(session: Session, user_id: str, itinerary_id: str, idempotency_key: str
                 seq=len(conversation.messages) + 1,
                 role="assistant",
                 content=(
-                    f"Prenotazione confermata: {itinerary.view['destination']} dal "
-                    f"{day_it(itinerary.view['start_date'])} al {day_it(itinerary.view['end_date'])}, totale "
+                    f"Prenotazione confermata: {itinerary.view['destination']} "
+                    f"{period_it(itinerary.view['start_date'], itinerary.view['end_date'])}, totale "
                     f"{eur(draft.total_price)}. La trovi nella pagina Prenotazioni. Buon viaggio!"
                 ),
                 provider="SYSTEM",
@@ -178,11 +178,34 @@ def cancel(session: Session, user_id: str, booking_id: str) -> Booking:
         raise BookingError("not_found", "Prenotazione non trovata.", 404)
     if booking.status == "cancelled":
         return booking
-    for item in booking.itinerary.items:
-        _decrement(session, item.kind, item.ref_id, item.date, item.quantity, sign=-1)  # give inventory back
+    if (booking.price_snapshot or {}).get("inventory_held", True):  # a replayed demo booking may hold none
+        for item in booking.itinerary.items:
+            _decrement(session, item.kind, item.ref_id, item.date, item.quantity, sign=-1)  # give inventory back
     booking.status = "cancelled"
     booking.cancelled_at = utcnow()
     booking.itinerary.status = "discarded"
+    _reopen(session, booking)
     session.commit()
     log.info("booking.cancelled", extra={"booking_id": booking.id})
     return booking
+
+
+def _reopen(session: Session, booking: Booking) -> None:
+    """ADR-0024: a cancelled booking reopens its conversation, so a new message is not answered with
+    "questo viaggio è già prenotato". A fixed message written by code says what happened."""
+    conv = session.get(Conversation, booking.itinerary.conversation_id)
+    if conv is None or conv.deleted_at is not None or conv.phase != Phase.BOOKED:
+        return  # a deleted conversation stays a hidden shell
+    others = session.scalars(
+        select(Itinerary).where(Itinerary.conversation_id == conv.id, Itinerary.status == "proposed")
+    ).all()
+    change_phase(conv, Phase.PROPOSING if others else Phase.COLLECTING_REQUIREMENTS)
+    text = (
+        f"Prenotazione annullata ({eur(booking.total_price)}): voli, hotel e attività sono di nuovo disponibili. "
+        + (
+            "Le altre proposte sono ancora qui: scegline una o dimmi cosa cambiare."
+            if others
+            else "Se vuoi, preparo nuove proposte con gli stessi requisiti: scrivimi pure, anche solo «ok»."
+        )
+    )
+    conv.messages.append(Message(seq=len(conv.messages) + 1, role="assistant", content=text, provider="SYSTEM"))

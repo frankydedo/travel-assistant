@@ -1,6 +1,6 @@
 # ADR-0007 — Guardrail di sicurezza specifici per l'AI
 
-- **Stato:** Accettata
+- **Stato:** Accettata (rafforzata da [ADR-0025](0025-verifiche-deterministiche-sul-testo-llm.md))
 - **Riferimenti:** [engineering-challenges §A7](../engineering-challenges.md#a7-sicurezza-specifica-dellai--adr-0007)
 
 ## Contesto
