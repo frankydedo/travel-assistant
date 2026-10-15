@@ -1,6 +1,6 @@
 # ADR-0001 — Controllo ibrido: state machine + tool calling dentro le fasi
 
-- **Stato:** Accettata (transizione dopo l'annullamento aggiunta da [ADR-0024](0024-annullamento-riapre-la-conversazione.md))
+- **Stato:** Accettata (transizione dopo l'annullamento aggiunta da [ADR-0024](0024-annullamento-riapre-la-conversazione.md); tool di sola lettura sul catalogo in tutte le fasi da [ADR-0026](0026-tool-di-sola-lettura-sul-catalogo.md))
 - **Riferimenti:** [engineering-challenges §A1](../engineering-challenges.md#a1-ruolo-dellllm-nellarchitettura--adr-0001)
 
 ## Contesto

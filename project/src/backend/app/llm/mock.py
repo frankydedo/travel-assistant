@@ -216,6 +216,14 @@ OFF_TOPIC_PATTERN = (
 )
 
 
+# Questions about the catalog, recognised by the mock (ADR-0026; the real LLMs set Extraction.catalog_question).
+CATALOG_QUESTION = re.compile(
+    r"\b(quali|quale|che|ci sono|c'è|avete|esistono|elenc\w*|dimmi|dove posso|disponibil\w*)\b.*"
+    r"\b(destinazion\w*|mete?|paesi|aeroport\w*|hotel|albergh\w*|attivit\w*|vol[io]|prezz\w*|disponibil\w*)",
+    re.IGNORECASE,
+)
+
+
 def is_off_topic_request(text: str) -> bool:
     return re.search(OFF_TOPIC_PATTERN, text.lower()) is not None
 
@@ -459,6 +467,33 @@ HOTEL_CHEAPER = r"econom|meno car|risparm|più basso|costa meno"
 SEARCH_PATTERN = r"(che|quali) attivit|cosa (c'è|ce|si può|posso) fare|attività (ci sono|disponibili)|cosa offre"
 
 
+def choose_catalog_tool(message: str, requirements: dict) -> tuple[str, dict] | None:
+    """Rule-based stand-in for the LLM's choice of a read-only catalog tool (ADR-0026)."""
+    text = message.lower()
+    destination = parse_destination(text) or requirements.get("destination") or {}
+    country = (
+        destination.get("country_code") if destination.get("type") in ("country", DestinationType.COUNTRY) else None
+    )
+    month = parse_month(text) or requirements.get("month")
+    if re.search(r"aeroport|da dove (si )?part", text):
+        return "list_departure_airports", {}
+    if re.search(r"hotel|albergh|dormire|alloggi", text) and country:
+        return "get_hotels", {"country": country}
+    if re.search(r"\bvol[io]\b|disponibil|posti liberi", text) and country and month:
+        departure = parse_departure(text, False) or requirements.get("departure_airport")
+        return "check_availability", {
+            "country": country,
+            "month": month,
+            "departure_airport": departure if departure not in (None, ANY_AIRPORT) else None,
+            "travelers": parse_travelers(text) or requirements.get("travelers"),
+        }
+    if re.search(r"attivit|cosa (c'è|si può|posso) fare|cosa fare|da vedere|visitare", text):
+        return "search_activities", {"query": message, "country": country, "month": month}
+    if re.search(r"destinazion|\bmete?\b|paesi|dove (posso|si può|possiamo) andare", text):
+        return "list_destinations", {}
+    return None
+
+
 def choose_tool(message: str, proposals: list[dict], phase: str) -> tuple[str, dict] | None:
     """Rule-based emulation of the proposal-phase tool choice; ``None`` means a plain text answer."""
     text = message.lower()
@@ -598,7 +633,12 @@ class MockProvider:
                 parsed = Extraction(in_scope=False)  # do not mine requirements out of an off-topic request
             else:
                 update = extract(ctx["message"], ctx.get("missing", []))
-                parsed = Extraction(in_scope=is_in_scope(ctx["message"], update), requirements=update)
+                question = CATALOG_QUESTION.search(ctx["message"]) is not None
+                parsed = Extraction(
+                    in_scope=question or is_in_scope(ctx["message"], update),
+                    catalog_question=question,
+                    requirements=update,
+                )
         elif task.name == "choose_destination":
             best = max(ctx["feasible"], key=lambda c: (c["preference_score"], -c["min_cost"]))
             parsed = DestinationChoice(
@@ -606,11 +646,34 @@ class MockProvider:
                 reason=f"Ti consiglio {best['name']} ({best['destination']}): tra le mete che rientrano nel budget "
                 "è quella con le attività più vicine ai tuoi gusti.",
             )
+        elif task.name == "catalog_tools":
+            if ctx["tool_summaries"]:  # second step: report the data the tools returned (code-written)
+                text = " ".join(ctx["tool_summaries"])
+                if ctx["missing"]:
+                    text += f" Per preparare l'itinerario dimmi anche {_join(ctx['missing'][:3])}."
+            else:
+                choice = choose_catalog_tool(ctx["message"], ctx["requirements"])
+                if choice is not None:
+                    name, arguments = choice
+                    return LLMResult(
+                        text="",
+                        parsed=None,
+                        provider=self.name,
+                        model=self.model,
+                        input_tokens=0,
+                        output_tokens=0,
+                        tool_calls=[ToolCall(id=f"mock-{name}", name=name, arguments=arguments)],
+                    )
+                text = "Posso darti informazioni su destinazioni, aeroporti, hotel, attività e disponibilità."
         elif task.name == "proposal_tools":
             if ctx["tool_summaries"]:  # second step: report what the tools did (code-written summaries)
                 text = " ".join(ctx["tool_summaries"])
             else:
                 choice = choose_tool(ctx["message"], ctx["proposals"], ctx["phase"])
+                if CATALOG_QUESTION.search(ctx["message"]):  # catalog questions use the catalog tools here too
+                    catalog = choose_catalog_tool(ctx["message"], {})
+                    if catalog is not None and catalog[0] != "search_activities":
+                        choice = catalog
                 if choice is not None:
                     name, arguments = choice
                     return LLMResult(

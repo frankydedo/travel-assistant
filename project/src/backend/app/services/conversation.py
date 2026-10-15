@@ -50,6 +50,8 @@ from app.llm.registry import AI_PROVIDERS
 from app.models import Activity, Conversation, Country, Itinerary, ItineraryItem, Message
 from app.observability import get_observability
 from app.rag.retriever import SemanticIndex, audience_of, score_activities, with_audience
+from app.services.catalog_tools import SPECS as CATALOG_TOOLS
+from app.services.catalog_tools import CatalogToolbox
 from app.services.proposal_tools import SPECS as PROPOSAL_TOOLS
 from app.services.proposal_tools import ProposalToolbox
 from app.services.views import itinerary_view
@@ -227,10 +229,13 @@ class ConversationService:
             elif phase == Phase.COLLECTING_REQUIREMENTS:
                 current = self._requirements(conv)
                 interpreted = self.interpreter.extract_requirements(text, current, self._history(conv))
-                if not interpreted.value.in_scope and interpreted.value.requirements.is_empty():
+                value = interpreted.value
+                if value.catalog_question:
+                    self._catalog_reply(conv, current, value.requirements, text)
+                elif not value.in_scope and value.requirements.is_empty():
                     self._refuse(conv)
                 else:
-                    self._apply_update(conv, current, interpreted.value.requirements)
+                    self._apply_update(conv, current, value.requirements)
             else:
                 self._proposal_reply(conv, text)
             if phase != Phase.BOOKED and mentions_exact_date(text) and not self._refused(conv):
@@ -315,22 +320,7 @@ class ConversationService:
             if not result.tool_calls:
                 final = result
                 break
-            followups.append(
-                {
-                    "role": "assistant",
-                    "content": result.text or None,
-                    "tool_calls": [
-                        {
-                            "id": c.id,
-                            "type": "function",
-                            "function": {"name": c.name, "arguments": json.dumps(c.arguments, ensure_ascii=False)},
-                            "_provider": c.provider,  # provider-specific fields are re-attached for it only
-                            "_extra": c.extra,
-                        }
-                        for c in result.tool_calls
-                    ],
-                }
-            )
+            followups.append(_assistant_tool_turn(result))
             for call in result.tool_calls:
                 self._progress("tool", TOOL_PROGRESS.get(call.name, "Elaboro la richiesta…"))
                 outcome = toolbox.execute(call)
@@ -375,11 +365,69 @@ class ConversationService:
             self.emit("token", {"text": reply})
             self._add_message(conv, "assistant", reply, provider="SYSTEM", itinerary_ids=new_ids)
 
-    def _apply_update(self, conv: Conversation, current: TripRequirements, update: RequirementsUpdate) -> None:
+    def _merge(
+        self, conv: Conversation, current: TripRequirements, update: RequirementsUpdate
+    ) -> tuple[TripRequirements, RequirementsUpdate, list[str]]:
         update = keep_explicit_any(update, self._last_user_text, current.missing_fields())
         merged = current.merge(update)
         merged, issues = validate_against_catalog(merged, catalog_facts(self.session, self.settings.max_trip_days))
         conv.requirements = merged.model_dump(mode="json")
+        return merged, update, issues
+
+    def _catalog_reply(
+        self, conv: Conversation, current: TripRequirements, update: RequirementsUpdate, text: str
+    ) -> None:
+        """A question about the catalog while collecting (ADR-0026): the requirements said in the same
+        message are recorded as usual, read-only tools answer the question, and the reply also asks for
+        what is still missing. Complete requirements then lead to the proposals as usual."""
+        merged, _, issues = self._merge(conv, current, update)
+        missing = missing_labels(merged.missing_fields())[:3]  # one natural question, not a form
+        toolbox = CatalogToolbox(self, conv)
+        followups: list[dict] = []
+        summaries: list[str] = list(issues)
+        final: LLMResult | None = None
+        for _ in range(MAX_TOOL_STEPS):
+            result = self.interpreter.catalog_step(
+                text, merged.model_dump(mode="json"), missing, CATALOG_TOOLS, followups, summaries
+            )
+            if not result.tool_calls:
+                final = result
+                break
+            followups.append(_assistant_tool_turn(result))
+            for call in result.tool_calls:
+                self._progress("tool", "Consulto il catalogo…")
+                outcome = toolbox.execute(call)
+                if outcome.summary and outcome.summary not in summaries:
+                    summaries.append(outcome.summary)
+                followups.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": call.id,
+                        "content": json.dumps(outcome.content, ensure_ascii=False, default=str),
+                    }
+                )
+        fallback = " ".join(summaries) or "Posso darti informazioni su destinazioni, aeroporti, hotel e attività."
+        if final is not None and final.text:
+            grounding = [*(m["content"] for m in followups if m.get("role") == "tool"), summaries, merged.model_dump()]
+            if final.provider in AI_PROVIDERS and (wrong := ungrounded_amounts(final.text, *grounding)):
+                final = self._replace_ungrounded(final, wrong, fallback, task="catalog_tools", streamed=False)
+            else:
+                final = dc_replace(final, text=strip_field_labels(final.text))
+                self.emit(
+                    "provider",
+                    {"provider": final.provider, "model": final.model, "ai_generated": final.provider in AI_PROVIDERS},
+                )
+                self.emit("token", {"text": final.text})
+            self._add_message(conv, "assistant", final.text, result=final)
+        else:
+            self.emit("provider", {"provider": "SYSTEM", "model": None, "ai_generated": False})
+            self.emit("token", {"text": fallback})
+            self._add_message(conv, "assistant", fallback, provider="SYSTEM")
+        if merged.is_complete() and not issues:
+            self._propose(conv, merged)
+
+    def _apply_update(self, conv: Conversation, current: TripRequirements, update: RequirementsUpdate) -> None:
+        merged, update, issues = self._merge(conv, current, update)
         if issues or not merged.is_complete():
             change_phase(conv, Phase.COLLECTING_REQUIREMENTS)
             missing = merged.missing_fields()
@@ -502,7 +550,7 @@ class ConversationService:
                         "stars": it.view["hotel"]["stars"],
                         "top_activities": [d["activity"]["name"] for d in it.view["days_plan"] if d["activity"]][:3],
                         "giorni_di_viaggio": [
-                            f"giorno {d['day']}: {d['travel_note']}"
+                            f"il giorno {d['day']} di questa variante è senza attività ({d['travel_note']})"
                             for d in it.view["days_plan"]
                             if d.get("travel_day")
                         ],
@@ -869,3 +917,21 @@ class ConversationService:
         )
         conv.messages.append(message)
         return message
+
+
+def _assistant_tool_turn(result: LLMResult) -> dict:
+    """The assistant turn that asked for tools, as it goes back to the model in the next step."""
+    return {
+        "role": "assistant",
+        "content": result.text or None,
+        "tool_calls": [
+            {
+                "id": c.id,
+                "type": "function",
+                "function": {"name": c.name, "arguments": json.dumps(c.arguments, ensure_ascii=False)},
+                "_provider": c.provider,  # provider-specific fields are re-attached for it only
+                "_extra": c.extra,
+            }
+            for c in result.tool_calls
+        ],
+    }

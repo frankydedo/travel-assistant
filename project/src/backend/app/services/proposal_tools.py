@@ -28,6 +28,8 @@ from app.llm.base import ToolCall, ToolSpec
 from app.llm.mock import VARIANT_LABELS
 from app.models import Activity, Conversation, Country, Itinerary
 from app.rag.retriever import audience_of, with_audience
+from app.services.catalog_tools import NAMES as CATALOG_NAMES
+from app.services.catalog_tools import SPECS as CATALOG_SPECS
 from app.textfmt import budget_value, eur, of_budget
 
 if TYPE_CHECKING:
@@ -86,6 +88,8 @@ SPECS = [
     ToolSpec("get_itinerary_details", "Restituisce i dettagli di una variante.", ItineraryDetailsArgs),
     ToolSpec("flag_out_of_scope", "Il messaggio non riguarda l'organizzazione del viaggio.", NoArgs),
 ]
+# Read-only catalog tools are available here too (ADR-0026); search_activities stays the trip-focused one.
+SPECS += [spec for spec in CATALOG_SPECS if spec.name != "search_activities"]
 TERMINAL = {"select_variant", "update_requirements", "flag_out_of_scope"}
 
 
@@ -132,6 +136,10 @@ class ProposalToolbox:
     # --- Execution ---------------------------------------------------------------------
 
     def execute(self, call: ToolCall) -> ToolOutcome:
+        if call.name in CATALOG_NAMES and call.name != "search_activities":
+            from app.services.catalog_tools import CatalogToolbox
+
+            return CatalogToolbox(self.service, self.conv).execute(call)
         spec = next((s for s in SPECS if s.name == call.name), None)
         if spec is None:
             return self._error(f"Strumento sconosciuto: {call.name}.", user_text="")

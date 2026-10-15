@@ -21,7 +21,7 @@ Quasi tutti gli ADR applicano questo principio a un punto specifico del sistema.
 
 | # | Titolo | Stato |
 | --- | --- | --- |
-| [0001](0001-controllo-ibrido-state-machine.md) | Controllo ibrido: state machine + tool calling dentro le fasi | Accettata (transizione aggiunta da 0024) |
+| [0001](0001-controllo-ibrido-state-machine.md) | Controllo ibrido: state machine + tool calling dentro le fasi | Accettata (transizione aggiunta da 0024; tool sul catalogo da 0026) |
 | [0002](0002-requisiti-strutturati-valori-flessibili.md) | Requisiti strutturati, tutti obbligatori, con valori flessibili | Accettata (estesa da 0021) |
 | [0003](0003-planner-greedy-tre-varianti.md) | Planner greedy sostituibile, 3 varianti, validatore deterministico | Accettata (estesa da 0022 per «ovunque»; regola dei giorni modificata da 0023) |
 | [0004](0004-rag-chroma-embedding-locali.md) | RAG con Chroma, embedding locali e filtri sui metadati | Accettata |
@@ -46,3 +46,4 @@ Quasi tutti gli ADR applicano questo principio a un punto specifico del sistema.
 | [0023](0023-giorni-di-viaggio.md) | Giorni di viaggio: attività compatibili con gli orari dei voli | Accettata (modifica 0003) |
 | [0024](0024-annullamento-riapre-la-conversazione.md) | L'annullamento di una prenotazione riapre la conversazione | Accettata (modifica 0001) |
 | [0025](0025-verifiche-deterministiche-sul-testo-llm.md) | Verifiche deterministiche sul testo dell'LLM | Accettata (rafforza 0007) |
+| [0026](0026-tool-di-sola-lettura-sul-catalogo.md) | Tool di sola lettura sul catalogo, in tutte le fasi | Accettata (estende 0001) |
