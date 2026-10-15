@@ -8,6 +8,8 @@ Il principio che guida l'architettura:
 
 L'LLM interpreta il linguaggio naturale e spiega i risultati. Prezzi, disponibilità, costruzione degli itinerari e prenotazioni sono responsabilità di codice deterministico e testato.
 
+> **Branch `develop`:** contiene il lavoro nato provando l'app da utente con gli LLM reali (giorni di viaggio, tool sul catalogo, verifiche sul testo dell'LLM, chat precaricate registrate con i modelli veri). Cosa è cambiato rispetto a `main`, e perché: [docs/develop-rispetto-a-main.md](docs/develop-rispetto-a-main.md).
+
 ## Avvio rapido
 
 Requisiti: Docker con Compose v2 e circa 4 GB di RAM liberi (lo stack completo, Langfuse incluso, ne usa circa 3,7 GB). Il primo avvio scarica le immagini e il modello di embedding, quindi richiede qualche minuto in più.
@@ -91,6 +93,17 @@ Ciò che non è stato fatto, con il piano previsto:
 - **Modifica di una prenotazione esistente**: oggi si annulla (con ripristino dell'inventario) e si prenota di nuovo; la modifica richiederebbe la stessa verifica di disponibilità in un'unica transazione ([ADR-0006](docs/adr/0006-prenotazione-sicura.md)).
 - **Costo per conversazione e per prenotazione** nella pagina Tracing ([ADR-0010](docs/adr/0010-osservabilita-langfuse-self-hosted.md)): oggi i costi sono aggregati per provider/modello, per task e nel tempo; manca il raggruppamento per sessione e il collegamento alla prenotazione.
 - **`trace_id` nei log JSON** ([ADR-0017](docs/adr/0017-logging-strutturato.md)): il trace id è salvato sui messaggi e linkato dalla chat, ma non è ancora nel contesto dei log, che si correlano a Langfuse solo tramite `conversation_id`.
+
+Emersi dalle conversazioni con gli LLM reali e dalle loro verifiche ([docs/conversazioni-reali.md](docs/conversazioni-reali.md)):
+
+- **Affermazioni qualitative non supportate**: il controllo nel codice copre gli importi, non frasi come «relax sulla spiaggia» a novembre o «adatta ai bambini». Piano: confrontare categorie e pubblico citati con quelli dell'attività, e misurare il resto con le eval (judge).
+- **Azioni dichiarate ma non fatte** («eliminiamo la variante Premium»): oggi solo una regola nel prompt. Piano: un controllo che segnali verbi d'azione nella risposta quando nessun tool è stato eseguito.
+- **Fatti dei tool riformulati male**: per esempio un giorno di viaggio attribuito alla variante sbagliata, o l'aeroporto già scelto messo tra gli «altri». Piano: casi dedicati nel golden set e dati più espliciti nei risultati dei tool.
+- **Orario delle attività**: il catalogo ha la durata ma non la fascia oraria, quindi una serata o la caccia all'aurora possono finire nel giorno del ritorno con un volo pomeridiano (ADR-0023). Piano: fascia oraria nel catalogo e nel controllo dei giorni di viaggio.
+- **Peso del pubblico di riferimento**: con ±0,15 un'attività per coppie può ancora finire in un viaggio con bambini. Piano: tarare il peso sul golden set, oppure filtrare quando il pubblico è esplicito.
+- **Scelte implicite da dichiarare sempre**: l'anno del mese richiesto (la prossima occorrenza può essere l'anno dopo) e le date diverse tra le varianti. In parte già passate alla risposta; piano: dirle sempre nelle proposte.
+- **Dettagli e forma delle risposte**: descrizione dell'hotel nei dettagli di una variante; «quale preferisci?» con una sola alternativa; il modello sbaglia a volte i nomi («Terme di Segestane»).
+- **Chat registrate e catalogo**: le chat precaricate valgono per il catalogo del mese in cui sono state registrate. Piano: fissare il mese del catalogo per la demo, oppure registrarle di nuovo con `python -m app.seed.demo export`.
 
 Le esclusioni volute (message broker, multimodale, solver ILP, login social, WebSocket, agente LLM libero, pagamenti, deploy cloud) restano tali: sono motivate in [ADR-0015](docs/adr/0015-perimetro-priorita-esclusioni.md), insieme alle condizioni che porterebbero a rivederle.
 

@@ -131,6 +131,19 @@ Stato di avanzamento del progetto, organizzato per le fasi di [ADR-0015](docs/ad
 - [ ] Costo per conversazione e per prenotazione nella pagina Tracing (ADR-0010)
 - [ ] `trace_id` nel contesto dei log JSON (ADR-0017)
 
+## Miglioramenti futuri emersi dalle conversazioni reali
+
+> Non implementati in questa consegna; dettagli e piano nel README e in [docs/conversazioni-reali.md](docs/conversazioni-reali.md).
+
+- [ ] Controllo delle affermazioni qualitative (categoria e pubblico citati contro quelli dell'attività) e judge nelle eval
+- [ ] Controllo delle azioni dichiarate senza un tool eseguito
+- [ ] Casi del golden set per i fatti dei tool riformulati male (variante sbagliata, aeroporto già scelto)
+- [ ] Fascia oraria delle attività nel catalogo e nel controllo dei giorni di viaggio
+- [ ] Taratura del peso del pubblico di riferimento, o filtro quando è esplicito
+- [ ] Anno e date diverse tra varianti sempre dichiarati nelle proposte
+- [ ] Descrizione dell'hotel nei dettagli; risposta a un'unica alternativa; nomi delle attività sbagliati dal modello
+- [ ] Mese del catalogo fissato per le chat demo, o nuova registrazione quando cambia
+
 ## Decisioni di implementazione e deviazioni
 
 Le scelte prese durante l'implementazione che non meritano un ADR, ma che vanno rese visibili.
