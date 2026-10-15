@@ -24,7 +24,7 @@ Principio adottato: **l'LLM capisce e spiega, il codice decide e garantisce.**
 | Agente con tool calling | L'LLM decide quali tool chiamare (`search_flights`, `book`...) | Flessibile, conversazione naturale | Non deterministico, loop imprevedibili, più token, difficile da valutare |
 | Workflow / state machine + LLM | Il backend guida le fasi; l'LLM fa estrazione e generazione del testo | Prevedibile, testabile, economico | Meno flessibile su richieste fuori percorso |
 
-**Decisione.** Ibrido: una **state machine esplicita** guida le fasi (raccolta requisiti → proposta → conferma → prenotazione) e il tool calling dell'LLM avviene solo *dentro* una fase. L'itinerario lo costruisce un **planner deterministico**, e l'LLM lo presenta e lo argomenta.
+**Decisione.** Ibrido: una **state machine esplicita** guida le fasi (raccolta requisiti → proposta → conferma → prenotazione) e il tool calling dell'LLM avviene solo *dentro* una fase. L'itinerario lo costruisce un **planner deterministico**, e l'LLM lo presenta e lo argomenta. In tutte le fasi l'LLM ha anche tool di **sola lettura** sul catalogo (destinazioni, aeroporti, hotel, attività, disponibilità reale), per rispondere alle domande dell'utente con i dati del database ([ADR-0026](adr/0026-tool-di-sola-lettura-sul-catalogo.md)).
 
 **Motivazione.** Prende la prevedibilità del workflow (le transizioni critiche, come la prenotazione, non dipendono mai dal modello) senza rinunciare alla naturalezza della conversazione dentro ogni fase. Ogni fase si può testare e valutare separatamente.
 

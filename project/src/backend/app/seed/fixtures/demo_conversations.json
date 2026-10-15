@@ -356,256 +356,6 @@
      ]
     },
     {
-     "id": "38cbcad8-50de-45d6-bdb6-f5030171d656",
-     "variant": "balanced",
-     "status": "booked",
-     "country_code": "IT",
-     "start_date": "2026-11-21",
-     "end_date": "2026-11-25",
-     "travelers": 2,
-     "rooms": 1,
-     "total_price": 681,
-     "budget_total": 900,
-     "view": {
-      "variant": "balanced",
-      "country_code": "IT",
-      "country_name": "Italia",
-      "destination": "Sicilia",
-      "start_date": "2026-11-21",
-      "end_date": "2026-11-25",
-      "days": 5,
-      "nights": 4,
-      "travelers": 2,
-      "rooms": 1,
-      "total_price": 681,
-      "budget_total": 900,
-      "cost_breakdown": {
-       "flights": 190,
-       "hotel": 221,
-       "activities": 270
-      },
-      "flights": {
-       "outbound": {
-        "id": "72080668-39c9-5996-acd1-0d042753bb14",
-        "flight_number": "PA136",
-        "carrier": "Polare Air",
-        "origin": "NAP",
-        "destination": "PMO",
-        "date": "2026-11-21",
-        "departure_time": "07:05",
-        "arrival_time": "08:17",
-        "price_per_person": 53,
-        "subtotal": 106
-       },
-       "return": {
-        "id": "1901fd5c-098b-5d45-a8c3-549ec72e715d",
-        "flight_number": "AS139",
-        "carrier": "Ali del Sud",
-        "origin": "PMO",
-        "destination": "NAP",
-        "date": "2026-11-25",
-        "departure_time": "19:05",
-        "arrival_time": "20:17",
-        "price_per_person": 42,
-        "subtotal": 84
-       }
-      },
-      "hotel": {
-       "id": "87566175-98be-5d77-ae0e-0c2dfcd01c93",
-       "name": "Dimora delle Zagare",
-       "stars": 3,
-       "neighborhood": "Kalsa",
-       "nights": 4,
-       "price_per_night_avg": 55,
-       "subtotal": 221
-      },
-      "days_plan": [
-       {
-        "day": 1,
-        "date": "2026-11-21",
-        "travel_day": false,
-        "travel_note": "arrivo alle 08:17",
-        "activity": {
-         "id": "e0ea2f30-ddf1-5cbe-a685-83f62fb0a31f",
-         "name": "Tour guidato dello street food palermitano",
-         "category": "gastronomia",
-         "description": "Tour guidato a piedi dedicato al cibo di strada palermitano, considerato tra i migliori al mondo. Con una guida locale si assaggiano pane con la milza, sfincione, arancine, panelle e crocchè, fino a cannoli e granita, scoprendo le origini arabe e popolari di ogni ricetta. Un'esperienza gastronomica conviviale e divertente, perfetta per buongustai, giovani e viaggiatori soli che vogliono socializzare; si cammina poco e si mangia molto.",
-         "description_ai_generated": true,
-         "duration_hours": 3,
-         "price_per_person": 35,
-         "subtotal": 70
-        }
-       },
-       {
-        "day": 2,
-        "date": "2026-11-22",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "085c9838-394e-5ec4-9e77-762255988956",
-         "name": "Terme Segestane e tempio di Segesta",
-         "category": "relax",
-         "description": "Mezza giornata alle Terme Segestane, vicino a Castellammare del Golfo, dove sgorgano acque sulfuree naturalmente calde conosciute fin dall'antichità. Ci si rilassa nella piscina termale all'aperto e nella grotta con vapori naturali, lontano dalla folla, e lungo la strada ci si può fermare ad ammirare il tempio dorico di Segesta isolato tra le colline. Ideale per coppie e senior in cerca di benessere e tranquillità, anche nei mesi più freschi.",
-         "description_ai_generated": true,
-         "duration_hours": 5,
-         "price_per_person": 25,
-         "subtotal": 50
-        }
-       },
-       {
-        "day": 3,
-        "date": "2026-11-23",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "68891805-9a1b-5642-90dd-8606546d18ad",
-         "name": "Corso di cucina siciliana con spesa al mercato",
-         "category": "gastronomia",
-         "description": "Corso di cucina siciliana in una casa o scuola del centro di Palermo, spesso preceduto dalla spesa al mercato insieme allo chef. Si impara a preparare la pasta con le sarde, la caponata e i cannoli con ricotta fresca, per poi gustare tutto a tavola con vino dell'isola. Un'attività pratica e rilassante, ideale per coppie e famiglie con ragazzi che amano cucinare e vogliono portarsi a casa ricette autentiche.",
-         "description_ai_generated": true,
-         "duration_hours": 4,
-         "price_per_person": 70,
-         "subtotal": 140
-        }
-       },
-       {
-        "day": 4,
-        "date": "2026-11-24",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "fb2d4800-ef5a-53ba-8657-ed301be0a324",
-         "name": "Trekking nella Riserva dello Zingaro",
-         "category": "natura",
-         "description": "Escursione a piedi nella Riserva naturale dello Zingaro, la prima area protetta istituita in Sicilia, lungo un sentiero costiero di circa sette chilometri tra Scopello e San Vito Lo Capo. Il percorso, sterrato e con saliscendi, scende verso calette di ciottoli bianchi e acqua cristallina, tra palme nane ed euforbie. Ideale per amanti del trekking e della natura incontaminata: serve un minimo di allenamento, scarpe adatte e molta acqua, e nella bella stagione si fa il bagno.",
-         "description_ai_generated": true,
-         "duration_hours": 7,
-         "price_per_person": 5,
-         "subtotal": 10
-        }
-       },
-       {
-        "day": 5,
-        "date": "2026-11-25",
-        "travel_day": false,
-        "travel_note": "volo di ritorno alle 19:05",
-        "activity": {
-         "id": "df73bd66-27a7-552b-8240-f3c889416b38",
-         "name": "Mercati storici di Ballarò e del Capo",
-         "category": "gastronomia",
-         "description": "Passeggiata libera tra i mercati storici di Palermo, Ballarò e il Capo, labirinti di bancarelle che ricordano i suk arabi, tra le grida dei venditori, le «abbanniate», pesce fresco, spezie, frutta e verdure coloratissime. È il modo più autentico per respirare la vita di quartiere e assaggiare cibo di strada come panelle, crocchè e arancine spendendo pochissimo. Si cammina a ritmo lento, ideale per giovani, coppie e viaggiatori curiosi in cerca di atmosfera popolare.",
-         "description_ai_generated": true,
-         "duration_hours": 3,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       }
-      ]
-     },
-     "created_at": "2026-10-15T14:29:31.788323+00:00",
-     "items": [
-      {
-       "position": 0,
-       "kind": "flight_out",
-       "ref_id": "72080668-39c9-5996-acd1-0d042753bb14",
-       "date": "2026-11-21",
-       "unit_price": 53,
-       "quantity": 2,
-       "subtotal": 106
-      },
-      {
-       "position": 1,
-       "kind": "flight_back",
-       "ref_id": "1901fd5c-098b-5d45-a8c3-549ec72e715d",
-       "date": "2026-11-25",
-       "unit_price": 42,
-       "quantity": 2,
-       "subtotal": 84
-      },
-      {
-       "position": 2,
-       "kind": "hotel_night",
-       "ref_id": "87566175-98be-5d77-ae0e-0c2dfcd01c93",
-       "date": "2026-11-21",
-       "unit_price": 61,
-       "quantity": 1,
-       "subtotal": 61
-      },
-      {
-       "position": 3,
-       "kind": "hotel_night",
-       "ref_id": "87566175-98be-5d77-ae0e-0c2dfcd01c93",
-       "date": "2026-11-22",
-       "unit_price": 52,
-       "quantity": 1,
-       "subtotal": 52
-      },
-      {
-       "position": 4,
-       "kind": "hotel_night",
-       "ref_id": "87566175-98be-5d77-ae0e-0c2dfcd01c93",
-       "date": "2026-11-23",
-       "unit_price": 56,
-       "quantity": 1,
-       "subtotal": 56
-      },
-      {
-       "position": 5,
-       "kind": "hotel_night",
-       "ref_id": "87566175-98be-5d77-ae0e-0c2dfcd01c93",
-       "date": "2026-11-24",
-       "unit_price": 52,
-       "quantity": 1,
-       "subtotal": 52
-      },
-      {
-       "position": 6,
-       "kind": "activity",
-       "ref_id": "e0ea2f30-ddf1-5cbe-a685-83f62fb0a31f",
-       "date": "2026-11-21",
-       "unit_price": 35,
-       "quantity": 2,
-       "subtotal": 70
-      },
-      {
-       "position": 7,
-       "kind": "activity",
-       "ref_id": "085c9838-394e-5ec4-9e77-762255988956",
-       "date": "2026-11-22",
-       "unit_price": 25,
-       "quantity": 2,
-       "subtotal": 50
-      },
-      {
-       "position": 8,
-       "kind": "activity",
-       "ref_id": "68891805-9a1b-5642-90dd-8606546d18ad",
-       "date": "2026-11-23",
-       "unit_price": 70,
-       "quantity": 2,
-       "subtotal": 140
-      },
-      {
-       "position": 9,
-       "kind": "activity",
-       "ref_id": "fb2d4800-ef5a-53ba-8657-ed301be0a324",
-       "date": "2026-11-24",
-       "unit_price": 5,
-       "quantity": 2,
-       "subtotal": 10
-      },
-      {
-       "position": 10,
-       "kind": "activity",
-       "ref_id": "df73bd66-27a7-552b-8240-f3c889416b38",
-       "date": "2026-11-25",
-       "unit_price": 0,
-       "quantity": 2,
-       "subtotal": 0
-      }
-     ]
-    },
-    {
      "id": "ebd77778-42a0-4a77-922f-521aa87be31f",
      "variant": "premium",
      "status": "proposed",
@@ -854,6 +604,256 @@
        "subtotal": 0
       }
      ]
+    },
+    {
+     "id": "38cbcad8-50de-45d6-bdb6-f5030171d656",
+     "variant": "balanced",
+     "status": "booked",
+     "country_code": "IT",
+     "start_date": "2026-11-21",
+     "end_date": "2026-11-25",
+     "travelers": 2,
+     "rooms": 1,
+     "total_price": 681,
+     "budget_total": 900,
+     "view": {
+      "variant": "balanced",
+      "country_code": "IT",
+      "country_name": "Italia",
+      "destination": "Sicilia",
+      "start_date": "2026-11-21",
+      "end_date": "2026-11-25",
+      "days": 5,
+      "nights": 4,
+      "travelers": 2,
+      "rooms": 1,
+      "total_price": 681,
+      "budget_total": 900,
+      "cost_breakdown": {
+       "flights": 190,
+       "hotel": 221,
+       "activities": 270
+      },
+      "flights": {
+       "outbound": {
+        "id": "72080668-39c9-5996-acd1-0d042753bb14",
+        "flight_number": "PA136",
+        "carrier": "Polare Air",
+        "origin": "NAP",
+        "destination": "PMO",
+        "date": "2026-11-21",
+        "departure_time": "07:05",
+        "arrival_time": "08:17",
+        "price_per_person": 53,
+        "subtotal": 106
+       },
+       "return": {
+        "id": "1901fd5c-098b-5d45-a8c3-549ec72e715d",
+        "flight_number": "AS139",
+        "carrier": "Ali del Sud",
+        "origin": "PMO",
+        "destination": "NAP",
+        "date": "2026-11-25",
+        "departure_time": "19:05",
+        "arrival_time": "20:17",
+        "price_per_person": 42,
+        "subtotal": 84
+       }
+      },
+      "hotel": {
+       "id": "87566175-98be-5d77-ae0e-0c2dfcd01c93",
+       "name": "Dimora delle Zagare",
+       "stars": 3,
+       "neighborhood": "Kalsa",
+       "nights": 4,
+       "price_per_night_avg": 55,
+       "subtotal": 221
+      },
+      "days_plan": [
+       {
+        "day": 1,
+        "date": "2026-11-21",
+        "travel_day": false,
+        "travel_note": "arrivo alle 08:17",
+        "activity": {
+         "id": "e0ea2f30-ddf1-5cbe-a685-83f62fb0a31f",
+         "name": "Tour guidato dello street food palermitano",
+         "category": "gastronomia",
+         "description": "Tour guidato a piedi dedicato al cibo di strada palermitano, considerato tra i migliori al mondo. Con una guida locale si assaggiano pane con la milza, sfincione, arancine, panelle e crocchè, fino a cannoli e granita, scoprendo le origini arabe e popolari di ogni ricetta. Un'esperienza gastronomica conviviale e divertente, perfetta per buongustai, giovani e viaggiatori soli che vogliono socializzare; si cammina poco e si mangia molto.",
+         "description_ai_generated": true,
+         "duration_hours": 3,
+         "price_per_person": 35,
+         "subtotal": 70
+        }
+       },
+       {
+        "day": 2,
+        "date": "2026-11-22",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "085c9838-394e-5ec4-9e77-762255988956",
+         "name": "Terme Segestane e tempio di Segesta",
+         "category": "relax",
+         "description": "Mezza giornata alle Terme Segestane, vicino a Castellammare del Golfo, dove sgorgano acque sulfuree naturalmente calde conosciute fin dall'antichità. Ci si rilassa nella piscina termale all'aperto e nella grotta con vapori naturali, lontano dalla folla, e lungo la strada ci si può fermare ad ammirare il tempio dorico di Segesta isolato tra le colline. Ideale per coppie e senior in cerca di benessere e tranquillità, anche nei mesi più freschi.",
+         "description_ai_generated": true,
+         "duration_hours": 5,
+         "price_per_person": 25,
+         "subtotal": 50
+        }
+       },
+       {
+        "day": 3,
+        "date": "2026-11-23",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "68891805-9a1b-5642-90dd-8606546d18ad",
+         "name": "Corso di cucina siciliana con spesa al mercato",
+         "category": "gastronomia",
+         "description": "Corso di cucina siciliana in una casa o scuola del centro di Palermo, spesso preceduto dalla spesa al mercato insieme allo chef. Si impara a preparare la pasta con le sarde, la caponata e i cannoli con ricotta fresca, per poi gustare tutto a tavola con vino dell'isola. Un'attività pratica e rilassante, ideale per coppie e famiglie con ragazzi che amano cucinare e vogliono portarsi a casa ricette autentiche.",
+         "description_ai_generated": true,
+         "duration_hours": 4,
+         "price_per_person": 70,
+         "subtotal": 140
+        }
+       },
+       {
+        "day": 4,
+        "date": "2026-11-24",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "fb2d4800-ef5a-53ba-8657-ed301be0a324",
+         "name": "Trekking nella Riserva dello Zingaro",
+         "category": "natura",
+         "description": "Escursione a piedi nella Riserva naturale dello Zingaro, la prima area protetta istituita in Sicilia, lungo un sentiero costiero di circa sette chilometri tra Scopello e San Vito Lo Capo. Il percorso, sterrato e con saliscendi, scende verso calette di ciottoli bianchi e acqua cristallina, tra palme nane ed euforbie. Ideale per amanti del trekking e della natura incontaminata: serve un minimo di allenamento, scarpe adatte e molta acqua, e nella bella stagione si fa il bagno.",
+         "description_ai_generated": true,
+         "duration_hours": 7,
+         "price_per_person": 5,
+         "subtotal": 10
+        }
+       },
+       {
+        "day": 5,
+        "date": "2026-11-25",
+        "travel_day": false,
+        "travel_note": "volo di ritorno alle 19:05",
+        "activity": {
+         "id": "df73bd66-27a7-552b-8240-f3c889416b38",
+         "name": "Mercati storici di Ballarò e del Capo",
+         "category": "gastronomia",
+         "description": "Passeggiata libera tra i mercati storici di Palermo, Ballarò e il Capo, labirinti di bancarelle che ricordano i suk arabi, tra le grida dei venditori, le «abbanniate», pesce fresco, spezie, frutta e verdure coloratissime. È il modo più autentico per respirare la vita di quartiere e assaggiare cibo di strada come panelle, crocchè e arancine spendendo pochissimo. Si cammina a ritmo lento, ideale per giovani, coppie e viaggiatori curiosi in cerca di atmosfera popolare.",
+         "description_ai_generated": true,
+         "duration_hours": 3,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       }
+      ]
+     },
+     "created_at": "2026-10-15T14:29:31.788323+00:00",
+     "items": [
+      {
+       "position": 0,
+       "kind": "flight_out",
+       "ref_id": "72080668-39c9-5996-acd1-0d042753bb14",
+       "date": "2026-11-21",
+       "unit_price": 53,
+       "quantity": 2,
+       "subtotal": 106
+      },
+      {
+       "position": 1,
+       "kind": "flight_back",
+       "ref_id": "1901fd5c-098b-5d45-a8c3-549ec72e715d",
+       "date": "2026-11-25",
+       "unit_price": 42,
+       "quantity": 2,
+       "subtotal": 84
+      },
+      {
+       "position": 2,
+       "kind": "hotel_night",
+       "ref_id": "87566175-98be-5d77-ae0e-0c2dfcd01c93",
+       "date": "2026-11-21",
+       "unit_price": 61,
+       "quantity": 1,
+       "subtotal": 61
+      },
+      {
+       "position": 3,
+       "kind": "hotel_night",
+       "ref_id": "87566175-98be-5d77-ae0e-0c2dfcd01c93",
+       "date": "2026-11-22",
+       "unit_price": 52,
+       "quantity": 1,
+       "subtotal": 52
+      },
+      {
+       "position": 4,
+       "kind": "hotel_night",
+       "ref_id": "87566175-98be-5d77-ae0e-0c2dfcd01c93",
+       "date": "2026-11-23",
+       "unit_price": 56,
+       "quantity": 1,
+       "subtotal": 56
+      },
+      {
+       "position": 5,
+       "kind": "hotel_night",
+       "ref_id": "87566175-98be-5d77-ae0e-0c2dfcd01c93",
+       "date": "2026-11-24",
+       "unit_price": 52,
+       "quantity": 1,
+       "subtotal": 52
+      },
+      {
+       "position": 6,
+       "kind": "activity",
+       "ref_id": "e0ea2f30-ddf1-5cbe-a685-83f62fb0a31f",
+       "date": "2026-11-21",
+       "unit_price": 35,
+       "quantity": 2,
+       "subtotal": 70
+      },
+      {
+       "position": 7,
+       "kind": "activity",
+       "ref_id": "085c9838-394e-5ec4-9e77-762255988956",
+       "date": "2026-11-22",
+       "unit_price": 25,
+       "quantity": 2,
+       "subtotal": 50
+      },
+      {
+       "position": 8,
+       "kind": "activity",
+       "ref_id": "68891805-9a1b-5642-90dd-8606546d18ad",
+       "date": "2026-11-23",
+       "unit_price": 70,
+       "quantity": 2,
+       "subtotal": 140
+      },
+      {
+       "position": 9,
+       "kind": "activity",
+       "ref_id": "fb2d4800-ef5a-53ba-8657-ed301be0a324",
+       "date": "2026-11-24",
+       "unit_price": 5,
+       "quantity": 2,
+       "subtotal": 10
+      },
+      {
+       "position": 10,
+       "kind": "activity",
+       "ref_id": "df73bd66-27a7-552b-8240-f3c889416b38",
+       "date": "2026-11-25",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      }
+     ]
     }
    ],
    "bookings": [
@@ -1087,272 +1087,6 @@
     }
    ],
    "itineraries": [
-    {
-     "id": "e4786db9-f072-4fe1-a45e-e57d2fff789c",
-     "variant": "economy",
-     "status": "discarded",
-     "country_code": "IT",
-     "start_date": "2027-10-18",
-     "end_date": "2027-10-23",
-     "travelers": 2,
-     "rooms": 1,
-     "total_price": 493,
-     "budget_total": null,
-     "view": {
-      "variant": "economy",
-      "country_code": "IT",
-      "country_name": "Italia",
-      "destination": "Sicilia",
-      "start_date": "2027-10-18",
-      "end_date": "2027-10-23",
-      "days": 6,
-      "nights": 5,
-      "travelers": 2,
-      "rooms": 1,
-      "total_price": 493,
-      "budget_total": null,
-      "cost_breakdown": {
-       "flights": 248,
-       "hotel": 211,
-       "activities": 34
-      },
-      "flights": {
-       "outbound": {
-        "id": "ee33122f-d699-54de-b274-449b4cd4183c",
-        "flight_number": "AS118",
-        "carrier": "Ali del Sud",
-        "origin": "MXP",
-        "destination": "PMO",
-        "date": "2027-10-18",
-        "departure_time": "07:45",
-        "arrival_time": "08:57",
-        "price_per_person": 57,
-        "subtotal": 114
-       },
-       "return": {
-        "id": "4aacdb7f-6d60-5d2a-ba91-da29b03ee916",
-        "flight_number": "PA120",
-        "carrier": "Polare Air",
-        "origin": "PMO",
-        "destination": "MXP",
-        "date": "2027-10-23",
-        "departure_time": "09:20",
-        "arrival_time": "10:32",
-        "price_per_person": 67,
-        "subtotal": 134
-       }
-      },
-      "hotel": {
-       "id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
-       "name": "Locanda del Capo",
-       "stars": 2,
-       "neighborhood": "Il Capo",
-       "nights": 5,
-       "price_per_night_avg": 42,
-       "subtotal": 211
-      },
-      "days_plan": [
-       {
-        "day": 1,
-        "date": "2027-10-18",
-        "travel_day": false,
-        "travel_note": "arrivo alle 08:57",
-        "activity": {
-         "id": "0a018909-8d11-54d0-9320-519eefedc4c3",
-         "name": "Duomo e chiostro di Monreale",
-         "category": "cultura",
-         "description": "Mezza giornata a Monreale, sulle colline sopra Palermo, per ammirare il Duomo normanno con oltre seimila metri quadrati di mosaici a fondo oro che raccontano l'Antico e il Nuovo Testamento. Dopo la cattedrale si visita il chiostro benedettino con le sue colonnine intarsiate e si sale sulle terrazze per un panorama sulla Conca d'Oro fino al mare. Esperienza culturale tranquilla, adatta a coppie, senior e viaggiatori in solitaria.",
-         "description_ai_generated": true,
-         "duration_hours": 4,
-         "price_per_person": 12,
-         "subtotal": 24
-        }
-       },
-       {
-        "day": 2,
-        "date": "2027-10-19",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "53b433b5-9edb-581f-888d-93caaf50c683",
-         "name": "Giornata di mare a Mondello",
-         "category": "relax",
-         "description": "Giornata di mare a Mondello, la spiaggia dei palermitani: una lunga mezzaluna di sabbia bianca e fine con acqua turchese e bassa, chiusa tra Monte Pellegrino e Monte Gallo. Si alternano bagni e sole tra stabilimenti con lettino e ombrellone e tratti di spiaggia libera, con l'elegante stabilimento liberty sull'acqua sullo sfondo e il lungomare pieno di chioschi. Perfetta per famiglie con bambini e per chi cerca relax al sole, senza alcuna fatica.",
-         "description_ai_generated": true,
-         "duration_hours": 5,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       },
-       {
-        "day": 3,
-        "date": "2027-10-20",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "df73bd66-27a7-552b-8240-f3c889416b38",
-         "name": "Mercati storici di Ballarò e del Capo",
-         "category": "gastronomia",
-         "description": "Passeggiata libera tra i mercati storici di Palermo, Ballarò e il Capo, labirinti di bancarelle che ricordano i suk arabi, tra le grida dei venditori, le «abbanniate», pesce fresco, spezie, frutta e verdure coloratissime. È il modo più autentico per respirare la vita di quartiere e assaggiare cibo di strada come panelle, crocchè e arancine spendendo pochissimo. Si cammina a ritmo lento, ideale per giovani, coppie e viaggiatori curiosi in cerca di atmosfera popolare.",
-         "description_ai_generated": true,
-         "duration_hours": 3,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       },
-       {
-        "day": 4,
-        "date": "2027-10-21",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "e56c1ec2-d62e-5ed3-90bd-cdd8bc997ed3",
-         "name": "Serata alla Vucciria",
-         "category": "nightlife",
-         "description": "Serata alla Vucciria, l'antico mercato che dopo il tramonto si trasforma in uno dei ritrovi notturni più popolari e informali di Palermo. Tra bancarelle che grigliano pesce e carne, birre economiche, musica improvvisata e una folla di studenti e viaggiatori, la piazza si anima fino a tarda notte; poco lontano, via Maqueda e la Kalsa offrono pub e cocktail bar. Ideale per giovani e viaggiatori soli che cercano una vita notturna autentica e senza formalità.",
-         "description_ai_generated": true,
-         "duration_hours": 4,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       },
-       {
-        "day": 5,
-        "date": "2027-10-22",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "fb2d4800-ef5a-53ba-8657-ed301be0a324",
-         "name": "Trekking nella Riserva dello Zingaro",
-         "category": "natura",
-         "description": "Escursione a piedi nella Riserva naturale dello Zingaro, la prima area protetta istituita in Sicilia, lungo un sentiero costiero di circa sette chilometri tra Scopello e San Vito Lo Capo. Il percorso, sterrato e con saliscendi, scende verso calette di ciottoli bianchi e acqua cristallina, tra palme nane ed euforbie. Ideale per amanti del trekking e della natura incontaminata: serve un minimo di allenamento, scarpe adatte e molta acqua, e nella bella stagione si fa il bagno.",
-         "description_ai_generated": true,
-         "duration_hours": 7,
-         "price_per_person": 5,
-         "subtotal": 10
-        }
-       },
-       {
-        "day": 6,
-        "date": "2027-10-23",
-        "travel_day": true,
-        "travel_note": "volo di ritorno alle 09:20",
-        "activity": null
-       }
-      ]
-     },
-     "created_at": "2026-10-15T14:32:51.324094+00:00",
-     "items": [
-      {
-       "position": 0,
-       "kind": "flight_out",
-       "ref_id": "ee33122f-d699-54de-b274-449b4cd4183c",
-       "date": "2027-10-18",
-       "unit_price": 57,
-       "quantity": 2,
-       "subtotal": 114
-      },
-      {
-       "position": 1,
-       "kind": "flight_back",
-       "ref_id": "4aacdb7f-6d60-5d2a-ba91-da29b03ee916",
-       "date": "2027-10-23",
-       "unit_price": 67,
-       "quantity": 2,
-       "subtotal": 134
-      },
-      {
-       "position": 2,
-       "kind": "hotel_night",
-       "ref_id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
-       "date": "2027-10-18",
-       "unit_price": 42,
-       "quantity": 1,
-       "subtotal": 42
-      },
-      {
-       "position": 3,
-       "kind": "hotel_night",
-       "ref_id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
-       "date": "2027-10-19",
-       "unit_price": 39,
-       "quantity": 1,
-       "subtotal": 39
-      },
-      {
-       "position": 4,
-       "kind": "hotel_night",
-       "ref_id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
-       "date": "2027-10-20",
-       "unit_price": 39,
-       "quantity": 1,
-       "subtotal": 39
-      },
-      {
-       "position": 5,
-       "kind": "hotel_night",
-       "ref_id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
-       "date": "2027-10-21",
-       "unit_price": 44,
-       "quantity": 1,
-       "subtotal": 44
-      },
-      {
-       "position": 6,
-       "kind": "hotel_night",
-       "ref_id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
-       "date": "2027-10-22",
-       "unit_price": 47,
-       "quantity": 1,
-       "subtotal": 47
-      },
-      {
-       "position": 7,
-       "kind": "activity",
-       "ref_id": "0a018909-8d11-54d0-9320-519eefedc4c3",
-       "date": "2027-10-18",
-       "unit_price": 12,
-       "quantity": 2,
-       "subtotal": 24
-      },
-      {
-       "position": 8,
-       "kind": "activity",
-       "ref_id": "53b433b5-9edb-581f-888d-93caaf50c683",
-       "date": "2027-10-19",
-       "unit_price": 0,
-       "quantity": 2,
-       "subtotal": 0
-      },
-      {
-       "position": 9,
-       "kind": "activity",
-       "ref_id": "df73bd66-27a7-552b-8240-f3c889416b38",
-       "date": "2027-10-20",
-       "unit_price": 0,
-       "quantity": 2,
-       "subtotal": 0
-      },
-      {
-       "position": 10,
-       "kind": "activity",
-       "ref_id": "e56c1ec2-d62e-5ed3-90bd-cdd8bc997ed3",
-       "date": "2027-10-21",
-       "unit_price": 0,
-       "quantity": 2,
-       "subtotal": 0
-      },
-      {
-       "position": 11,
-       "kind": "activity",
-       "ref_id": "fb2d4800-ef5a-53ba-8657-ed301be0a324",
-       "date": "2027-10-22",
-       "unit_price": 5,
-       "quantity": 2,
-       "subtotal": 10
-      }
-     ]
-    },
     {
      "id": "3e29e456-6752-4572-ba19-1a0c0827af32",
      "variant": "balanced",
@@ -1922,6 +1656,272 @@
      ]
     },
     {
+     "id": "e4786db9-f072-4fe1-a45e-e57d2fff789c",
+     "variant": "economy",
+     "status": "discarded",
+     "country_code": "IT",
+     "start_date": "2027-10-18",
+     "end_date": "2027-10-23",
+     "travelers": 2,
+     "rooms": 1,
+     "total_price": 493,
+     "budget_total": null,
+     "view": {
+      "variant": "economy",
+      "country_code": "IT",
+      "country_name": "Italia",
+      "destination": "Sicilia",
+      "start_date": "2027-10-18",
+      "end_date": "2027-10-23",
+      "days": 6,
+      "nights": 5,
+      "travelers": 2,
+      "rooms": 1,
+      "total_price": 493,
+      "budget_total": null,
+      "cost_breakdown": {
+       "flights": 248,
+       "hotel": 211,
+       "activities": 34
+      },
+      "flights": {
+       "outbound": {
+        "id": "ee33122f-d699-54de-b274-449b4cd4183c",
+        "flight_number": "AS118",
+        "carrier": "Ali del Sud",
+        "origin": "MXP",
+        "destination": "PMO",
+        "date": "2027-10-18",
+        "departure_time": "07:45",
+        "arrival_time": "08:57",
+        "price_per_person": 57,
+        "subtotal": 114
+       },
+       "return": {
+        "id": "4aacdb7f-6d60-5d2a-ba91-da29b03ee916",
+        "flight_number": "PA120",
+        "carrier": "Polare Air",
+        "origin": "PMO",
+        "destination": "MXP",
+        "date": "2027-10-23",
+        "departure_time": "09:20",
+        "arrival_time": "10:32",
+        "price_per_person": 67,
+        "subtotal": 134
+       }
+      },
+      "hotel": {
+       "id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
+       "name": "Locanda del Capo",
+       "stars": 2,
+       "neighborhood": "Il Capo",
+       "nights": 5,
+       "price_per_night_avg": 42,
+       "subtotal": 211
+      },
+      "days_plan": [
+       {
+        "day": 1,
+        "date": "2027-10-18",
+        "travel_day": false,
+        "travel_note": "arrivo alle 08:57",
+        "activity": {
+         "id": "0a018909-8d11-54d0-9320-519eefedc4c3",
+         "name": "Duomo e chiostro di Monreale",
+         "category": "cultura",
+         "description": "Mezza giornata a Monreale, sulle colline sopra Palermo, per ammirare il Duomo normanno con oltre seimila metri quadrati di mosaici a fondo oro che raccontano l'Antico e il Nuovo Testamento. Dopo la cattedrale si visita il chiostro benedettino con le sue colonnine intarsiate e si sale sulle terrazze per un panorama sulla Conca d'Oro fino al mare. Esperienza culturale tranquilla, adatta a coppie, senior e viaggiatori in solitaria.",
+         "description_ai_generated": true,
+         "duration_hours": 4,
+         "price_per_person": 12,
+         "subtotal": 24
+        }
+       },
+       {
+        "day": 2,
+        "date": "2027-10-19",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "53b433b5-9edb-581f-888d-93caaf50c683",
+         "name": "Giornata di mare a Mondello",
+         "category": "relax",
+         "description": "Giornata di mare a Mondello, la spiaggia dei palermitani: una lunga mezzaluna di sabbia bianca e fine con acqua turchese e bassa, chiusa tra Monte Pellegrino e Monte Gallo. Si alternano bagni e sole tra stabilimenti con lettino e ombrellone e tratti di spiaggia libera, con l'elegante stabilimento liberty sull'acqua sullo sfondo e il lungomare pieno di chioschi. Perfetta per famiglie con bambini e per chi cerca relax al sole, senza alcuna fatica.",
+         "description_ai_generated": true,
+         "duration_hours": 5,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 3,
+        "date": "2027-10-20",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "df73bd66-27a7-552b-8240-f3c889416b38",
+         "name": "Mercati storici di Ballarò e del Capo",
+         "category": "gastronomia",
+         "description": "Passeggiata libera tra i mercati storici di Palermo, Ballarò e il Capo, labirinti di bancarelle che ricordano i suk arabi, tra le grida dei venditori, le «abbanniate», pesce fresco, spezie, frutta e verdure coloratissime. È il modo più autentico per respirare la vita di quartiere e assaggiare cibo di strada come panelle, crocchè e arancine spendendo pochissimo. Si cammina a ritmo lento, ideale per giovani, coppie e viaggiatori curiosi in cerca di atmosfera popolare.",
+         "description_ai_generated": true,
+         "duration_hours": 3,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 4,
+        "date": "2027-10-21",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "e56c1ec2-d62e-5ed3-90bd-cdd8bc997ed3",
+         "name": "Serata alla Vucciria",
+         "category": "nightlife",
+         "description": "Serata alla Vucciria, l'antico mercato che dopo il tramonto si trasforma in uno dei ritrovi notturni più popolari e informali di Palermo. Tra bancarelle che grigliano pesce e carne, birre economiche, musica improvvisata e una folla di studenti e viaggiatori, la piazza si anima fino a tarda notte; poco lontano, via Maqueda e la Kalsa offrono pub e cocktail bar. Ideale per giovani e viaggiatori soli che cercano una vita notturna autentica e senza formalità.",
+         "description_ai_generated": true,
+         "duration_hours": 4,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 5,
+        "date": "2027-10-22",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "fb2d4800-ef5a-53ba-8657-ed301be0a324",
+         "name": "Trekking nella Riserva dello Zingaro",
+         "category": "natura",
+         "description": "Escursione a piedi nella Riserva naturale dello Zingaro, la prima area protetta istituita in Sicilia, lungo un sentiero costiero di circa sette chilometri tra Scopello e San Vito Lo Capo. Il percorso, sterrato e con saliscendi, scende verso calette di ciottoli bianchi e acqua cristallina, tra palme nane ed euforbie. Ideale per amanti del trekking e della natura incontaminata: serve un minimo di allenamento, scarpe adatte e molta acqua, e nella bella stagione si fa il bagno.",
+         "description_ai_generated": true,
+         "duration_hours": 7,
+         "price_per_person": 5,
+         "subtotal": 10
+        }
+       },
+       {
+        "day": 6,
+        "date": "2027-10-23",
+        "travel_day": true,
+        "travel_note": "volo di ritorno alle 09:20",
+        "activity": null
+       }
+      ]
+     },
+     "created_at": "2026-10-15T14:32:51.324094+00:00",
+     "items": [
+      {
+       "position": 0,
+       "kind": "flight_out",
+       "ref_id": "ee33122f-d699-54de-b274-449b4cd4183c",
+       "date": "2027-10-18",
+       "unit_price": 57,
+       "quantity": 2,
+       "subtotal": 114
+      },
+      {
+       "position": 1,
+       "kind": "flight_back",
+       "ref_id": "4aacdb7f-6d60-5d2a-ba91-da29b03ee916",
+       "date": "2027-10-23",
+       "unit_price": 67,
+       "quantity": 2,
+       "subtotal": 134
+      },
+      {
+       "position": 2,
+       "kind": "hotel_night",
+       "ref_id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
+       "date": "2027-10-18",
+       "unit_price": 42,
+       "quantity": 1,
+       "subtotal": 42
+      },
+      {
+       "position": 3,
+       "kind": "hotel_night",
+       "ref_id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
+       "date": "2027-10-19",
+       "unit_price": 39,
+       "quantity": 1,
+       "subtotal": 39
+      },
+      {
+       "position": 4,
+       "kind": "hotel_night",
+       "ref_id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
+       "date": "2027-10-20",
+       "unit_price": 39,
+       "quantity": 1,
+       "subtotal": 39
+      },
+      {
+       "position": 5,
+       "kind": "hotel_night",
+       "ref_id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
+       "date": "2027-10-21",
+       "unit_price": 44,
+       "quantity": 1,
+       "subtotal": 44
+      },
+      {
+       "position": 6,
+       "kind": "hotel_night",
+       "ref_id": "2f7f0124-6580-5ac6-b6b1-c1b63223bca1",
+       "date": "2027-10-22",
+       "unit_price": 47,
+       "quantity": 1,
+       "subtotal": 47
+      },
+      {
+       "position": 7,
+       "kind": "activity",
+       "ref_id": "0a018909-8d11-54d0-9320-519eefedc4c3",
+       "date": "2027-10-18",
+       "unit_price": 12,
+       "quantity": 2,
+       "subtotal": 24
+      },
+      {
+       "position": 8,
+       "kind": "activity",
+       "ref_id": "53b433b5-9edb-581f-888d-93caaf50c683",
+       "date": "2027-10-19",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      },
+      {
+       "position": 9,
+       "kind": "activity",
+       "ref_id": "df73bd66-27a7-552b-8240-f3c889416b38",
+       "date": "2027-10-20",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      },
+      {
+       "position": 10,
+       "kind": "activity",
+       "ref_id": "e56c1ec2-d62e-5ed3-90bd-cdd8bc997ed3",
+       "date": "2027-10-21",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      },
+      {
+       "position": 11,
+       "kind": "activity",
+       "ref_id": "fb2d4800-ef5a-53ba-8657-ed301be0a324",
+       "date": "2027-10-22",
+       "unit_price": 5,
+       "quantity": 2,
+       "subtotal": 10
+      }
+     ]
+    },
+    {
      "id": "58336592-6ac1-49d9-855f-77eff48b220a",
      "variant": "economy",
      "status": "proposed",
@@ -2184,290 +2184,6 @@
        "unit_price": 5,
        "quantity": 2,
        "subtotal": 10
-      }
-     ]
-    },
-    {
-     "id": "72f5f715-2d84-46a3-9b42-b2cb371e818f",
-     "variant": "balanced",
-     "status": "discarded",
-     "country_code": "GR",
-     "start_date": "2027-10-02",
-     "end_date": "2027-10-07",
-     "travelers": 2,
-     "rooms": 1,
-     "total_price": 733,
-     "budget_total": 1500,
-     "view": {
-      "variant": "balanced",
-      "country_code": "GR",
-      "country_name": "Grecia",
-      "destination": "Atene e isole Saroniche",
-      "start_date": "2027-10-02",
-      "end_date": "2027-10-07",
-      "days": 6,
-      "nights": 5,
-      "travelers": 2,
-      "rooms": 1,
-      "total_price": 733,
-      "budget_total": 1500,
-      "cost_breakdown": {
-       "flights": 314,
-       "hotel": 351,
-       "activities": 68
-      },
-      "flights": {
-       "outbound": {
-        "id": "f978bdb3-8f7d-5408-82a3-6d3eebb17b12",
-        "flight_number": "PA108",
-        "carrier": "Polare Air",
-        "origin": "FCO",
-        "destination": "ATH",
-        "date": "2027-10-02",
-        "departure_time": "07:30",
-        "arrival_time": "09:48",
-        "price_per_person": 84,
-        "subtotal": 168
-       },
-       "return": {
-        "id": "86665074-60c3-5e8f-89c5-9964077b13c8",
-        "flight_number": "AS111",
-        "carrier": "Ali del Sud",
-        "origin": "ATH",
-        "destination": "FCO",
-        "date": "2027-10-07",
-        "departure_time": "18:40",
-        "arrival_time": "20:58",
-        "price_per_person": 73,
-        "subtotal": 146
-       }
-      },
-      "hotel": {
-       "id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
-       "name": "Psyrri Urban Rooms",
-       "stars": 3,
-       "neighborhood": "Psyrri",
-       "nights": 5,
-       "price_per_night_avg": 70,
-       "subtotal": 351
-      },
-      "days_plan": [
-       {
-        "day": 1,
-        "date": "2027-10-02",
-        "travel_day": false,
-        "travel_note": "arrivo alle 09:48",
-        "activity": {
-         "id": "ba9e5e80-eee6-5c54-af1f-797ecafb02f8",
-         "name": "Museo Archeologico Nazionale",
-         "category": "cultura",
-         "description": "Mezza giornata al Museo Archeologico Nazionale di Atene, il più importante museo al mondo dedicato all'arte greca antica. Le sale custodiscono la Maschera di Agamennone in oro, il bronzo del dio di Capo Artemisio, il Fantino di Capo Artemisio e i frammenti del misterioso Meccanismo di Antikythera, considerato il più antico calcolatore conosciuto. Visita al chiuso e senza fatica, perfetta per appassionati di storia, senior e viaggiatori curiosi.",
-         "description_ai_generated": true,
-         "duration_hours": 3,
-         "price_per_person": 12,
-         "subtotal": 24
-        }
-       },
-       {
-        "day": 2,
-        "date": "2027-10-03",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "5ab8435d-d194-54c8-bc7c-1315f4b31f56",
-         "name": "Passeggiata tra Plaka e Anafiotika",
-         "category": "cultura",
-         "description": "Passeggiata libera nei quartieri storici sotto l'Acropoli: Plaka, con le sue stradine di case neoclassiche e taverne, e Anafiotika, minuscolo borgo di casette bianche costruito da muratori delle Cicladi, che sembra un'isola greca in piena città. Si prosegue verso Monastiraki, con il mercato delle pulci e la vista sull'Agorà antica. Attività gratuita, a ritmo lento e con qualche scalinata, ideale per coppie, viaggiatori soli e fotografi.",
-         "description_ai_generated": true,
-         "duration_hours": 3,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       },
-       {
-        "day": 3,
-        "date": "2027-10-04",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "81311a14-6022-538b-a667-0b6ca6b79adf",
-         "name": "Salita al Monte Licabetto",
-         "category": "natura",
-         "description": "Salita a piedi sul Monte Licabetto, la collina più alta del centro di Atene, lungo un sentiero tra pini e cactus che parte dal quartiere di Kolonaki. In cima, accanto alla cappella bianca di Agios Georgios, si gode il panorama più ampio sulla città, con l'Acropoli, il porto del Pireo e il mare all'orizzonte, soprattutto al tramonto. Salita breve ma ripida, adatta a giovani, coppie e sportivi; chi preferisce può salire con la funicolare.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       },
-       {
-        "day": 4,
-        "date": "2027-10-05",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "438579b5-f5cd-567e-9f39-4fe3c3396edf",
-         "name": "Corsa nello Stadio Panatenaico",
-         "category": "sport",
-         "description": "Visita e corsetta nello Stadio Panatenaico, l'unico stadio al mondo costruito interamente in marmo bianco, che ospitò i primi Giochi Olimpici dell'era moderna. Con l'audioguida si scopre la sua storia, si può correre sulla pista, salire sul podio dei vincitori e vedere le fiaccole olimpiche esposte nel piccolo museo. Ideale per sportivi, famiglie con bambini e appassionati di storia dello sport; lo sforzo è a scelta, dalla passeggiata alla corsa.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 12,
-         "subtotal": 24
-        }
-       },
-       {
-        "day": 5,
-        "date": "2027-10-06",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "f4256269-9bfb-50bc-8e2f-981f34a09d76",
-         "name": "Cinema all'aperto con vista sull'Acropoli",
-         "category": "nightlife",
-         "description": "Serata in uno dei cinema all'aperto storici di Atene, una tradizione amatissima dagli ateniesi nelle notti d'estate. Seduti su sedie da giardino tra buganvillee e gelsomini, si guarda un film in lingua originale con sottotitoli, mentre oltre lo schermo brilla l'Acropoli illuminata. Atmosfera romantica e rilassata, con bibite e snack al bar: ideale per coppie, senior e chi preferisce una serata tranquilla alla discoteca.",
-         "description_ai_generated": true,
-         "duration_hours": 3,
-         "price_per_person": 10,
-         "subtotal": 20
-        }
-       },
-       {
-        "day": 6,
-        "date": "2027-10-07",
-        "travel_day": false,
-        "travel_note": "volo di ritorno alle 18:40",
-        "activity": {
-         "id": "c87c0aed-d85c-5575-96b1-8580495a5c12",
-         "name": "Mercato centrale di Atene",
-         "category": "gastronomia",
-         "description": "Passeggiata nel Mercato centrale di Atene, la Varvakios Agorà di via Athinas, sotto una grande struttura ottocentesca in ferro e vetro. Tra i banchi di pesce e carne si respira l'atmosfera più verace della città, mentre le stradine intorno vendono spezie, olive, formaggi, miele e frutta secca. Si chiude con un caffè greco o un piatto semplice in una taverna del mercato. Gratuito e autentico, ideale per buongustai, viaggiatori soli e curiosi.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       }
-      ]
-     },
-     "created_at": "2026-10-15T14:35:15.362540+00:00",
-     "items": [
-      {
-       "position": 0,
-       "kind": "flight_out",
-       "ref_id": "f978bdb3-8f7d-5408-82a3-6d3eebb17b12",
-       "date": "2027-10-02",
-       "unit_price": 84,
-       "quantity": 2,
-       "subtotal": 168
-      },
-      {
-       "position": 1,
-       "kind": "flight_back",
-       "ref_id": "86665074-60c3-5e8f-89c5-9964077b13c8",
-       "date": "2027-10-07",
-       "unit_price": 73,
-       "quantity": 2,
-       "subtotal": 146
-      },
-      {
-       "position": 2,
-       "kind": "hotel_night",
-       "ref_id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
-       "date": "2027-10-02",
-       "unit_price": 82,
-       "quantity": 1,
-       "subtotal": 82
-      },
-      {
-       "position": 3,
-       "kind": "hotel_night",
-       "ref_id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
-       "date": "2027-10-03",
-       "unit_price": 67,
-       "quantity": 1,
-       "subtotal": 67
-      },
-      {
-       "position": 4,
-       "kind": "hotel_night",
-       "ref_id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
-       "date": "2027-10-04",
-       "unit_price": 64,
-       "quantity": 1,
-       "subtotal": 64
-      },
-      {
-       "position": 5,
-       "kind": "hotel_night",
-       "ref_id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
-       "date": "2027-10-05",
-       "unit_price": 67,
-       "quantity": 1,
-       "subtotal": 67
-      },
-      {
-       "position": 6,
-       "kind": "hotel_night",
-       "ref_id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
-       "date": "2027-10-06",
-       "unit_price": 71,
-       "quantity": 1,
-       "subtotal": 71
-      },
-      {
-       "position": 7,
-       "kind": "activity",
-       "ref_id": "ba9e5e80-eee6-5c54-af1f-797ecafb02f8",
-       "date": "2027-10-02",
-       "unit_price": 12,
-       "quantity": 2,
-       "subtotal": 24
-      },
-      {
-       "position": 8,
-       "kind": "activity",
-       "ref_id": "5ab8435d-d194-54c8-bc7c-1315f4b31f56",
-       "date": "2027-10-03",
-       "unit_price": 0,
-       "quantity": 2,
-       "subtotal": 0
-      },
-      {
-       "position": 9,
-       "kind": "activity",
-       "ref_id": "81311a14-6022-538b-a667-0b6ca6b79adf",
-       "date": "2027-10-04",
-       "unit_price": 0,
-       "quantity": 2,
-       "subtotal": 0
-      },
-      {
-       "position": 10,
-       "kind": "activity",
-       "ref_id": "438579b5-f5cd-567e-9f39-4fe3c3396edf",
-       "date": "2027-10-05",
-       "unit_price": 12,
-       "quantity": 2,
-       "subtotal": 24
-      },
-      {
-       "position": 11,
-       "kind": "activity",
-       "ref_id": "f4256269-9bfb-50bc-8e2f-981f34a09d76",
-       "date": "2027-10-06",
-       "unit_price": 10,
-       "quantity": 2,
-       "subtotal": 20
-      },
-      {
-       "position": 12,
-       "kind": "activity",
-       "ref_id": "c87c0aed-d85c-5575-96b1-8580495a5c12",
-       "date": "2027-10-07",
-       "unit_price": 0,
-       "quantity": 2,
-       "subtotal": 0
       }
      ]
     },
@@ -2749,6 +2465,290 @@
        "kind": "activity",
        "ref_id": "de56c2fd-e9aa-544c-b43e-a02bf5cfedfa",
        "date": "2027-10-30",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      }
+     ]
+    },
+    {
+     "id": "72f5f715-2d84-46a3-9b42-b2cb371e818f",
+     "variant": "balanced",
+     "status": "discarded",
+     "country_code": "GR",
+     "start_date": "2027-10-02",
+     "end_date": "2027-10-07",
+     "travelers": 2,
+     "rooms": 1,
+     "total_price": 733,
+     "budget_total": 1500,
+     "view": {
+      "variant": "balanced",
+      "country_code": "GR",
+      "country_name": "Grecia",
+      "destination": "Atene e isole Saroniche",
+      "start_date": "2027-10-02",
+      "end_date": "2027-10-07",
+      "days": 6,
+      "nights": 5,
+      "travelers": 2,
+      "rooms": 1,
+      "total_price": 733,
+      "budget_total": 1500,
+      "cost_breakdown": {
+       "flights": 314,
+       "hotel": 351,
+       "activities": 68
+      },
+      "flights": {
+       "outbound": {
+        "id": "f978bdb3-8f7d-5408-82a3-6d3eebb17b12",
+        "flight_number": "PA108",
+        "carrier": "Polare Air",
+        "origin": "FCO",
+        "destination": "ATH",
+        "date": "2027-10-02",
+        "departure_time": "07:30",
+        "arrival_time": "09:48",
+        "price_per_person": 84,
+        "subtotal": 168
+       },
+       "return": {
+        "id": "86665074-60c3-5e8f-89c5-9964077b13c8",
+        "flight_number": "AS111",
+        "carrier": "Ali del Sud",
+        "origin": "ATH",
+        "destination": "FCO",
+        "date": "2027-10-07",
+        "departure_time": "18:40",
+        "arrival_time": "20:58",
+        "price_per_person": 73,
+        "subtotal": 146
+       }
+      },
+      "hotel": {
+       "id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
+       "name": "Psyrri Urban Rooms",
+       "stars": 3,
+       "neighborhood": "Psyrri",
+       "nights": 5,
+       "price_per_night_avg": 70,
+       "subtotal": 351
+      },
+      "days_plan": [
+       {
+        "day": 1,
+        "date": "2027-10-02",
+        "travel_day": false,
+        "travel_note": "arrivo alle 09:48",
+        "activity": {
+         "id": "ba9e5e80-eee6-5c54-af1f-797ecafb02f8",
+         "name": "Museo Archeologico Nazionale",
+         "category": "cultura",
+         "description": "Mezza giornata al Museo Archeologico Nazionale di Atene, il più importante museo al mondo dedicato all'arte greca antica. Le sale custodiscono la Maschera di Agamennone in oro, il bronzo del dio di Capo Artemisio, il Fantino di Capo Artemisio e i frammenti del misterioso Meccanismo di Antikythera, considerato il più antico calcolatore conosciuto. Visita al chiuso e senza fatica, perfetta per appassionati di storia, senior e viaggiatori curiosi.",
+         "description_ai_generated": true,
+         "duration_hours": 3,
+         "price_per_person": 12,
+         "subtotal": 24
+        }
+       },
+       {
+        "day": 2,
+        "date": "2027-10-03",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "5ab8435d-d194-54c8-bc7c-1315f4b31f56",
+         "name": "Passeggiata tra Plaka e Anafiotika",
+         "category": "cultura",
+         "description": "Passeggiata libera nei quartieri storici sotto l'Acropoli: Plaka, con le sue stradine di case neoclassiche e taverne, e Anafiotika, minuscolo borgo di casette bianche costruito da muratori delle Cicladi, che sembra un'isola greca in piena città. Si prosegue verso Monastiraki, con il mercato delle pulci e la vista sull'Agorà antica. Attività gratuita, a ritmo lento e con qualche scalinata, ideale per coppie, viaggiatori soli e fotografi.",
+         "description_ai_generated": true,
+         "duration_hours": 3,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 3,
+        "date": "2027-10-04",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "81311a14-6022-538b-a667-0b6ca6b79adf",
+         "name": "Salita al Monte Licabetto",
+         "category": "natura",
+         "description": "Salita a piedi sul Monte Licabetto, la collina più alta del centro di Atene, lungo un sentiero tra pini e cactus che parte dal quartiere di Kolonaki. In cima, accanto alla cappella bianca di Agios Georgios, si gode il panorama più ampio sulla città, con l'Acropoli, il porto del Pireo e il mare all'orizzonte, soprattutto al tramonto. Salita breve ma ripida, adatta a giovani, coppie e sportivi; chi preferisce può salire con la funicolare.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 4,
+        "date": "2027-10-05",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "438579b5-f5cd-567e-9f39-4fe3c3396edf",
+         "name": "Corsa nello Stadio Panatenaico",
+         "category": "sport",
+         "description": "Visita e corsetta nello Stadio Panatenaico, l'unico stadio al mondo costruito interamente in marmo bianco, che ospitò i primi Giochi Olimpici dell'era moderna. Con l'audioguida si scopre la sua storia, si può correre sulla pista, salire sul podio dei vincitori e vedere le fiaccole olimpiche esposte nel piccolo museo. Ideale per sportivi, famiglie con bambini e appassionati di storia dello sport; lo sforzo è a scelta, dalla passeggiata alla corsa.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 12,
+         "subtotal": 24
+        }
+       },
+       {
+        "day": 5,
+        "date": "2027-10-06",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "f4256269-9bfb-50bc-8e2f-981f34a09d76",
+         "name": "Cinema all'aperto con vista sull'Acropoli",
+         "category": "nightlife",
+         "description": "Serata in uno dei cinema all'aperto storici di Atene, una tradizione amatissima dagli ateniesi nelle notti d'estate. Seduti su sedie da giardino tra buganvillee e gelsomini, si guarda un film in lingua originale con sottotitoli, mentre oltre lo schermo brilla l'Acropoli illuminata. Atmosfera romantica e rilassata, con bibite e snack al bar: ideale per coppie, senior e chi preferisce una serata tranquilla alla discoteca.",
+         "description_ai_generated": true,
+         "duration_hours": 3,
+         "price_per_person": 10,
+         "subtotal": 20
+        }
+       },
+       {
+        "day": 6,
+        "date": "2027-10-07",
+        "travel_day": false,
+        "travel_note": "volo di ritorno alle 18:40",
+        "activity": {
+         "id": "c87c0aed-d85c-5575-96b1-8580495a5c12",
+         "name": "Mercato centrale di Atene",
+         "category": "gastronomia",
+         "description": "Passeggiata nel Mercato centrale di Atene, la Varvakios Agorà di via Athinas, sotto una grande struttura ottocentesca in ferro e vetro. Tra i banchi di pesce e carne si respira l'atmosfera più verace della città, mentre le stradine intorno vendono spezie, olive, formaggi, miele e frutta secca. Si chiude con un caffè greco o un piatto semplice in una taverna del mercato. Gratuito e autentico, ideale per buongustai, viaggiatori soli e curiosi.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       }
+      ]
+     },
+     "created_at": "2026-10-15T14:35:15.362540+00:00",
+     "items": [
+      {
+       "position": 0,
+       "kind": "flight_out",
+       "ref_id": "f978bdb3-8f7d-5408-82a3-6d3eebb17b12",
+       "date": "2027-10-02",
+       "unit_price": 84,
+       "quantity": 2,
+       "subtotal": 168
+      },
+      {
+       "position": 1,
+       "kind": "flight_back",
+       "ref_id": "86665074-60c3-5e8f-89c5-9964077b13c8",
+       "date": "2027-10-07",
+       "unit_price": 73,
+       "quantity": 2,
+       "subtotal": 146
+      },
+      {
+       "position": 2,
+       "kind": "hotel_night",
+       "ref_id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
+       "date": "2027-10-02",
+       "unit_price": 82,
+       "quantity": 1,
+       "subtotal": 82
+      },
+      {
+       "position": 3,
+       "kind": "hotel_night",
+       "ref_id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
+       "date": "2027-10-03",
+       "unit_price": 67,
+       "quantity": 1,
+       "subtotal": 67
+      },
+      {
+       "position": 4,
+       "kind": "hotel_night",
+       "ref_id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
+       "date": "2027-10-04",
+       "unit_price": 64,
+       "quantity": 1,
+       "subtotal": 64
+      },
+      {
+       "position": 5,
+       "kind": "hotel_night",
+       "ref_id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
+       "date": "2027-10-05",
+       "unit_price": 67,
+       "quantity": 1,
+       "subtotal": 67
+      },
+      {
+       "position": 6,
+       "kind": "hotel_night",
+       "ref_id": "58b6cb29-fdc4-54fa-aeee-f3ba57e4729e",
+       "date": "2027-10-06",
+       "unit_price": 71,
+       "quantity": 1,
+       "subtotal": 71
+      },
+      {
+       "position": 7,
+       "kind": "activity",
+       "ref_id": "ba9e5e80-eee6-5c54-af1f-797ecafb02f8",
+       "date": "2027-10-02",
+       "unit_price": 12,
+       "quantity": 2,
+       "subtotal": 24
+      },
+      {
+       "position": 8,
+       "kind": "activity",
+       "ref_id": "5ab8435d-d194-54c8-bc7c-1315f4b31f56",
+       "date": "2027-10-03",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      },
+      {
+       "position": 9,
+       "kind": "activity",
+       "ref_id": "81311a14-6022-538b-a667-0b6ca6b79adf",
+       "date": "2027-10-04",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      },
+      {
+       "position": 10,
+       "kind": "activity",
+       "ref_id": "438579b5-f5cd-567e-9f39-4fe3c3396edf",
+       "date": "2027-10-05",
+       "unit_price": 12,
+       "quantity": 2,
+       "subtotal": 24
+      },
+      {
+       "position": 11,
+       "kind": "activity",
+       "ref_id": "f4256269-9bfb-50bc-8e2f-981f34a09d76",
+       "date": "2027-10-06",
+       "unit_price": 10,
+       "quantity": 2,
+       "subtotal": 20
+      },
+      {
+       "position": 12,
+       "kind": "activity",
+       "ref_id": "c87c0aed-d85c-5575-96b1-8580495a5c12",
+       "date": "2027-10-07",
        "unit_price": 0,
        "quantity": 2,
        "subtotal": 0
@@ -3205,288 +3205,6 @@
    ],
    "itineraries": [
     {
-     "id": "4abd679e-901b-434b-a58c-64bcf7e334aa",
-     "variant": "economy",
-     "status": "booked",
-     "country_code": "JP",
-     "start_date": "2027-04-13",
-     "end_date": "2027-04-19",
-     "travelers": 2,
-     "rooms": 1,
-     "total_price": 3483,
-     "budget_total": 4000,
-     "view": {
-      "variant": "economy",
-      "country_code": "JP",
-      "country_name": "Giappone",
-      "destination": "Tokyo e dintorni",
-      "start_date": "2027-04-13",
-      "end_date": "2027-04-19",
-      "days": 7,
-      "nights": 6,
-      "travelers": 2,
-      "rooms": 1,
-      "total_price": 3483,
-      "budget_total": 4000,
-      "cost_breakdown": {
-       "flights": 2712,
-       "hotel": 659,
-       "activities": 112
-      },
-      "flights": {
-       "outbound": {
-        "id": "dfede584-0872-5a29-8ae1-39212c5cb50e",
-        "flight_number": "SW130",
-        "carrier": "Sakura Wings",
-        "origin": "MXP",
-        "destination": "HND",
-        "date": "2027-04-13",
-        "departure_time": "10:55",
-        "arrival_time": "01:25+1",
-        "price_per_person": 661,
-        "subtotal": 1322
-       },
-       "return": {
-        "id": "aaf80978-343d-551c-8474-8873278ce90e",
-        "flight_number": "SW131",
-        "carrier": "Sakura Wings",
-        "origin": "HND",
-        "destination": "MXP",
-        "date": "2027-04-19",
-        "departure_time": "07:00",
-        "arrival_time": "21:30",
-        "price_per_person": 695,
-        "subtotal": 1390
-       }
-      },
-      "hotel": {
-       "id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
-       "name": "Kitsune Inn Ueno",
-       "stars": 2,
-       "neighborhood": "Ueno",
-       "nights": 6,
-       "price_per_night_avg": 110,
-       "subtotal": 659
-      },
-      "days_plan": [
-       {
-        "day": 1,
-        "date": "2027-04-13",
-        "travel_day": true,
-        "travel_note": "arrivo alle 01:25 del giorno dopo",
-        "activity": null
-       },
-       {
-        "day": 2,
-        "date": "2027-04-14",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "81a16260-2b8b-58a4-b9b1-14ade4693701",
-         "name": "Museo Nazionale di Tokyo a Ueno",
-         "category": "cultura",
-         "description": "Mezza giornata al Museo Nazionale di Tokyo, nel parco di Ueno, il più antico e grande museo del Giappone. Le sale raccolgono armature e spade dei samurai, kimono, paraventi dipinti, statue buddhiste, ceramiche e stampe ukiyo-e, offrendo una panoramica completa dell'arte giapponese. Visita al chiuso e tranquilla, adatta a senior, appassionati di storia e famiglie con ragazzi, ideale anche nei giorni di pioggia o di caldo umido.",
-         "description_ai_generated": true,
-         "duration_hours": 3,
-         "price_per_person": 6,
-         "subtotal": 12
-        }
-       },
-       {
-        "day": 3,
-        "date": "2027-04-15",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "6ce14e1d-7f87-575a-b736-0b8538cddedc",
-         "name": "Tempio Senso-ji ad Asakusa",
-         "category": "cultura",
-         "description": "Visita al Senso-ji di Asakusa, il tempio buddhista più antico di Tokyo, entrando dalla monumentale porta Kaminarimon con la sua enorme lanterna rossa. Si percorre la Nakamise-dori, viale di bancarelle che vendono dolcetti, ventagli e souvenir, ci si purifica con il fumo d'incenso davanti alla sala principale e si estrae l'omikuji, il biglietto della fortuna. Gratuito e accessibile, ideale per famiglie, senior e chi visita il Giappone per la prima volta; suggestivo anche di sera.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       },
-       {
-        "day": 4,
-        "date": "2027-04-16",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "6f22a5e8-af87-5e09-8162-d389fd560efd",
-         "name": "Street food al mercato esterno di Tsukiji",
-         "category": "gastronomia",
-         "description": "Mattinata al mercato esterno di Tsukiji, dove, anche dopo il trasferimento del mercato all'ingrosso del pesce a Toyosu, centinaia di bancarelle e piccoli ristoranti continuano a servire cibo di strada freschissimo. Si assaggiano spiedini di frutti di mare, tamagoyaki, ostriche, ricci di mare e sushi appena preparato, tra coltellerie artigianali e negozi di tè. Ideale per buongustai, viaggiatori soli e coppie; meglio andare presto, quando c'è più scelta.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 25,
-         "subtotal": 50
-        }
-       },
-       {
-        "day": 5,
-        "date": "2027-04-17",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "964972e3-9594-5d51-a00d-acc97f506ec9",
-         "name": "Arte digitale immersiva a teamLab Planets",
-         "category": "cultura",
-         "description": "Visita a teamLab Planets, a Toyosu, un museo d'arte digitale immersivo in cui si cammina a piedi nudi dentro le opere. Si attraversano stanze con l'acqua fino alle ginocchia in cui nuotano carpe koi luminose, giardini di orchidee sospese e spazi di specchi e luci infinite che reagiscono ai movimenti dei visitatori. Un'esperienza sensoriale e fotogenica, perfetta per famiglie con bambini, coppie e giovani; nessuno sforzo fisico.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 25,
-         "subtotal": 50
-        }
-       },
-       {
-        "day": 6,
-        "date": "2027-04-18",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "23d2670e-3af1-5366-a6cc-3cc15edc46c1",
-         "name": "Santuario Meiji Jingu e Harajuku",
-         "category": "cultura",
-         "description": "Passeggiata al Meiji Jingu, il grande santuario shintoista dedicato all'imperatore Meiji, immerso in una foresta piantata con alberi donati da tutto il Giappone, nel cuore di Tokyo. Si attraversano gli enormi torii di legno, si osservano le botti di sake offerte al santuario e, con un po' di fortuna, un matrimonio tradizionale. All'uscita si passa per Harajuku e la vivace Takeshita-dori. Gratuito e rilassante, ideale per coppie, senior e viaggiatori in solitaria.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       },
-       {
-        "day": 7,
-        "date": "2027-04-19",
-        "travel_day": true,
-        "travel_note": "volo di ritorno alle 07:00",
-        "activity": null
-       }
-      ]
-     },
-     "created_at": "2026-10-15T14:37:08.831278+00:00",
-     "items": [
-      {
-       "position": 0,
-       "kind": "flight_out",
-       "ref_id": "dfede584-0872-5a29-8ae1-39212c5cb50e",
-       "date": "2027-04-13",
-       "unit_price": 661,
-       "quantity": 2,
-       "subtotal": 1322
-      },
-      {
-       "position": 1,
-       "kind": "flight_back",
-       "ref_id": "aaf80978-343d-551c-8474-8873278ce90e",
-       "date": "2027-04-19",
-       "unit_price": 695,
-       "quantity": 2,
-       "subtotal": 1390
-      },
-      {
-       "position": 2,
-       "kind": "hotel_night",
-       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
-       "date": "2027-04-13",
-       "unit_price": 103,
-       "quantity": 1,
-       "subtotal": 103
-      },
-      {
-       "position": 3,
-       "kind": "hotel_night",
-       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
-       "date": "2027-04-14",
-       "unit_price": 98,
-       "quantity": 1,
-       "subtotal": 98
-      },
-      {
-       "position": 4,
-       "kind": "hotel_night",
-       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
-       "date": "2027-04-15",
-       "unit_price": 108,
-       "quantity": 1,
-       "subtotal": 108
-      },
-      {
-       "position": 5,
-       "kind": "hotel_night",
-       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
-       "date": "2027-04-16",
-       "unit_price": 133,
-       "quantity": 1,
-       "subtotal": 133
-      },
-      {
-       "position": 6,
-       "kind": "hotel_night",
-       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
-       "date": "2027-04-17",
-       "unit_price": 120,
-       "quantity": 1,
-       "subtotal": 120
-      },
-      {
-       "position": 7,
-       "kind": "hotel_night",
-       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
-       "date": "2027-04-18",
-       "unit_price": 97,
-       "quantity": 1,
-       "subtotal": 97
-      },
-      {
-       "position": 8,
-       "kind": "activity",
-       "ref_id": "81a16260-2b8b-58a4-b9b1-14ade4693701",
-       "date": "2027-04-14",
-       "unit_price": 6,
-       "quantity": 2,
-       "subtotal": 12
-      },
-      {
-       "position": 9,
-       "kind": "activity",
-       "ref_id": "6ce14e1d-7f87-575a-b736-0b8538cddedc",
-       "date": "2027-04-15",
-       "unit_price": 0,
-       "quantity": 2,
-       "subtotal": 0
-      },
-      {
-       "position": 10,
-       "kind": "activity",
-       "ref_id": "6f22a5e8-af87-5e09-8162-d389fd560efd",
-       "date": "2027-04-16",
-       "unit_price": 25,
-       "quantity": 2,
-       "subtotal": 50
-      },
-      {
-       "position": 11,
-       "kind": "activity",
-       "ref_id": "964972e3-9594-5d51-a00d-acc97f506ec9",
-       "date": "2027-04-17",
-       "unit_price": 25,
-       "quantity": 2,
-       "subtotal": 50
-      },
-      {
-       "position": 12,
-       "kind": "activity",
-       "ref_id": "23d2670e-3af1-5366-a6cc-3cc15edc46c1",
-       "date": "2027-04-18",
-       "unit_price": 0,
-       "quantity": 2,
-       "subtotal": 0
-      }
-     ]
-    },
-    {
      "id": "fb7b5a4d-27c6-4f0d-b073-6ba6dfbc74a4",
      "variant": "balanced",
      "status": "discarded",
@@ -3765,6 +3483,288 @@
        "unit_price": 25,
        "quantity": 2,
        "subtotal": 50
+      }
+     ]
+    },
+    {
+     "id": "4abd679e-901b-434b-a58c-64bcf7e334aa",
+     "variant": "economy",
+     "status": "booked",
+     "country_code": "JP",
+     "start_date": "2027-04-13",
+     "end_date": "2027-04-19",
+     "travelers": 2,
+     "rooms": 1,
+     "total_price": 3483,
+     "budget_total": 4000,
+     "view": {
+      "variant": "economy",
+      "country_code": "JP",
+      "country_name": "Giappone",
+      "destination": "Tokyo e dintorni",
+      "start_date": "2027-04-13",
+      "end_date": "2027-04-19",
+      "days": 7,
+      "nights": 6,
+      "travelers": 2,
+      "rooms": 1,
+      "total_price": 3483,
+      "budget_total": 4000,
+      "cost_breakdown": {
+       "flights": 2712,
+       "hotel": 659,
+       "activities": 112
+      },
+      "flights": {
+       "outbound": {
+        "id": "dfede584-0872-5a29-8ae1-39212c5cb50e",
+        "flight_number": "SW130",
+        "carrier": "Sakura Wings",
+        "origin": "MXP",
+        "destination": "HND",
+        "date": "2027-04-13",
+        "departure_time": "10:55",
+        "arrival_time": "01:25+1",
+        "price_per_person": 661,
+        "subtotal": 1322
+       },
+       "return": {
+        "id": "aaf80978-343d-551c-8474-8873278ce90e",
+        "flight_number": "SW131",
+        "carrier": "Sakura Wings",
+        "origin": "HND",
+        "destination": "MXP",
+        "date": "2027-04-19",
+        "departure_time": "07:00",
+        "arrival_time": "21:30",
+        "price_per_person": 695,
+        "subtotal": 1390
+       }
+      },
+      "hotel": {
+       "id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
+       "name": "Kitsune Inn Ueno",
+       "stars": 2,
+       "neighborhood": "Ueno",
+       "nights": 6,
+       "price_per_night_avg": 110,
+       "subtotal": 659
+      },
+      "days_plan": [
+       {
+        "day": 1,
+        "date": "2027-04-13",
+        "travel_day": true,
+        "travel_note": "arrivo alle 01:25 del giorno dopo",
+        "activity": null
+       },
+       {
+        "day": 2,
+        "date": "2027-04-14",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "81a16260-2b8b-58a4-b9b1-14ade4693701",
+         "name": "Museo Nazionale di Tokyo a Ueno",
+         "category": "cultura",
+         "description": "Mezza giornata al Museo Nazionale di Tokyo, nel parco di Ueno, il più antico e grande museo del Giappone. Le sale raccolgono armature e spade dei samurai, kimono, paraventi dipinti, statue buddhiste, ceramiche e stampe ukiyo-e, offrendo una panoramica completa dell'arte giapponese. Visita al chiuso e tranquilla, adatta a senior, appassionati di storia e famiglie con ragazzi, ideale anche nei giorni di pioggia o di caldo umido.",
+         "description_ai_generated": true,
+         "duration_hours": 3,
+         "price_per_person": 6,
+         "subtotal": 12
+        }
+       },
+       {
+        "day": 3,
+        "date": "2027-04-15",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "6ce14e1d-7f87-575a-b736-0b8538cddedc",
+         "name": "Tempio Senso-ji ad Asakusa",
+         "category": "cultura",
+         "description": "Visita al Senso-ji di Asakusa, il tempio buddhista più antico di Tokyo, entrando dalla monumentale porta Kaminarimon con la sua enorme lanterna rossa. Si percorre la Nakamise-dori, viale di bancarelle che vendono dolcetti, ventagli e souvenir, ci si purifica con il fumo d'incenso davanti alla sala principale e si estrae l'omikuji, il biglietto della fortuna. Gratuito e accessibile, ideale per famiglie, senior e chi visita il Giappone per la prima volta; suggestivo anche di sera.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 4,
+        "date": "2027-04-16",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "6f22a5e8-af87-5e09-8162-d389fd560efd",
+         "name": "Street food al mercato esterno di Tsukiji",
+         "category": "gastronomia",
+         "description": "Mattinata al mercato esterno di Tsukiji, dove, anche dopo il trasferimento del mercato all'ingrosso del pesce a Toyosu, centinaia di bancarelle e piccoli ristoranti continuano a servire cibo di strada freschissimo. Si assaggiano spiedini di frutti di mare, tamagoyaki, ostriche, ricci di mare e sushi appena preparato, tra coltellerie artigianali e negozi di tè. Ideale per buongustai, viaggiatori soli e coppie; meglio andare presto, quando c'è più scelta.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 25,
+         "subtotal": 50
+        }
+       },
+       {
+        "day": 5,
+        "date": "2027-04-17",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "964972e3-9594-5d51-a00d-acc97f506ec9",
+         "name": "Arte digitale immersiva a teamLab Planets",
+         "category": "cultura",
+         "description": "Visita a teamLab Planets, a Toyosu, un museo d'arte digitale immersivo in cui si cammina a piedi nudi dentro le opere. Si attraversano stanze con l'acqua fino alle ginocchia in cui nuotano carpe koi luminose, giardini di orchidee sospese e spazi di specchi e luci infinite che reagiscono ai movimenti dei visitatori. Un'esperienza sensoriale e fotogenica, perfetta per famiglie con bambini, coppie e giovani; nessuno sforzo fisico.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 25,
+         "subtotal": 50
+        }
+       },
+       {
+        "day": 6,
+        "date": "2027-04-18",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "23d2670e-3af1-5366-a6cc-3cc15edc46c1",
+         "name": "Santuario Meiji Jingu e Harajuku",
+         "category": "cultura",
+         "description": "Passeggiata al Meiji Jingu, il grande santuario shintoista dedicato all'imperatore Meiji, immerso in una foresta piantata con alberi donati da tutto il Giappone, nel cuore di Tokyo. Si attraversano gli enormi torii di legno, si osservano le botti di sake offerte al santuario e, con un po' di fortuna, un matrimonio tradizionale. All'uscita si passa per Harajuku e la vivace Takeshita-dori. Gratuito e rilassante, ideale per coppie, senior e viaggiatori in solitaria.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 7,
+        "date": "2027-04-19",
+        "travel_day": true,
+        "travel_note": "volo di ritorno alle 07:00",
+        "activity": null
+       }
+      ]
+     },
+     "created_at": "2026-10-15T14:37:08.831278+00:00",
+     "items": [
+      {
+       "position": 0,
+       "kind": "flight_out",
+       "ref_id": "dfede584-0872-5a29-8ae1-39212c5cb50e",
+       "date": "2027-04-13",
+       "unit_price": 661,
+       "quantity": 2,
+       "subtotal": 1322
+      },
+      {
+       "position": 1,
+       "kind": "flight_back",
+       "ref_id": "aaf80978-343d-551c-8474-8873278ce90e",
+       "date": "2027-04-19",
+       "unit_price": 695,
+       "quantity": 2,
+       "subtotal": 1390
+      },
+      {
+       "position": 2,
+       "kind": "hotel_night",
+       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
+       "date": "2027-04-13",
+       "unit_price": 103,
+       "quantity": 1,
+       "subtotal": 103
+      },
+      {
+       "position": 3,
+       "kind": "hotel_night",
+       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
+       "date": "2027-04-14",
+       "unit_price": 98,
+       "quantity": 1,
+       "subtotal": 98
+      },
+      {
+       "position": 4,
+       "kind": "hotel_night",
+       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
+       "date": "2027-04-15",
+       "unit_price": 108,
+       "quantity": 1,
+       "subtotal": 108
+      },
+      {
+       "position": 5,
+       "kind": "hotel_night",
+       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
+       "date": "2027-04-16",
+       "unit_price": 133,
+       "quantity": 1,
+       "subtotal": 133
+      },
+      {
+       "position": 6,
+       "kind": "hotel_night",
+       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
+       "date": "2027-04-17",
+       "unit_price": 120,
+       "quantity": 1,
+       "subtotal": 120
+      },
+      {
+       "position": 7,
+       "kind": "hotel_night",
+       "ref_id": "09d6cbc5-2d37-5f85-aefc-86aa1623a47d",
+       "date": "2027-04-18",
+       "unit_price": 97,
+       "quantity": 1,
+       "subtotal": 97
+      },
+      {
+       "position": 8,
+       "kind": "activity",
+       "ref_id": "81a16260-2b8b-58a4-b9b1-14ade4693701",
+       "date": "2027-04-14",
+       "unit_price": 6,
+       "quantity": 2,
+       "subtotal": 12
+      },
+      {
+       "position": 9,
+       "kind": "activity",
+       "ref_id": "6ce14e1d-7f87-575a-b736-0b8538cddedc",
+       "date": "2027-04-15",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      },
+      {
+       "position": 10,
+       "kind": "activity",
+       "ref_id": "6f22a5e8-af87-5e09-8162-d389fd560efd",
+       "date": "2027-04-16",
+       "unit_price": 25,
+       "quantity": 2,
+       "subtotal": 50
+      },
+      {
+       "position": 11,
+       "kind": "activity",
+       "ref_id": "964972e3-9594-5d51-a00d-acc97f506ec9",
+       "date": "2027-04-17",
+       "unit_price": 25,
+       "quantity": 2,
+       "subtotal": 50
+      },
+      {
+       "position": 12,
+       "kind": "activity",
+       "ref_id": "23d2670e-3af1-5366-a6cc-3cc15edc46c1",
+       "date": "2027-04-18",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
       }
      ]
     }
@@ -5074,89 +5074,89 @@
    ],
    "itineraries": [
     {
-     "id": "ad7ad246-751f-42bd-a86d-21a0e69e0180",
-     "variant": "economy",
-     "status": "selected",
+     "id": "83b7aa84-3b23-4821-af5b-8298583add01",
+     "variant": "premium",
+     "status": "proposed",
      "country_code": "ES",
-     "start_date": "2027-07-07",
-     "end_date": "2027-07-13",
+     "start_date": "2027-07-15",
+     "end_date": "2027-07-21",
      "travelers": 4,
      "rooms": 2,
-     "total_price": 2332,
+     "total_price": 3406,
      "budget_total": 3500,
      "view": {
-      "variant": "economy",
+      "variant": "premium",
       "country_code": "ES",
       "country_name": "Spagna",
       "destination": "Barcellona",
-      "start_date": "2027-07-07",
-      "end_date": "2027-07-13",
+      "start_date": "2027-07-15",
+      "end_date": "2027-07-21",
       "days": 7,
       "nights": 6,
       "travelers": 4,
       "rooms": 2,
-      "total_price": 2332,
+      "total_price": 3406,
       "budget_total": 3500,
       "cost_breakdown": {
-       "flights": 868,
-       "hotel": 1184,
-       "activities": 280
+       "flights": 988,
+       "hotel": 1818,
+       "activities": 600
       },
       "flights": {
        "outbound": {
-        "id": "9b1946c2-115d-5828-9f33-47b2da498808",
+        "id": "ae9a536e-a9c1-5f34-887b-38896302e1bc",
         "flight_number": "PA122",
         "carrier": "Polare Air",
         "origin": "MXP",
         "destination": "BCN",
-        "date": "2027-07-07",
+        "date": "2027-07-15",
         "departure_time": "07:15",
         "arrival_time": "09:03",
-        "price_per_person": 115,
-        "subtotal": 460
+        "price_per_person": 135,
+        "subtotal": 540
        },
        "return": {
-        "id": "aa18da4b-3ef6-5140-9112-2227abbf66e8",
+        "id": "345db0e5-0f42-5fc4-942e-4560965e754b",
         "flight_number": "AB125",
         "carrier": "Airone Blu",
         "origin": "BCN",
         "destination": "MXP",
-        "date": "2027-07-13",
+        "date": "2027-07-21",
         "departure_time": "14:05",
         "arrival_time": "15:53",
-        "price_per_person": 102,
-        "subtotal": 408
+        "price_per_person": 112,
+        "subtotal": 448
        }
       },
       "hotel": {
-       "id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
-       "name": "Pensión Las Golondrinas",
-       "stars": 2,
-       "neighborhood": "El Raval",
+       "id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
+       "name": "Hostal Jardins de Gràcia",
+       "stars": 3,
+       "neighborhood": "Gràcia",
        "nights": 6,
-       "price_per_night_avg": 99,
-       "subtotal": 1184
+       "price_per_night_avg": 152,
+       "subtotal": 1818
       },
       "days_plan": [
        {
         "day": 1,
-        "date": "2027-07-07",
+        "date": "2027-07-15",
         "travel_day": false,
         "travel_note": "arrivo alle 09:03",
         "activity": {
-         "id": "71825fd6-350f-567e-ba0e-2611cb6ead05",
-         "name": "Mercat de la Boqueria",
-         "category": "gastronomia",
-         "description": "Visita al Mercat de la Boqueria, sulla Rambla, il mercato coperto più famoso di Barcellona, con banchi di frutta esotica, jamón ibérico, frutti di mare e spremute coloratissime. Si passeggia liberamente tra i banchi e ci si può sedere al bancone di uno dei bar per assaggiare tapas appena cucinate, come gamberi alla piastra o uova fritte con patate. Ideale per buongustai, famiglie e viaggiatori soli; è più vivace e autentico al mattino.",
+         "id": "831c34c5-e440-5aab-8a07-71b2ee0e3ed0",
+         "name": "Spiagge urbane della Barceloneta",
+         "category": "relax",
+         "description": "Pomeriggio di mare sulle spiagge urbane di Barcellona, dalla Barceloneta a Nova Icària e Bogatell, lunghe distese di sabbia raggiungibili in metropolitana. Si prende il sole, si fa il bagno nel Mediterraneo e si passeggia sul lungomare tra chiringuitos, partite di beach volley e artisti di strada. Ideale per famiglie, giovani e coppie che cercano relax al sole senza lasciare la città; le spiagge più a nord sono le più tranquille.",
          "description_ai_generated": true,
-         "duration_hours": 2,
+         "duration_hours": 4,
          "price_per_person": 0,
          "subtotal": 0
         }
        },
        {
         "day": 2,
-        "date": "2027-07-08",
+        "date": "2027-07-16",
         "travel_day": false,
         "travel_note": null,
         "activity": {
@@ -5172,7 +5172,23 @@
        },
        {
         "day": 3,
-        "date": "2027-07-09",
+        "date": "2027-07-17",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "5cf3cf1f-bb2c-550f-b15b-174678a652c5",
+         "name": "Park Güell",
+         "category": "cultura",
+         "description": "Passeggiata nel Park Güell, il parco progettato da Gaudí sulla collina del Carmel, con la celebre salamandra di mosaico sulla scalinata del Drago e la grande piazza circondata dalla panchina ondulata rivestita di trencadís. Dalla terrazza si gode una vista spettacolare su Barcellona fino al mare. Il percorso include salite e scalini ma resta accessibile, ideale per famiglie con bambini, coppie e fotografi in cerca di colori e scorci iconici.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 18,
+         "subtotal": 72
+        }
+       },
+       {
+        "day": 4,
+        "date": "2027-07-18",
         "travel_day": false,
         "travel_note": null,
         "activity": {
@@ -5187,42 +5203,42 @@
         }
        },
        {
-        "day": 4,
-        "date": "2027-07-10",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "de56c2fd-e9aa-544c-b43e-a02bf5cfedfa",
-         "name": "Passeggiata nel Barri Gòtic e nel Born",
-         "category": "cultura",
-         "description": "Passeggiata libera nel Barri Gòtic e nel Born, il cuore medievale di Barcellona, tra vicoli stretti, piazzette nascoste e resti romani. Si scoprono la Cattedrale, la Plaça del Rei, l'antico quartiere ebraico del Call e la splendida basilica gotica di Santa Maria del Mar, fermandosi in caffè e botteghe artigiane. Attività gratuita e a ritmo libero, perfetta per viaggiatori soli, coppie e senior che amano perdersi tra storia e atmosfera.",
-         "description_ai_generated": true,
-         "duration_hours": 3,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       },
-       {
         "day": 5,
-        "date": "2027-07-11",
+        "date": "2027-07-19",
         "travel_day": false,
         "travel_note": null,
         "activity": {
-         "id": "831c34c5-e440-5aab-8a07-71b2ee0e3ed0",
-         "name": "Spiagge urbane della Barceloneta",
+         "id": "6e3b4286-3d69-536b-8268-58365b616557",
+         "name": "Bagni termali in stile antico nel Born",
          "category": "relax",
-         "description": "Pomeriggio di mare sulle spiagge urbane di Barcellona, dalla Barceloneta a Nova Icària e Bogatell, lunghe distese di sabbia raggiungibili in metropolitana. Si prende il sole, si fa il bagno nel Mediterraneo e si passeggia sul lungomare tra chiringuitos, partite di beach volley e artisti di strada. Ideale per famiglie, giovani e coppie che cercano relax al sole senza lasciare la città; le spiagge più a nord sono le più tranquille.",
+         "description": "Rituale di benessere in un centro di bagni ispirati alle antiche terme romane e arabe, ricavato in un edificio storico del Born. Al lume di candela si passa da vasche di acqua calda, tiepida e fredda a una vasca di acqua salata in cui si galleggia, con bagno di vapore e massaggio su richiesta. Un'esperienza silenziosa e romantica, ideale per coppie e per chi vuole staccare dopo giornate intense di visite in città.",
          "description_ai_generated": true,
-         "duration_hours": 4,
-         "price_per_person": 0,
-         "subtotal": 0
+         "duration_hours": 2,
+         "price_per_person": 80,
+         "subtotal": 320
         }
        },
        {
         "day": 6,
-        "date": "2027-07-12",
+        "date": "2027-07-20",
         "travel_day": false,
         "travel_note": null,
+        "activity": {
+         "id": "71825fd6-350f-567e-ba0e-2611cb6ead05",
+         "name": "Mercat de la Boqueria",
+         "category": "gastronomia",
+         "description": "Visita al Mercat de la Boqueria, sulla Rambla, il mercato coperto più famoso di Barcellona, con banchi di frutta esotica, jamón ibérico, frutti di mare e spremute coloratissime. Si passeggia liberamente tra i banchi e ci si può sedere al bancone di uno dei bar per assaggiare tapas appena cucinate, come gamberi alla piastra o uova fritte con patate. Ideale per buongustai, famiglie e viaggiatori soli; è più vivace e autentico al mattino.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 7,
+        "date": "2027-07-21",
+        "travel_day": false,
+        "travel_note": "volo di ritorno alle 14:05",
         "activity": {
          "id": "fe68a8ac-af3c-5308-9d8a-c6dd1b249473",
          "name": "Casa Batlló",
@@ -5233,104 +5249,88 @@
          "price_per_person": 35,
          "subtotal": 140
         }
-       },
-       {
-        "day": 7,
-        "date": "2027-07-13",
-        "travel_day": false,
-        "travel_note": "volo di ritorno alle 14:05",
-        "activity": {
-         "id": "5cf3cf1f-bb2c-550f-b15b-174678a652c5",
-         "name": "Park Güell",
-         "category": "cultura",
-         "description": "Passeggiata nel Park Güell, il parco progettato da Gaudí sulla collina del Carmel, con la celebre salamandra di mosaico sulla scalinata del Drago e la grande piazza circondata dalla panchina ondulata rivestita di trencadís. Dalla terrazza si gode una vista spettacolare su Barcellona fino al mare. Il percorso include salite e scalini ma resta accessibile, ideale per famiglie con bambini, coppie e fotografi in cerca di colori e scorci iconici.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 18,
-         "subtotal": 72
-        }
        }
       ]
      },
-     "created_at": "2026-10-15T14:45:49.841433+00:00",
+     "created_at": "2026-10-15T14:45:49.841438+00:00",
      "items": [
       {
        "position": 0,
        "kind": "flight_out",
-       "ref_id": "9b1946c2-115d-5828-9f33-47b2da498808",
-       "date": "2027-07-07",
-       "unit_price": 115,
+       "ref_id": "ae9a536e-a9c1-5f34-887b-38896302e1bc",
+       "date": "2027-07-15",
+       "unit_price": 135,
        "quantity": 4,
-       "subtotal": 460
+       "subtotal": 540
       },
       {
        "position": 1,
        "kind": "flight_back",
-       "ref_id": "aa18da4b-3ef6-5140-9112-2227abbf66e8",
-       "date": "2027-07-13",
-       "unit_price": 102,
+       "ref_id": "345db0e5-0f42-5fc4-942e-4560965e754b",
+       "date": "2027-07-21",
+       "unit_price": 112,
        "quantity": 4,
-       "subtotal": 408
+       "subtotal": 448
       },
       {
        "position": 2,
        "kind": "hotel_night",
-       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
-       "date": "2027-07-07",
-       "unit_price": 89,
+       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
+       "date": "2027-07-15",
+       "unit_price": 137,
        "quantity": 2,
-       "subtotal": 178
+       "subtotal": 274
       },
       {
        "position": 3,
        "kind": "hotel_night",
-       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
-       "date": "2027-07-08",
-       "unit_price": 96,
+       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
+       "date": "2027-07-16",
+       "unit_price": 168,
        "quantity": 2,
-       "subtotal": 192
+       "subtotal": 336
       },
       {
        "position": 4,
        "kind": "hotel_night",
-       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
-       "date": "2027-07-09",
-       "unit_price": 118,
+       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
+       "date": "2027-07-17",
+       "unit_price": 170,
        "quantity": 2,
-       "subtotal": 236
+       "subtotal": 340
       },
       {
        "position": 5,
        "kind": "hotel_night",
-       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
-       "date": "2027-07-10",
-       "unit_price": 110,
+       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
+       "date": "2027-07-18",
+       "unit_price": 150,
        "quantity": 2,
-       "subtotal": 220
+       "subtotal": 300
       },
       {
        "position": 6,
        "kind": "hotel_night",
-       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
-       "date": "2027-07-11",
-       "unit_price": 90,
+       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
+       "date": "2027-07-19",
+       "unit_price": 139,
        "quantity": 2,
-       "subtotal": 180
+       "subtotal": 278
       },
       {
        "position": 7,
        "kind": "hotel_night",
-       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
-       "date": "2027-07-12",
-       "unit_price": 89,
+       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
+       "date": "2027-07-20",
+       "unit_price": 145,
        "quantity": 2,
-       "subtotal": 178
+       "subtotal": 290
       },
       {
        "position": 8,
        "kind": "activity",
-       "ref_id": "71825fd6-350f-567e-ba0e-2611cb6ead05",
-       "date": "2027-07-07",
+       "ref_id": "831c34c5-e440-5aab-8a07-71b2ee0e3ed0",
+       "date": "2027-07-15",
        "unit_price": 0,
        "quantity": 4,
        "subtotal": 0
@@ -5339,7 +5339,7 @@
        "position": 9,
        "kind": "activity",
        "ref_id": "ecb4b216-496a-5a5f-b797-bf478dedb986",
-       "date": "2027-07-08",
+       "date": "2027-07-16",
        "unit_price": 5,
        "quantity": 4,
        "subtotal": 20
@@ -5347,47 +5347,47 @@
       {
        "position": 10,
        "kind": "activity",
+       "ref_id": "5cf3cf1f-bb2c-550f-b15b-174678a652c5",
+       "date": "2027-07-17",
+       "unit_price": 18,
+       "quantity": 4,
+       "subtotal": 72
+      },
+      {
+       "position": 11,
+       "kind": "activity",
        "ref_id": "97fc97cb-d432-5fe3-a2a3-56bfd7704f7a",
-       "date": "2027-07-09",
+       "date": "2027-07-18",
        "unit_price": 12,
        "quantity": 4,
        "subtotal": 48
       },
       {
-       "position": 11,
-       "kind": "activity",
-       "ref_id": "de56c2fd-e9aa-544c-b43e-a02bf5cfedfa",
-       "date": "2027-07-10",
-       "unit_price": 0,
-       "quantity": 4,
-       "subtotal": 0
-      },
-      {
        "position": 12,
        "kind": "activity",
-       "ref_id": "831c34c5-e440-5aab-8a07-71b2ee0e3ed0",
-       "date": "2027-07-11",
-       "unit_price": 0,
+       "ref_id": "6e3b4286-3d69-536b-8268-58365b616557",
+       "date": "2027-07-19",
+       "unit_price": 80,
        "quantity": 4,
-       "subtotal": 0
+       "subtotal": 320
       },
       {
        "position": 13,
        "kind": "activity",
-       "ref_id": "fe68a8ac-af3c-5308-9d8a-c6dd1b249473",
-       "date": "2027-07-12",
-       "unit_price": 35,
+       "ref_id": "71825fd6-350f-567e-ba0e-2611cb6ead05",
+       "date": "2027-07-20",
+       "unit_price": 0,
        "quantity": 4,
-       "subtotal": 140
+       "subtotal": 0
       },
       {
        "position": 14,
        "kind": "activity",
-       "ref_id": "5cf3cf1f-bb2c-550f-b15b-174678a652c5",
-       "date": "2027-07-13",
-       "unit_price": 18,
+       "ref_id": "fe68a8ac-af3c-5308-9d8a-c6dd1b249473",
+       "date": "2027-07-21",
+       "unit_price": 35,
        "quantity": 4,
-       "subtotal": 72
+       "subtotal": 140
       }
      ]
     },
@@ -5706,324 +5706,6 @@
        "unit_price": 18,
        "quantity": 4,
        "subtotal": 72
-      }
-     ]
-    },
-    {
-     "id": "83b7aa84-3b23-4821-af5b-8298583add01",
-     "variant": "premium",
-     "status": "proposed",
-     "country_code": "ES",
-     "start_date": "2027-07-15",
-     "end_date": "2027-07-21",
-     "travelers": 4,
-     "rooms": 2,
-     "total_price": 3406,
-     "budget_total": 3500,
-     "view": {
-      "variant": "premium",
-      "country_code": "ES",
-      "country_name": "Spagna",
-      "destination": "Barcellona",
-      "start_date": "2027-07-15",
-      "end_date": "2027-07-21",
-      "days": 7,
-      "nights": 6,
-      "travelers": 4,
-      "rooms": 2,
-      "total_price": 3406,
-      "budget_total": 3500,
-      "cost_breakdown": {
-       "flights": 988,
-       "hotel": 1818,
-       "activities": 600
-      },
-      "flights": {
-       "outbound": {
-        "id": "ae9a536e-a9c1-5f34-887b-38896302e1bc",
-        "flight_number": "PA122",
-        "carrier": "Polare Air",
-        "origin": "MXP",
-        "destination": "BCN",
-        "date": "2027-07-15",
-        "departure_time": "07:15",
-        "arrival_time": "09:03",
-        "price_per_person": 135,
-        "subtotal": 540
-       },
-       "return": {
-        "id": "345db0e5-0f42-5fc4-942e-4560965e754b",
-        "flight_number": "AB125",
-        "carrier": "Airone Blu",
-        "origin": "BCN",
-        "destination": "MXP",
-        "date": "2027-07-21",
-        "departure_time": "14:05",
-        "arrival_time": "15:53",
-        "price_per_person": 112,
-        "subtotal": 448
-       }
-      },
-      "hotel": {
-       "id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
-       "name": "Hostal Jardins de Gràcia",
-       "stars": 3,
-       "neighborhood": "Gràcia",
-       "nights": 6,
-       "price_per_night_avg": 152,
-       "subtotal": 1818
-      },
-      "days_plan": [
-       {
-        "day": 1,
-        "date": "2027-07-15",
-        "travel_day": false,
-        "travel_note": "arrivo alle 09:03",
-        "activity": {
-         "id": "831c34c5-e440-5aab-8a07-71b2ee0e3ed0",
-         "name": "Spiagge urbane della Barceloneta",
-         "category": "relax",
-         "description": "Pomeriggio di mare sulle spiagge urbane di Barcellona, dalla Barceloneta a Nova Icària e Bogatell, lunghe distese di sabbia raggiungibili in metropolitana. Si prende il sole, si fa il bagno nel Mediterraneo e si passeggia sul lungomare tra chiringuitos, partite di beach volley e artisti di strada. Ideale per famiglie, giovani e coppie che cercano relax al sole senza lasciare la città; le spiagge più a nord sono le più tranquille.",
-         "description_ai_generated": true,
-         "duration_hours": 4,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       },
-       {
-        "day": 2,
-        "date": "2027-07-16",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "ecb4b216-496a-5a5f-b797-bf478dedb986",
-         "name": "Giardini e castello di Montjuïc",
-         "category": "natura",
-         "description": "Mezza giornata sulla collina di Montjuïc, il grande polmone verde affacciato sul porto di Barcellona. Si passeggia tra giardini botanici, il giardino di cactus di Mossèn Costa i Llobera e i viali dell'Anello Olimpico, fino al castello militare con vista sul mare. Nelle sere di spettacolo si scende verso la Font Màgica, la fontana con giochi di luce e musica. Ideale per famiglie, coppie e chi ama camminare all'aria aperta senza troppa fatica.",
-         "description_ai_generated": true,
-         "duration_hours": 4,
-         "price_per_person": 5,
-         "subtotal": 20
-        }
-       },
-       {
-        "day": 3,
-        "date": "2027-07-17",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "5cf3cf1f-bb2c-550f-b15b-174678a652c5",
-         "name": "Park Güell",
-         "category": "cultura",
-         "description": "Passeggiata nel Park Güell, il parco progettato da Gaudí sulla collina del Carmel, con la celebre salamandra di mosaico sulla scalinata del Drago e la grande piazza circondata dalla panchina ondulata rivestita di trencadís. Dalla terrazza si gode una vista spettacolare su Barcellona fino al mare. Il percorso include salite e scalini ma resta accessibile, ideale per famiglie con bambini, coppie e fotografi in cerca di colori e scorci iconici.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 18,
-         "subtotal": 72
-        }
-       },
-       {
-        "day": 4,
-        "date": "2027-07-18",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "97fc97cb-d432-5fe3-a2a3-56bfd7704f7a",
-         "name": "Giornata di mare a Sitges",
-         "category": "relax",
-         "description": "Gita in giornata a Sitges, elegante cittadina costiera a meno di un'ora di treno da Barcellona. Ci si rilassa su una delle sue numerose spiagge di sabbia dorata, si passeggia sul lungomare fino alla chiesa di Sant Bartomeu i Santa Tecla, a picco sul mare, e si pranza in un ristorante di pesce tra le case bianche del centro storico. Ideale per coppie e famiglie che vogliono una pausa di mare più tranquilla delle spiagge urbane.",
-         "description_ai_generated": true,
-         "duration_hours": 7,
-         "price_per_person": 12,
-         "subtotal": 48
-        }
-       },
-       {
-        "day": 5,
-        "date": "2027-07-19",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "6e3b4286-3d69-536b-8268-58365b616557",
-         "name": "Bagni termali in stile antico nel Born",
-         "category": "relax",
-         "description": "Rituale di benessere in un centro di bagni ispirati alle antiche terme romane e arabe, ricavato in un edificio storico del Born. Al lume di candela si passa da vasche di acqua calda, tiepida e fredda a una vasca di acqua salata in cui si galleggia, con bagno di vapore e massaggio su richiesta. Un'esperienza silenziosa e romantica, ideale per coppie e per chi vuole staccare dopo giornate intense di visite in città.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 80,
-         "subtotal": 320
-        }
-       },
-       {
-        "day": 6,
-        "date": "2027-07-20",
-        "travel_day": false,
-        "travel_note": null,
-        "activity": {
-         "id": "71825fd6-350f-567e-ba0e-2611cb6ead05",
-         "name": "Mercat de la Boqueria",
-         "category": "gastronomia",
-         "description": "Visita al Mercat de la Boqueria, sulla Rambla, il mercato coperto più famoso di Barcellona, con banchi di frutta esotica, jamón ibérico, frutti di mare e spremute coloratissime. Si passeggia liberamente tra i banchi e ci si può sedere al bancone di uno dei bar per assaggiare tapas appena cucinate, come gamberi alla piastra o uova fritte con patate. Ideale per buongustai, famiglie e viaggiatori soli; è più vivace e autentico al mattino.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 0,
-         "subtotal": 0
-        }
-       },
-       {
-        "day": 7,
-        "date": "2027-07-21",
-        "travel_day": false,
-        "travel_note": "volo di ritorno alle 14:05",
-        "activity": {
-         "id": "fe68a8ac-af3c-5308-9d8a-c6dd1b249473",
-         "name": "Casa Batlló",
-         "category": "cultura",
-         "description": "Visita a Casa Batlló, sul Passeig de Gràcia, una delle case più fantasiose di Gaudí: la facciata ricorda le scaglie di un drago, con balconi a forma di maschera e un tetto ondulato di ceramica. All'interno non ci sono quasi linee rette e l'audioguida in realtà aumentata racconta le idee dell'architetto, ispirate al mare e alla natura. Visita al chiuso, comoda e coinvolgente, ideale per coppie, famiglie con ragazzi e appassionati di design.",
-         "description_ai_generated": true,
-         "duration_hours": 2,
-         "price_per_person": 35,
-         "subtotal": 140
-        }
-       }
-      ]
-     },
-     "created_at": "2026-10-15T14:45:49.841438+00:00",
-     "items": [
-      {
-       "position": 0,
-       "kind": "flight_out",
-       "ref_id": "ae9a536e-a9c1-5f34-887b-38896302e1bc",
-       "date": "2027-07-15",
-       "unit_price": 135,
-       "quantity": 4,
-       "subtotal": 540
-      },
-      {
-       "position": 1,
-       "kind": "flight_back",
-       "ref_id": "345db0e5-0f42-5fc4-942e-4560965e754b",
-       "date": "2027-07-21",
-       "unit_price": 112,
-       "quantity": 4,
-       "subtotal": 448
-      },
-      {
-       "position": 2,
-       "kind": "hotel_night",
-       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
-       "date": "2027-07-15",
-       "unit_price": 137,
-       "quantity": 2,
-       "subtotal": 274
-      },
-      {
-       "position": 3,
-       "kind": "hotel_night",
-       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
-       "date": "2027-07-16",
-       "unit_price": 168,
-       "quantity": 2,
-       "subtotal": 336
-      },
-      {
-       "position": 4,
-       "kind": "hotel_night",
-       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
-       "date": "2027-07-17",
-       "unit_price": 170,
-       "quantity": 2,
-       "subtotal": 340
-      },
-      {
-       "position": 5,
-       "kind": "hotel_night",
-       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
-       "date": "2027-07-18",
-       "unit_price": 150,
-       "quantity": 2,
-       "subtotal": 300
-      },
-      {
-       "position": 6,
-       "kind": "hotel_night",
-       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
-       "date": "2027-07-19",
-       "unit_price": 139,
-       "quantity": 2,
-       "subtotal": 278
-      },
-      {
-       "position": 7,
-       "kind": "hotel_night",
-       "ref_id": "69df9c07-bf5e-5328-b908-3ff0ca6d7147",
-       "date": "2027-07-20",
-       "unit_price": 145,
-       "quantity": 2,
-       "subtotal": 290
-      },
-      {
-       "position": 8,
-       "kind": "activity",
-       "ref_id": "831c34c5-e440-5aab-8a07-71b2ee0e3ed0",
-       "date": "2027-07-15",
-       "unit_price": 0,
-       "quantity": 4,
-       "subtotal": 0
-      },
-      {
-       "position": 9,
-       "kind": "activity",
-       "ref_id": "ecb4b216-496a-5a5f-b797-bf478dedb986",
-       "date": "2027-07-16",
-       "unit_price": 5,
-       "quantity": 4,
-       "subtotal": 20
-      },
-      {
-       "position": 10,
-       "kind": "activity",
-       "ref_id": "5cf3cf1f-bb2c-550f-b15b-174678a652c5",
-       "date": "2027-07-17",
-       "unit_price": 18,
-       "quantity": 4,
-       "subtotal": 72
-      },
-      {
-       "position": 11,
-       "kind": "activity",
-       "ref_id": "97fc97cb-d432-5fe3-a2a3-56bfd7704f7a",
-       "date": "2027-07-18",
-       "unit_price": 12,
-       "quantity": 4,
-       "subtotal": 48
-      },
-      {
-       "position": 12,
-       "kind": "activity",
-       "ref_id": "6e3b4286-3d69-536b-8268-58365b616557",
-       "date": "2027-07-19",
-       "unit_price": 80,
-       "quantity": 4,
-       "subtotal": 320
-      },
-      {
-       "position": 13,
-       "kind": "activity",
-       "ref_id": "71825fd6-350f-567e-ba0e-2611cb6ead05",
-       "date": "2027-07-20",
-       "unit_price": 0,
-       "quantity": 4,
-       "subtotal": 0
-      },
-      {
-       "position": 14,
-       "kind": "activity",
-       "ref_id": "fe68a8ac-af3c-5308-9d8a-c6dd1b249473",
-       "date": "2027-07-21",
-       "unit_price": 35,
-       "quantity": 4,
-       "subtotal": 140
       }
      ]
     },
@@ -6660,6 +6342,1202 @@
        "unit_price": 18,
        "quantity": 4,
        "subtotal": 72
+      }
+     ]
+    },
+    {
+     "id": "ad7ad246-751f-42bd-a86d-21a0e69e0180",
+     "variant": "economy",
+     "status": "selected",
+     "country_code": "ES",
+     "start_date": "2027-07-07",
+     "end_date": "2027-07-13",
+     "travelers": 4,
+     "rooms": 2,
+     "total_price": 2332,
+     "budget_total": 3500,
+     "view": {
+      "variant": "economy",
+      "country_code": "ES",
+      "country_name": "Spagna",
+      "destination": "Barcellona",
+      "start_date": "2027-07-07",
+      "end_date": "2027-07-13",
+      "days": 7,
+      "nights": 6,
+      "travelers": 4,
+      "rooms": 2,
+      "total_price": 2332,
+      "budget_total": 3500,
+      "cost_breakdown": {
+       "flights": 868,
+       "hotel": 1184,
+       "activities": 280
+      },
+      "flights": {
+       "outbound": {
+        "id": "9b1946c2-115d-5828-9f33-47b2da498808",
+        "flight_number": "PA122",
+        "carrier": "Polare Air",
+        "origin": "MXP",
+        "destination": "BCN",
+        "date": "2027-07-07",
+        "departure_time": "07:15",
+        "arrival_time": "09:03",
+        "price_per_person": 115,
+        "subtotal": 460
+       },
+       "return": {
+        "id": "aa18da4b-3ef6-5140-9112-2227abbf66e8",
+        "flight_number": "AB125",
+        "carrier": "Airone Blu",
+        "origin": "BCN",
+        "destination": "MXP",
+        "date": "2027-07-13",
+        "departure_time": "14:05",
+        "arrival_time": "15:53",
+        "price_per_person": 102,
+        "subtotal": 408
+       }
+      },
+      "hotel": {
+       "id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
+       "name": "Pensión Las Golondrinas",
+       "stars": 2,
+       "neighborhood": "El Raval",
+       "nights": 6,
+       "price_per_night_avg": 99,
+       "subtotal": 1184
+      },
+      "days_plan": [
+       {
+        "day": 1,
+        "date": "2027-07-07",
+        "travel_day": false,
+        "travel_note": "arrivo alle 09:03",
+        "activity": {
+         "id": "71825fd6-350f-567e-ba0e-2611cb6ead05",
+         "name": "Mercat de la Boqueria",
+         "category": "gastronomia",
+         "description": "Visita al Mercat de la Boqueria, sulla Rambla, il mercato coperto più famoso di Barcellona, con banchi di frutta esotica, jamón ibérico, frutti di mare e spremute coloratissime. Si passeggia liberamente tra i banchi e ci si può sedere al bancone di uno dei bar per assaggiare tapas appena cucinate, come gamberi alla piastra o uova fritte con patate. Ideale per buongustai, famiglie e viaggiatori soli; è più vivace e autentico al mattino.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 2,
+        "date": "2027-07-08",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "ecb4b216-496a-5a5f-b797-bf478dedb986",
+         "name": "Giardini e castello di Montjuïc",
+         "category": "natura",
+         "description": "Mezza giornata sulla collina di Montjuïc, il grande polmone verde affacciato sul porto di Barcellona. Si passeggia tra giardini botanici, il giardino di cactus di Mossèn Costa i Llobera e i viali dell'Anello Olimpico, fino al castello militare con vista sul mare. Nelle sere di spettacolo si scende verso la Font Màgica, la fontana con giochi di luce e musica. Ideale per famiglie, coppie e chi ama camminare all'aria aperta senza troppa fatica.",
+         "description_ai_generated": true,
+         "duration_hours": 4,
+         "price_per_person": 5,
+         "subtotal": 20
+        }
+       },
+       {
+        "day": 3,
+        "date": "2027-07-09",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "97fc97cb-d432-5fe3-a2a3-56bfd7704f7a",
+         "name": "Giornata di mare a Sitges",
+         "category": "relax",
+         "description": "Gita in giornata a Sitges, elegante cittadina costiera a meno di un'ora di treno da Barcellona. Ci si rilassa su una delle sue numerose spiagge di sabbia dorata, si passeggia sul lungomare fino alla chiesa di Sant Bartomeu i Santa Tecla, a picco sul mare, e si pranza in un ristorante di pesce tra le case bianche del centro storico. Ideale per coppie e famiglie che vogliono una pausa di mare più tranquilla delle spiagge urbane.",
+         "description_ai_generated": true,
+         "duration_hours": 7,
+         "price_per_person": 12,
+         "subtotal": 48
+        }
+       },
+       {
+        "day": 4,
+        "date": "2027-07-10",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "de56c2fd-e9aa-544c-b43e-a02bf5cfedfa",
+         "name": "Passeggiata nel Barri Gòtic e nel Born",
+         "category": "cultura",
+         "description": "Passeggiata libera nel Barri Gòtic e nel Born, il cuore medievale di Barcellona, tra vicoli stretti, piazzette nascoste e resti romani. Si scoprono la Cattedrale, la Plaça del Rei, l'antico quartiere ebraico del Call e la splendida basilica gotica di Santa Maria del Mar, fermandosi in caffè e botteghe artigiane. Attività gratuita e a ritmo libero, perfetta per viaggiatori soli, coppie e senior che amano perdersi tra storia e atmosfera.",
+         "description_ai_generated": true,
+         "duration_hours": 3,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 5,
+        "date": "2027-07-11",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "831c34c5-e440-5aab-8a07-71b2ee0e3ed0",
+         "name": "Spiagge urbane della Barceloneta",
+         "category": "relax",
+         "description": "Pomeriggio di mare sulle spiagge urbane di Barcellona, dalla Barceloneta a Nova Icària e Bogatell, lunghe distese di sabbia raggiungibili in metropolitana. Si prende il sole, si fa il bagno nel Mediterraneo e si passeggia sul lungomare tra chiringuitos, partite di beach volley e artisti di strada. Ideale per famiglie, giovani e coppie che cercano relax al sole senza lasciare la città; le spiagge più a nord sono le più tranquille.",
+         "description_ai_generated": true,
+         "duration_hours": 4,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 6,
+        "date": "2027-07-12",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "fe68a8ac-af3c-5308-9d8a-c6dd1b249473",
+         "name": "Casa Batlló",
+         "category": "cultura",
+         "description": "Visita a Casa Batlló, sul Passeig de Gràcia, una delle case più fantasiose di Gaudí: la facciata ricorda le scaglie di un drago, con balconi a forma di maschera e un tetto ondulato di ceramica. All'interno non ci sono quasi linee rette e l'audioguida in realtà aumentata racconta le idee dell'architetto, ispirate al mare e alla natura. Visita al chiuso, comoda e coinvolgente, ideale per coppie, famiglie con ragazzi e appassionati di design.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 35,
+         "subtotal": 140
+        }
+       },
+       {
+        "day": 7,
+        "date": "2027-07-13",
+        "travel_day": false,
+        "travel_note": "volo di ritorno alle 14:05",
+        "activity": {
+         "id": "5cf3cf1f-bb2c-550f-b15b-174678a652c5",
+         "name": "Park Güell",
+         "category": "cultura",
+         "description": "Passeggiata nel Park Güell, il parco progettato da Gaudí sulla collina del Carmel, con la celebre salamandra di mosaico sulla scalinata del Drago e la grande piazza circondata dalla panchina ondulata rivestita di trencadís. Dalla terrazza si gode una vista spettacolare su Barcellona fino al mare. Il percorso include salite e scalini ma resta accessibile, ideale per famiglie con bambini, coppie e fotografi in cerca di colori e scorci iconici.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 18,
+         "subtotal": 72
+        }
+       }
+      ]
+     },
+     "created_at": "2026-10-15T14:45:49.841433+00:00",
+     "items": [
+      {
+       "position": 0,
+       "kind": "flight_out",
+       "ref_id": "9b1946c2-115d-5828-9f33-47b2da498808",
+       "date": "2027-07-07",
+       "unit_price": 115,
+       "quantity": 4,
+       "subtotal": 460
+      },
+      {
+       "position": 1,
+       "kind": "flight_back",
+       "ref_id": "aa18da4b-3ef6-5140-9112-2227abbf66e8",
+       "date": "2027-07-13",
+       "unit_price": 102,
+       "quantity": 4,
+       "subtotal": 408
+      },
+      {
+       "position": 2,
+       "kind": "hotel_night",
+       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
+       "date": "2027-07-07",
+       "unit_price": 89,
+       "quantity": 2,
+       "subtotal": 178
+      },
+      {
+       "position": 3,
+       "kind": "hotel_night",
+       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
+       "date": "2027-07-08",
+       "unit_price": 96,
+       "quantity": 2,
+       "subtotal": 192
+      },
+      {
+       "position": 4,
+       "kind": "hotel_night",
+       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
+       "date": "2027-07-09",
+       "unit_price": 118,
+       "quantity": 2,
+       "subtotal": 236
+      },
+      {
+       "position": 5,
+       "kind": "hotel_night",
+       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
+       "date": "2027-07-10",
+       "unit_price": 110,
+       "quantity": 2,
+       "subtotal": 220
+      },
+      {
+       "position": 6,
+       "kind": "hotel_night",
+       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
+       "date": "2027-07-11",
+       "unit_price": 90,
+       "quantity": 2,
+       "subtotal": 180
+      },
+      {
+       "position": 7,
+       "kind": "hotel_night",
+       "ref_id": "b5292c82-9d7e-5e0a-af1a-729fca69ec3d",
+       "date": "2027-07-12",
+       "unit_price": 89,
+       "quantity": 2,
+       "subtotal": 178
+      },
+      {
+       "position": 8,
+       "kind": "activity",
+       "ref_id": "71825fd6-350f-567e-ba0e-2611cb6ead05",
+       "date": "2027-07-07",
+       "unit_price": 0,
+       "quantity": 4,
+       "subtotal": 0
+      },
+      {
+       "position": 9,
+       "kind": "activity",
+       "ref_id": "ecb4b216-496a-5a5f-b797-bf478dedb986",
+       "date": "2027-07-08",
+       "unit_price": 5,
+       "quantity": 4,
+       "subtotal": 20
+      },
+      {
+       "position": 10,
+       "kind": "activity",
+       "ref_id": "97fc97cb-d432-5fe3-a2a3-56bfd7704f7a",
+       "date": "2027-07-09",
+       "unit_price": 12,
+       "quantity": 4,
+       "subtotal": 48
+      },
+      {
+       "position": 11,
+       "kind": "activity",
+       "ref_id": "de56c2fd-e9aa-544c-b43e-a02bf5cfedfa",
+       "date": "2027-07-10",
+       "unit_price": 0,
+       "quantity": 4,
+       "subtotal": 0
+      },
+      {
+       "position": 12,
+       "kind": "activity",
+       "ref_id": "831c34c5-e440-5aab-8a07-71b2ee0e3ed0",
+       "date": "2027-07-11",
+       "unit_price": 0,
+       "quantity": 4,
+       "subtotal": 0
+      },
+      {
+       "position": 13,
+       "kind": "activity",
+       "ref_id": "fe68a8ac-af3c-5308-9d8a-c6dd1b249473",
+       "date": "2027-07-12",
+       "unit_price": 35,
+       "quantity": 4,
+       "subtotal": 140
+      },
+      {
+       "position": 14,
+       "kind": "activity",
+       "ref_id": "5cf3cf1f-bb2c-550f-b15b-174678a652c5",
+       "date": "2027-07-13",
+       "unit_price": 18,
+       "quantity": 4,
+       "subtotal": 72
+      }
+     ]
+    }
+   ],
+   "bookings": []
+  },
+  {
+   "id": "9650a089-1bbf-4766-831c-880dac59a874",
+   "title": "Curioso del catalogo · destinazioni, voli, hotel, poi l'Islanda",
+   "phase": "PROPOSING",
+   "requirements": {
+    "budget_total": 2500,
+    "destination": {
+     "type": "country",
+     "country_code": "IS"
+    },
+    "preferences": {
+     "categories": [
+      "natura",
+      "relax"
+     ],
+     "notes": "natura e relax"
+    },
+    "month": 2,
+    "duration": {
+     "min_days": 5,
+     "max_days": 5
+    },
+    "departure_airport": "NAP",
+    "travelers": 2
+   },
+   "created_at": "2026-10-15T15:47:22.876064+00:00",
+   "messages": [
+    {
+     "seq": 1,
+     "role": "assistant",
+     "content": "Ciao! Sono il tuo assistente di viaggio. Raccontami il viaggio che hai in mente: budget totale, destinazione (oppure «consigliami tu» o «ovunque»), cosa ti piace fare, mese, durata, da dove parti e quante persone siete. Puoi dirmi tutto insieme o un pezzo alla volta.",
+     "provider": "SYSTEM",
+     "model": null,
+     "itinerary_ids": [],
+     "ui": null,
+     "created_at": "2026-10-15T15:47:22.879309+00:00"
+    },
+    {
+     "seq": 2,
+     "role": "user",
+     "content": "Ciao! Prima di decidere: mi dici quali sono le destinazioni disponibili?",
+     "provider": null,
+     "model": null,
+     "itinerary_ids": [],
+     "ui": null,
+     "created_at": "2026-10-15T15:47:53.801337+00:00"
+    },
+    {
+     "seq": 3,
+     "role": "assistant",
+     "content": "**Giappone** – Metropoli futuristica e templi millenari, gastronomia di altissimo livello, onsen e natura a poche ore da Tokyo. Fioritura dei ciliegi a fine marzo‑aprile, foliage in autunno.  \n**Grecia** – Acropoli e storia antica, isole raggiungibili in traghetto, cucina mediterranea e spiagge. Stagione balneare da maggio a ottobre.  \n**Islanda** – Natura estrema: ghiacciai, cascate, geyser, lagune termali e aurore boreali in inverno. Costi locali alti, giornate lunghissime in estate.  \n**Italia** – Sicilia: mare cristallino, siti archeologici greci e arabo‑normanni, street food e l’Etna. Clima mite quasi tutto l’anno, molto caldo in estate.  \n**Spagna** – Barcellona: architettura di Gaudí, spiagge urbane, tapas e una delle vite notturne più vivaci d’Europa. Piacevole in primavera e autunno, affollata in estate.  \n\nPer poter affinare la proposta, mi servono ancora: **budget totale**, **destinazione** preferita e **preferenze sulle attività**.",
+     "provider": "GROQ",
+     "model": "openai/gpt-oss-120b",
+     "itinerary_ids": [],
+     "ui": null,
+     "created_at": "2026-10-15T15:47:55.769899+00:00"
+    },
+    {
+     "seq": 4,
+     "role": "user",
+     "content": "L'Islanda mi incuriosisce. Ci sono voli da Napoli a febbraio? Saremmo in due.",
+     "provider": null,
+     "model": null,
+     "itinerary_ids": [],
+     "ui": null,
+     "created_at": "2026-10-15T15:48:49.448669+00:00"
+    },
+    {
+     "seq": 5,
+     "role": "assistant",
+     "content": "Sì, per **febbraio 2027** ci sono voli da **NAP** per l'**Islanda** con disponibilità tutti i giorni del mese, per 2 viaggiatori. Il prezzo minimo indicativo per l'andata è di **137 €** a persona e per il ritorno di **136 €** a persona.\n\nPotresti indicarmi il budget totale, la durata del viaggio e le tue preferenze sulle attività?",
+     "provider": "GEMINI",
+     "model": "gemini-flash-lite-latest",
+     "itinerary_ids": [],
+     "ui": null,
+     "created_at": "2026-10-15T15:48:53.013687+00:00"
+    },
+    {
+     "seq": 6,
+     "role": "user",
+     "content": "Che hotel ci sono a Reykjavik? E cosa si può fare d'inverno?",
+     "provider": null,
+     "model": null,
+     "itinerary_ids": [],
+     "ui": null,
+     "created_at": "2026-10-15T15:49:55.244161+00:00"
+    },
+    {
+     "seq": 7,
+     "role": "assistant",
+     "content": "A Reykjavik sono disponibili i seguenti hotel:\n\n- **Gistihús Kría**: 2 stelle, zona **Hlíðar**, a partire da **69** € a notte.\n- **Hótel Esjuútsýn**: 3 stelle, zona **Laugardalur**, a partire da **108** € a notte.\n- **Vesturbær Bay Hotel**: 3 stelle, zona **Vesturbær**, a partire da **120** € a notte.\n- **Hótel Hraun Miðborg**: 4 stelle, zona **Miðborg**, a partire da **175** € a notte.\n- **Norðurstjarna Grand Hótel**: 5 stelle, zona **Gamla höfnin**, a partire da **290** € a notte.\n\nIn inverno puoi svolgere diverse attività, tra cui:\n\n- **Escursione sul ghiacciaio Sólheimajökull**: escursione sportiva sul ghiaccio con ramponi e piccozza (**150** € a persona).\n- **Snorkeling nella fenditura di Silfra**: nuotare tra le placche tettoniche con muta stagna (**160** € a persona).\n- **Piscine geotermiche pubbliche di Reykjavik**: relax nelle vasche all'aperto (**8** € a persona).\n- **Passeggiata al faro di Grótta**: passeggiata costiera ideale anche per l'aurora boreale (gratuita).\n- **Circolo d'Oro: Þingvellir, Geysir e Gullfoss**: escursione naturalistica tra geyser, cascate e faglie (**75** € a persona).\n\nQuali sono il tuo budget totale, le preferenze sulle attività e la durata del viaggio?",
+     "provider": "GEMINI",
+     "model": "gemini-flash-lite-latest",
+     "itinerary_ids": [],
+     "ui": null,
+     "created_at": "2026-10-15T15:50:00.584078+00:00"
+    },
+    {
+     "seq": 8,
+     "role": "user",
+     "content": "Perfetto: facciamo 5 giorni, budget 2500 euro in tutto, ci piacciono natura e relax.",
+     "provider": null,
+     "model": null,
+     "itinerary_ids": [],
+     "ui": null,
+     "created_at": "2026-10-15T15:51:13.342474+00:00"
+    },
+    {
+     "seq": 9,
+     "role": "assistant",
+     "content": "Ho confrontato le opzioni per un viaggio di cinque giorni in **Islanda** all'insegna di natura e relax.\n\n- **Economica**: punta sul prezzo più basso, **dal 3 al 7 febbraio**, a **1147 €**.\n- **Bilanciata**: bilancia prezzo e qualità di hotel e attività, **dal 16 al 20 febbraio**, a **1869 €**.\n- **Premium**: punta su hotel e attività migliori, **dal 16 al 20 febbraio**, a **2377 €**.\n\nTi segnalo che il primo giorno e il giorno 5: volo di ritorno alle 09:50 sono senza attività per gli orari dei voli. Quale variante preferisci prenotare?",
+     "provider": "GEMINI",
+     "model": "gemini-flash-lite-latest",
+     "itinerary_ids": [
+      "a4b9a2a1-bd16-4b39-8fff-e5f58d36c95f",
+      "f04c6024-d7d1-445d-b41a-61be2b4f68de",
+      "b3ce1799-5584-4255-854c-00079f462f3a"
+     ],
+     "ui": null,
+     "created_at": "2026-10-15T15:51:14.808531+00:00"
+    },
+    {
+     "seq": 10,
+     "role": "user",
+     "content": "Da quali altri aeroporti potrei partire? E da Roma ci sono voli per l'Islanda a febbraio?",
+     "provider": null,
+     "model": null,
+     "itinerary_ids": [],
+     "ui": null,
+     "created_at": "2026-10-15T15:52:26.849229+00:00"
+    },
+    {
+     "seq": 11,
+     "role": "assistant",
+     "content": "Gli altri aeroporti di partenza disponibili sono **Milano Malpensa (MXP)** e **Napoli Capodichino (NAP)**. Sì, da Roma Fiumicino (FCO) ci sono voli per l'Islanda a febbraio, con partenze quasi giornaliere e prezzi a partire da 126 € a persona per l'andata.",
+     "provider": "GEMINI",
+     "model": "gemini-flash-lite-latest",
+     "itinerary_ids": [],
+     "ui": null,
+     "created_at": "2026-10-15T15:52:32.349154+00:00"
+    }
+   ],
+   "itineraries": [
+    {
+     "id": "a4b9a2a1-bd16-4b39-8fff-e5f58d36c95f",
+     "variant": "economy",
+     "status": "proposed",
+     "country_code": "IS",
+     "start_date": "2027-02-03",
+     "end_date": "2027-02-07",
+     "travelers": 2,
+     "rooms": 1,
+     "total_price": 1147,
+     "budget_total": 2500,
+     "view": {
+      "variant": "economy",
+      "country_code": "IS",
+      "country_name": "Islanda",
+      "destination": "Reykjavik e sud-ovest",
+      "start_date": "2027-02-03",
+      "end_date": "2027-02-07",
+      "days": 5,
+      "nights": 4,
+      "travelers": 2,
+      "rooms": 1,
+      "total_price": 1147,
+      "budget_total": 2500,
+      "cost_breakdown": {
+       "flights": 654,
+       "hotel": 337,
+       "activities": 156
+      },
+      "flights": {
+       "outbound": {
+        "id": "a19caa60-fbef-5b34-b2cb-fc40fee580b5",
+        "flight_number": "AB150",
+        "carrier": "Airone Blu",
+        "origin": "NAP",
+        "destination": "KEF",
+        "date": "2027-02-03",
+        "departure_time": "09:50",
+        "arrival_time": "14:02",
+        "price_per_person": 138,
+        "subtotal": 276
+       },
+       "return": {
+        "id": "da9d293d-2a49-583e-9a3e-70aabf2cf4c3",
+        "flight_number": "AS152",
+        "carrier": "Ali del Sud",
+        "origin": "KEF",
+        "destination": "NAP",
+        "date": "2027-02-07",
+        "departure_time": "09:50",
+        "arrival_time": "14:02",
+        "price_per_person": 189,
+        "subtotal": 378
+       }
+      },
+      "hotel": {
+       "id": "6c3e9f75-204c-5a04-80ee-b7b755374ccc",
+       "name": "Gistihús Kría",
+       "stars": 2,
+       "neighborhood": "Hlíðar",
+       "nights": 4,
+       "price_per_night_avg": 84,
+       "subtotal": 337
+      },
+      "days_plan": [
+       {
+        "day": 1,
+        "date": "2027-02-03",
+        "travel_day": false,
+        "travel_note": "arrivo alle 14:02",
+        "activity": {
+         "id": "d83dd985-360e-57ab-81de-e0496a82bea3",
+         "name": "Piscine geotermiche pubbliche di Reykjavik",
+         "category": "relax",
+         "description": "Pomeriggio in una piscina geotermica pubblica di Reykjavik, come Laugardalslaug o Vesturbæjarlaug, il vero rito sociale degli islandesi. Si nuota all'aperto in acqua calda anche sotto la neve e poi ci si sposta nelle vasche idromassaggio a temperature diverse, chiacchierando con la gente del posto, prima di una sauna o di un tuffo nella vasca fredda. Economico, rilassante e autentico, ideale per famiglie con bambini, viaggiatori soli e senior; prima di entrare la doccia senza costume è obbligatoria.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 8,
+         "subtotal": 16
+        }
+       },
+       {
+        "day": 2,
+        "date": "2027-02-04",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "0660bf9d-0814-56a1-ab08-a195c078e8e7",
+         "name": "Passeggiata al faro di Grótta",
+         "category": "natura",
+         "description": "Passeggiata gratuita fino al faro di Grótta, sulla punta della penisola di Seltjarnarnes, a pochi chilometri dal centro di Reykjavik. Il sentiero costeggia il mare tra prati, uccelli marini e vista sul monte Esja; vicino alla riva c'è una piccola vasca geotermica in cui immergere i piedi. È uno dei punti più amati per il tramonto e, nelle notti d'inverno, per osservare l'aurora boreale. Attività tranquilla e adatta a tutti.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 3,
+        "date": "2027-02-05",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "e463c9b3-d34b-52bb-880f-d869a280a0a9",
+         "name": "Caccia all'aurora boreale",
+         "category": "natura",
+         "description": "Caccia all'aurora boreale lontano dalle luci di Reykjavik, con guide che scelgono la destinazione in base alle previsioni meteo e all'attività solare. Al buio, sotto un cielo stellato, si aspetta che le luci verdi e viola danzino sopra i campi di lava, con consigli per fotografarle al meglio. Un'esperienza emozionante e romantica per coppie, famiglie e viaggiatori soli; si sta fermi al freddo, servono abiti molto caldi e l'avvistamento non è mai garantito.",
+         "description_ai_generated": true,
+         "duration_hours": 4,
+         "price_per_person": 70,
+         "subtotal": 140
+        }
+       },
+       {
+        "day": 4,
+        "date": "2027-02-06",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "18586650-9bd1-56f4-a3ee-850741de411c",
+         "name": "Runtur: notte nei bar di Laugavegur",
+         "category": "nightlife",
+         "description": "Serata lungo Laugavegur e le vie del centro di Reykjavik, dove nel fine settimana gli islandesi praticano il «runtur», il giro di bar in bar fino a tarda notte. Si sfrutta l'happy hour, si ascolta musica dal vivo in piccoli locali e club con DJ e si fa facilmente amicizia con gente del posto e altri viaggiatori. Ideale per giovani e viaggiatori soli che vogliono scoprire la vivace scena musicale islandese; l'ingresso è libero, ma i drink sono cari.",
+         "description_ai_generated": true,
+         "duration_hours": 4,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 5,
+        "date": "2027-02-07",
+        "travel_day": true,
+        "travel_note": "volo di ritorno alle 09:50",
+        "activity": null
+       }
+      ]
+     },
+     "created_at": "2026-10-15T15:51:13.464931+00:00",
+     "items": [
+      {
+       "position": 0,
+       "kind": "flight_out",
+       "ref_id": "a19caa60-fbef-5b34-b2cb-fc40fee580b5",
+       "date": "2027-02-03",
+       "unit_price": 138,
+       "quantity": 2,
+       "subtotal": 276
+      },
+      {
+       "position": 1,
+       "kind": "flight_back",
+       "ref_id": "da9d293d-2a49-583e-9a3e-70aabf2cf4c3",
+       "date": "2027-02-07",
+       "unit_price": 189,
+       "quantity": 2,
+       "subtotal": 378
+      },
+      {
+       "position": 2,
+       "kind": "hotel_night",
+       "ref_id": "6c3e9f75-204c-5a04-80ee-b7b755374ccc",
+       "date": "2027-02-03",
+       "unit_price": 79,
+       "quantity": 1,
+       "subtotal": 79
+      },
+      {
+       "position": 3,
+       "kind": "hotel_night",
+       "ref_id": "6c3e9f75-204c-5a04-80ee-b7b755374ccc",
+       "date": "2027-02-04",
+       "unit_price": 74,
+       "quantity": 1,
+       "subtotal": 74
+      },
+      {
+       "position": 4,
+       "kind": "hotel_night",
+       "ref_id": "6c3e9f75-204c-5a04-80ee-b7b755374ccc",
+       "date": "2027-02-05",
+       "unit_price": 90,
+       "quantity": 1,
+       "subtotal": 90
+      },
+      {
+       "position": 5,
+       "kind": "hotel_night",
+       "ref_id": "6c3e9f75-204c-5a04-80ee-b7b755374ccc",
+       "date": "2027-02-06",
+       "unit_price": 94,
+       "quantity": 1,
+       "subtotal": 94
+      },
+      {
+       "position": 6,
+       "kind": "activity",
+       "ref_id": "d83dd985-360e-57ab-81de-e0496a82bea3",
+       "date": "2027-02-03",
+       "unit_price": 8,
+       "quantity": 2,
+       "subtotal": 16
+      },
+      {
+       "position": 7,
+       "kind": "activity",
+       "ref_id": "0660bf9d-0814-56a1-ab08-a195c078e8e7",
+       "date": "2027-02-04",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      },
+      {
+       "position": 8,
+       "kind": "activity",
+       "ref_id": "e463c9b3-d34b-52bb-880f-d869a280a0a9",
+       "date": "2027-02-05",
+       "unit_price": 70,
+       "quantity": 2,
+       "subtotal": 140
+      },
+      {
+       "position": 9,
+       "kind": "activity",
+       "ref_id": "18586650-9bd1-56f4-a3ee-850741de411c",
+       "date": "2027-02-06",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      }
+     ]
+    },
+    {
+     "id": "f04c6024-d7d1-445d-b41a-61be2b4f68de",
+     "variant": "balanced",
+     "status": "proposed",
+     "country_code": "IS",
+     "start_date": "2027-02-16",
+     "end_date": "2027-02-20",
+     "travelers": 2,
+     "rooms": 1,
+     "total_price": 1869,
+     "budget_total": 2500,
+     "view": {
+      "variant": "balanced",
+      "country_code": "IS",
+      "country_name": "Islanda",
+      "destination": "Reykjavik e sud-ovest",
+      "start_date": "2027-02-16",
+      "end_date": "2027-02-20",
+      "days": 5,
+      "nights": 4,
+      "travelers": 2,
+      "rooms": 1,
+      "total_price": 1869,
+      "budget_total": 2500,
+      "cost_breakdown": {
+       "flights": 580,
+       "hotel": 833,
+       "activities": 456
+      },
+      "flights": {
+       "outbound": {
+        "id": "a3b7c53e-5456-501b-830f-0cf5969a3c48",
+        "flight_number": "AB150",
+        "carrier": "Airone Blu",
+        "origin": "NAP",
+        "destination": "KEF",
+        "date": "2027-02-16",
+        "departure_time": "09:50",
+        "arrival_time": "14:02",
+        "price_per_person": 139,
+        "subtotal": 278
+       },
+       "return": {
+        "id": "2230ea82-751d-5ed4-b653-d6bc738b0eee",
+        "flight_number": "AS153",
+        "carrier": "Ali del Sud",
+        "origin": "KEF",
+        "destination": "NAP",
+        "date": "2027-02-20",
+        "departure_time": "16:20",
+        "arrival_time": "20:32",
+        "price_per_person": 151,
+        "subtotal": 302
+       }
+      },
+      "hotel": {
+       "id": "765c23fd-18fd-5eb6-b645-dbde5d9d6987",
+       "name": "Hótel Hraun Miðborg",
+       "stars": 4,
+       "neighborhood": "Miðborg",
+       "nights": 4,
+       "price_per_night_avg": 208,
+       "subtotal": 833
+      },
+      "days_plan": [
+       {
+        "day": 1,
+        "date": "2027-02-16",
+        "travel_day": false,
+        "travel_note": "arrivo alle 14:02",
+        "activity": {
+         "id": "e463c9b3-d34b-52bb-880f-d869a280a0a9",
+         "name": "Caccia all'aurora boreale",
+         "category": "natura",
+         "description": "Caccia all'aurora boreale lontano dalle luci di Reykjavik, con guide che scelgono la destinazione in base alle previsioni meteo e all'attività solare. Al buio, sotto un cielo stellato, si aspetta che le luci verdi e viola danzino sopra i campi di lava, con consigli per fotografarle al meglio. Un'esperienza emozionante e romantica per coppie, famiglie e viaggiatori soli; si sta fermi al freddo, servono abiti molto caldi e l'avvistamento non è mai garantito.",
+         "description_ai_generated": true,
+         "duration_hours": 4,
+         "price_per_person": 70,
+         "subtotal": 140
+        }
+       },
+       {
+        "day": 2,
+        "date": "2027-02-17",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "75e9beac-cd8b-5380-8672-e5b3297393ea",
+         "name": "Circolo d'Oro: Þingvellir, Geysir e Gullfoss",
+         "category": "natura",
+         "description": "Escursione in giornata lungo il Circolo d'Oro, il percorso più classico d'Islanda. Si visita il Parco nazionale di Þingvellir, dove si cammina nella spaccatura tra le placche tettoniche nordamericana ed euroasiatica e dove si riuniva l'antico parlamento vichingo, poi l'area geotermica di Geysir con il geyser Strokkur che erutta ogni pochi minuti e infine la potente cascata di Gullfoss. Camminate brevi e facili, ideali per famiglie, coppie e senior.",
+         "description_ai_generated": true,
+         "duration_hours": 8,
+         "price_per_person": 75,
+         "subtotal": 150
+        }
+       },
+       {
+        "day": 3,
+        "date": "2027-02-18",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "0660bf9d-0814-56a1-ab08-a195c078e8e7",
+         "name": "Passeggiata al faro di Grótta",
+         "category": "natura",
+         "description": "Passeggiata gratuita fino al faro di Grótta, sulla punta della penisola di Seltjarnarnes, a pochi chilometri dal centro di Reykjavik. Il sentiero costeggia il mare tra prati, uccelli marini e vista sul monte Esja; vicino alla riva c'è una piccola vasca geotermica in cui immergere i piedi. È uno dei punti più amati per il tramonto e, nelle notti d'inverno, per osservare l'aurora boreale. Attività tranquilla e adatta a tutti.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 4,
+        "date": "2027-02-19",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "fa3a2014-c15b-58e2-976a-641c2b76010b",
+         "name": "Blue Lagoon",
+         "category": "relax",
+         "description": "Bagno nella Blue Lagoon, la celebre laguna geotermica tra i campi di lava della penisola di Reykjanes. Si galleggia in un'acqua azzurro latte molto calda, ricca di silice e minerali, con una maschera di fango bianco sul viso e una bevanda presa al bar direttamente in acqua, anche mentre fuori nevica. Esperienza di puro relax e benessere, ideale per coppie, senior e famiglie, comoda da abbinare all'arrivo o alla partenza dall'aeroporto di Keflavík.",
+         "description_ai_generated": true,
+         "duration_hours": 4,
+         "price_per_person": 75,
+         "subtotal": 150
+        }
+       },
+       {
+        "day": 5,
+        "date": "2027-02-20",
+        "travel_day": false,
+        "travel_note": "volo di ritorno alle 16:20",
+        "activity": {
+         "id": "d83dd985-360e-57ab-81de-e0496a82bea3",
+         "name": "Piscine geotermiche pubbliche di Reykjavik",
+         "category": "relax",
+         "description": "Pomeriggio in una piscina geotermica pubblica di Reykjavik, come Laugardalslaug o Vesturbæjarlaug, il vero rito sociale degli islandesi. Si nuota all'aperto in acqua calda anche sotto la neve e poi ci si sposta nelle vasche idromassaggio a temperature diverse, chiacchierando con la gente del posto, prima di una sauna o di un tuffo nella vasca fredda. Economico, rilassante e autentico, ideale per famiglie con bambini, viaggiatori soli e senior; prima di entrare la doccia senza costume è obbligatoria.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 8,
+         "subtotal": 16
+        }
+       }
+      ]
+     },
+     "created_at": "2026-10-15T15:51:13.464936+00:00",
+     "items": [
+      {
+       "position": 0,
+       "kind": "flight_out",
+       "ref_id": "a3b7c53e-5456-501b-830f-0cf5969a3c48",
+       "date": "2027-02-16",
+       "unit_price": 139,
+       "quantity": 2,
+       "subtotal": 278
+      },
+      {
+       "position": 1,
+       "kind": "flight_back",
+       "ref_id": "2230ea82-751d-5ed4-b653-d6bc738b0eee",
+       "date": "2027-02-20",
+       "unit_price": 151,
+       "quantity": 2,
+       "subtotal": 302
+      },
+      {
+       "position": 2,
+       "kind": "hotel_night",
+       "ref_id": "765c23fd-18fd-5eb6-b645-dbde5d9d6987",
+       "date": "2027-02-16",
+       "unit_price": 199,
+       "quantity": 1,
+       "subtotal": 199
+      },
+      {
+       "position": 3,
+       "kind": "hotel_night",
+       "ref_id": "765c23fd-18fd-5eb6-b645-dbde5d9d6987",
+       "date": "2027-02-17",
+       "unit_price": 205,
+       "quantity": 1,
+       "subtotal": 205
+      },
+      {
+       "position": 4,
+       "kind": "hotel_night",
+       "ref_id": "765c23fd-18fd-5eb6-b645-dbde5d9d6987",
+       "date": "2027-02-18",
+       "unit_price": 189,
+       "quantity": 1,
+       "subtotal": 189
+      },
+      {
+       "position": 5,
+       "kind": "hotel_night",
+       "ref_id": "765c23fd-18fd-5eb6-b645-dbde5d9d6987",
+       "date": "2027-02-19",
+       "unit_price": 240,
+       "quantity": 1,
+       "subtotal": 240
+      },
+      {
+       "position": 6,
+       "kind": "activity",
+       "ref_id": "e463c9b3-d34b-52bb-880f-d869a280a0a9",
+       "date": "2027-02-16",
+       "unit_price": 70,
+       "quantity": 2,
+       "subtotal": 140
+      },
+      {
+       "position": 7,
+       "kind": "activity",
+       "ref_id": "75e9beac-cd8b-5380-8672-e5b3297393ea",
+       "date": "2027-02-17",
+       "unit_price": 75,
+       "quantity": 2,
+       "subtotal": 150
+      },
+      {
+       "position": 8,
+       "kind": "activity",
+       "ref_id": "0660bf9d-0814-56a1-ab08-a195c078e8e7",
+       "date": "2027-02-18",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      },
+      {
+       "position": 9,
+       "kind": "activity",
+       "ref_id": "fa3a2014-c15b-58e2-976a-641c2b76010b",
+       "date": "2027-02-19",
+       "unit_price": 75,
+       "quantity": 2,
+       "subtotal": 150
+      },
+      {
+       "position": 10,
+       "kind": "activity",
+       "ref_id": "d83dd985-360e-57ab-81de-e0496a82bea3",
+       "date": "2027-02-20",
+       "unit_price": 8,
+       "quantity": 2,
+       "subtotal": 16
+      }
+     ]
+    },
+    {
+     "id": "b3ce1799-5584-4255-854c-00079f462f3a",
+     "variant": "premium",
+     "status": "proposed",
+     "country_code": "IS",
+     "start_date": "2027-02-16",
+     "end_date": "2027-02-20",
+     "travelers": 2,
+     "rooms": 1,
+     "total_price": 2377,
+     "budget_total": 2500,
+     "view": {
+      "variant": "premium",
+      "country_code": "IS",
+      "country_name": "Islanda",
+      "destination": "Reykjavik e sud-ovest",
+      "start_date": "2027-02-16",
+      "end_date": "2027-02-20",
+      "days": 5,
+      "nights": 4,
+      "travelers": 2,
+      "rooms": 1,
+      "total_price": 2377,
+      "budget_total": 2500,
+      "cost_breakdown": {
+       "flights": 580,
+       "hotel": 1341,
+       "activities": 456
+      },
+      "flights": {
+       "outbound": {
+        "id": "a3b7c53e-5456-501b-830f-0cf5969a3c48",
+        "flight_number": "AB150",
+        "carrier": "Airone Blu",
+        "origin": "NAP",
+        "destination": "KEF",
+        "date": "2027-02-16",
+        "departure_time": "09:50",
+        "arrival_time": "14:02",
+        "price_per_person": 139,
+        "subtotal": 278
+       },
+       "return": {
+        "id": "2230ea82-751d-5ed4-b653-d6bc738b0eee",
+        "flight_number": "AS153",
+        "carrier": "Ali del Sud",
+        "origin": "KEF",
+        "destination": "NAP",
+        "date": "2027-02-20",
+        "departure_time": "16:20",
+        "arrival_time": "20:32",
+        "price_per_person": 151,
+        "subtotal": 302
+       }
+      },
+      "hotel": {
+       "id": "57554bfb-0a3f-531a-95d1-a6cf67d3946e",
+       "name": "Norðurstjarna Grand Hótel",
+       "stars": 5,
+       "neighborhood": "Gamla höfnin",
+       "nights": 4,
+       "price_per_night_avg": 335,
+       "subtotal": 1341
+      },
+      "days_plan": [
+       {
+        "day": 1,
+        "date": "2027-02-16",
+        "travel_day": false,
+        "travel_note": "arrivo alle 14:02",
+        "activity": {
+         "id": "fa3a2014-c15b-58e2-976a-641c2b76010b",
+         "name": "Blue Lagoon",
+         "category": "relax",
+         "description": "Bagno nella Blue Lagoon, la celebre laguna geotermica tra i campi di lava della penisola di Reykjanes. Si galleggia in un'acqua azzurro latte molto calda, ricca di silice e minerali, con una maschera di fango bianco sul viso e una bevanda presa al bar direttamente in acqua, anche mentre fuori nevica. Esperienza di puro relax e benessere, ideale per coppie, senior e famiglie, comoda da abbinare all'arrivo o alla partenza dall'aeroporto di Keflavík.",
+         "description_ai_generated": true,
+         "duration_hours": 4,
+         "price_per_person": 75,
+         "subtotal": 150
+        }
+       },
+       {
+        "day": 2,
+        "date": "2027-02-17",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "75e9beac-cd8b-5380-8672-e5b3297393ea",
+         "name": "Circolo d'Oro: Þingvellir, Geysir e Gullfoss",
+         "category": "natura",
+         "description": "Escursione in giornata lungo il Circolo d'Oro, il percorso più classico d'Islanda. Si visita il Parco nazionale di Þingvellir, dove si cammina nella spaccatura tra le placche tettoniche nordamericana ed euroasiatica e dove si riuniva l'antico parlamento vichingo, poi l'area geotermica di Geysir con il geyser Strokkur che erutta ogni pochi minuti e infine la potente cascata di Gullfoss. Camminate brevi e facili, ideali per famiglie, coppie e senior.",
+         "description_ai_generated": true,
+         "duration_hours": 8,
+         "price_per_person": 75,
+         "subtotal": 150
+        }
+       },
+       {
+        "day": 3,
+        "date": "2027-02-18",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "0660bf9d-0814-56a1-ab08-a195c078e8e7",
+         "name": "Passeggiata al faro di Grótta",
+         "category": "natura",
+         "description": "Passeggiata gratuita fino al faro di Grótta, sulla punta della penisola di Seltjarnarnes, a pochi chilometri dal centro di Reykjavik. Il sentiero costeggia il mare tra prati, uccelli marini e vista sul monte Esja; vicino alla riva c'è una piccola vasca geotermica in cui immergere i piedi. È uno dei punti più amati per il tramonto e, nelle notti d'inverno, per osservare l'aurora boreale. Attività tranquilla e adatta a tutti.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 0,
+         "subtotal": 0
+        }
+       },
+       {
+        "day": 4,
+        "date": "2027-02-19",
+        "travel_day": false,
+        "travel_note": null,
+        "activity": {
+         "id": "d83dd985-360e-57ab-81de-e0496a82bea3",
+         "name": "Piscine geotermiche pubbliche di Reykjavik",
+         "category": "relax",
+         "description": "Pomeriggio in una piscina geotermica pubblica di Reykjavik, come Laugardalslaug o Vesturbæjarlaug, il vero rito sociale degli islandesi. Si nuota all'aperto in acqua calda anche sotto la neve e poi ci si sposta nelle vasche idromassaggio a temperature diverse, chiacchierando con la gente del posto, prima di una sauna o di un tuffo nella vasca fredda. Economico, rilassante e autentico, ideale per famiglie con bambini, viaggiatori soli e senior; prima di entrare la doccia senza costume è obbligatoria.",
+         "description_ai_generated": true,
+         "duration_hours": 2,
+         "price_per_person": 8,
+         "subtotal": 16
+        }
+       },
+       {
+        "day": 5,
+        "date": "2027-02-20",
+        "travel_day": false,
+        "travel_note": "volo di ritorno alle 16:20",
+        "activity": {
+         "id": "e463c9b3-d34b-52bb-880f-d869a280a0a9",
+         "name": "Caccia all'aurora boreale",
+         "category": "natura",
+         "description": "Caccia all'aurora boreale lontano dalle luci di Reykjavik, con guide che scelgono la destinazione in base alle previsioni meteo e all'attività solare. Al buio, sotto un cielo stellato, si aspetta che le luci verdi e viola danzino sopra i campi di lava, con consigli per fotografarle al meglio. Un'esperienza emozionante e romantica per coppie, famiglie e viaggiatori soli; si sta fermi al freddo, servono abiti molto caldi e l'avvistamento non è mai garantito.",
+         "description_ai_generated": true,
+         "duration_hours": 4,
+         "price_per_person": 70,
+         "subtotal": 140
+        }
+       }
+      ]
+     },
+     "created_at": "2026-10-15T15:51:13.464938+00:00",
+     "items": [
+      {
+       "position": 0,
+       "kind": "flight_out",
+       "ref_id": "a3b7c53e-5456-501b-830f-0cf5969a3c48",
+       "date": "2027-02-16",
+       "unit_price": 139,
+       "quantity": 2,
+       "subtotal": 278
+      },
+      {
+       "position": 1,
+       "kind": "flight_back",
+       "ref_id": "2230ea82-751d-5ed4-b653-d6bc738b0eee",
+       "date": "2027-02-20",
+       "unit_price": 151,
+       "quantity": 2,
+       "subtotal": 302
+      },
+      {
+       "position": 2,
+       "kind": "hotel_night",
+       "ref_id": "57554bfb-0a3f-531a-95d1-a6cf67d3946e",
+       "date": "2027-02-16",
+       "unit_price": 312,
+       "quantity": 1,
+       "subtotal": 312
+      },
+      {
+       "position": 3,
+       "kind": "hotel_night",
+       "ref_id": "57554bfb-0a3f-531a-95d1-a6cf67d3946e",
+       "date": "2027-02-17",
+       "unit_price": 338,
+       "quantity": 1,
+       "subtotal": 338
+      },
+      {
+       "position": 4,
+       "kind": "hotel_night",
+       "ref_id": "57554bfb-0a3f-531a-95d1-a6cf67d3946e",
+       "date": "2027-02-18",
+       "unit_price": 319,
+       "quantity": 1,
+       "subtotal": 319
+      },
+      {
+       "position": 5,
+       "kind": "hotel_night",
+       "ref_id": "57554bfb-0a3f-531a-95d1-a6cf67d3946e",
+       "date": "2027-02-19",
+       "unit_price": 372,
+       "quantity": 1,
+       "subtotal": 372
+      },
+      {
+       "position": 6,
+       "kind": "activity",
+       "ref_id": "fa3a2014-c15b-58e2-976a-641c2b76010b",
+       "date": "2027-02-16",
+       "unit_price": 75,
+       "quantity": 2,
+       "subtotal": 150
+      },
+      {
+       "position": 7,
+       "kind": "activity",
+       "ref_id": "75e9beac-cd8b-5380-8672-e5b3297393ea",
+       "date": "2027-02-17",
+       "unit_price": 75,
+       "quantity": 2,
+       "subtotal": 150
+      },
+      {
+       "position": 8,
+       "kind": "activity",
+       "ref_id": "0660bf9d-0814-56a1-ab08-a195c078e8e7",
+       "date": "2027-02-18",
+       "unit_price": 0,
+       "quantity": 2,
+       "subtotal": 0
+      },
+      {
+       "position": 9,
+       "kind": "activity",
+       "ref_id": "d83dd985-360e-57ab-81de-e0496a82bea3",
+       "date": "2027-02-19",
+       "unit_price": 8,
+       "quantity": 2,
+       "subtotal": 16
+      },
+      {
+       "position": 10,
+       "kind": "activity",
+       "ref_id": "e463c9b3-d34b-52bb-880f-d869a280a0a9",
+       "date": "2027-02-20",
+       "unit_price": 70,
+       "quantity": 2,
+       "subtotal": 140
       }
      ]
     }

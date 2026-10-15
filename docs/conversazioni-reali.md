@@ -1,6 +1,6 @@
 # Conversazioni con gli LLM reali: metodo e risultati
 
-Le chat precaricate nell'app non sono generate dal mock: sono cinque conversazioni fatte via API con gli LLM reali (Groq, `openai/gpt-oss-120b`), registrate e ricaricate dal seed. Questo documento spiega come sono state fatte e verificate, cosa ha retto e cosa no.
+Le chat precaricate nell'app non sono generate dal mock: sono sei conversazioni fatte via API con gli LLM reali (Groq `openai/gpt-oss-120b` e, quando Groq è al limite di token, Gemini `gemini-flash-lite-latest`), registrate e ricaricate dal seed. Questo documento spiega come sono state fatte e verificate, cosa ha retto e cosa no.
 
 ## Metodo
 
@@ -11,7 +11,7 @@ Le chat precaricate nell'app non sono generate dal mock: sono cinque conversazio
 
 Una prima tornata di conversazioni ha fatto emergere difetti che sono stati corretti prima di registrare queste (vedi [In cosa sono servite](#in-cosa-sono-servite)).
 
-## Le cinque conversazioni
+## Le sei conversazioni
 
 | Conversazione | Funzionalità esercitate |
 |---|---|
@@ -20,10 +20,11 @@ Una prima tornata di conversazioni ha fatto emergere difetti che sono stati corr
 | Giappone, voli notturni · «prenota tu», annullata e riprenotata | Giorni di viaggio, variante mancante spiegata, data esatta, scelta forzata dal codice, annullamento che riapre la chat, seconda prenotazione |
 | Cliente difficile · injection, richieste impossibili, budget troppo basso | Prompt injection, fuori tema, valori fuori catalogo, budget infattibile con costo minimo, una negazione che non deve selezionare |
 | Famiglia con bambini · Spagna a luglio, attività per famiglie | Pubblico «famiglie», sostituzione sbagliata e poi corretta, hotel migliore rifiutato per budget, variante in attesa di conferma |
+| Curioso del catalogo · destinazioni, voli, hotel, poi l'Islanda | Tool di sola lettura sul catalogo ([ADR-0026](adr/0026-tool-di-sola-lettura-sul-catalogo.md)): destinazioni, disponibilità reale dei voli in un mese, hotel e attività, poi le proposte e altre domande durante le proposte; fallback su Gemini |
 
 ## Cosa ha retto
 
-- **Tutto ciò che garantisce il codice.** In tutte e cinque le chat i revisori non hanno trovato nessun errore nei dati calcolati dal codice:
+- **Tutto ciò che garantisce il codice.** In tutte e sei le chat i revisori non hanno trovato nessun errore nei dati calcolati dal codice:
   - ogni totale è la somma delle voci ed è entro il budget;
   - le date cadono nel mese richiesto;
   - con «ovunque» i paesi sono distinti;
@@ -32,6 +33,7 @@ Una prima tornata di conversazioni ha fatto emergere difetti che sono stati corr
   - l'annullamento restituisce esattamente l'inventario (camere 31 → 25 → 31).
 - **Gli importi scritti dall'LLM.** Nessun prezzo sbagliato nel testo. Nella prima tornata il modello aveva scritto «1 966 €» al posto di 1963; da allora il controllo nel codice ([ADR-0025](adr/0025-verifiche-deterministiche-sul-testo-llm.md)) sostituirebbe la risposta.
 - **Le risposte ancorate al catalogo.** Alla domanda sulle Terme Segestane la risposta usa solo la descrizione del catalogo e dice «nel catalogo non è indicato» per costume e accappatoio. Nella prima tornata, a questa stessa domanda, aveva inventato saune e massaggi.
+- **I tool del catalogo.** Destinazioni, voli disponibili (137/136 € a persona da Napoli, 126 € da Roma, nei giorni giusti), prezzi delle attività e totali corrispondono al database, anche quando a rispondere è Gemini dopo il rate limit di Groq.
 - **I guardrail.** Injection e fuori tema sono rifiutati con testi fissi, i valori impossibili sono spiegati dal codice, «prenota tu» non prenota mai e «non voglio la premium» non seleziona niente.
 - **Il tool calling.**
   - «Al posto del cinema all'aperto» viene tradotto nel giorno giusto.
@@ -48,6 +50,8 @@ Tutti i problemi rimasti sono nel testo libero dell'LLM o nel punteggio delle at
 | Azioni dichiarate ma non fatte | «eliminiamo la variante Premium», ma la premium resta tra le proposte | Testo dell'LLM |
 | Pubblico di riferimento troppo debole | «Bagni termali» (per coppie e senior) proposti a una famiglia, con nove attività per famiglie disponibili | Peso del pubblico (±0,15) basso rispetto alla pertinenza semantica |
 | Scelte implicite non dette | «ottobre» diventa ottobre dell'anno dopo senza dirlo; aeroporto scelto mostrato come codice (MXP) | I dati passati alla risposta non contengono anno e nome dell'aeroporto |
+| Fatti dei tool distorti | «il primo giorno e il giorno 5 sono senza attività» (solo il giorno 5 dell'Economica lo è); «altri aeroporti» comprende quello già scelto | Testo dell'LLM; il giorno di viaggio ora arriva come frase completa riferita alla variante |
+| Lacune dei tool | Prezzi degli hotel minimi su tutto l'anno anziché del mese chiesto; aeroporti mostrati come codici | Corrette dopo la verifica: prezzi del mese del viaggio, nomi degli aeroporti nei dati |
 | Nome sbagliato o refusi | «Terme di Segestane», «term e» nelle note | Modello |
 | Risposte povere | Alternativa unica proposta con «quale preferisci?»; «che hotel è» risposto solo con nome e stelle | Prompt e dati (la vista non ha la descrizione dell'hotel) |
 

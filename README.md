@@ -34,7 +34,7 @@ Al primo avvio il backend applica le migrazioni, genera il catalogo sintetico, i
 
 ### Chat precaricate
 
-Gli utenti `demo` e `reviewer` trovano cinque conversazioni **registrate con gli LLM reali** (Groq, tag `GROQ`; i messaggi `SYSTEM` sono testi fissi scritti dal codice). Sono state fatte via API da un tester che si comportava come un utente, anche «difficile», e poi esportate in un fixture (`app/seed/fixtures/demo_conversations.json`). Il seed le ricarica così come sono, senza chiamare nessun LLM e senza chiavi: quello che si legge è ciò che hanno scritto davvero i modelli.
+Gli utenti `demo` e `reviewer` trovano sei conversazioni **registrate con gli LLM reali** (Groq e, quando Groq è al limite, Gemini, con i tag `GROQ` e `GEMINI`; i messaggi `SYSTEM` sono testi fissi scritti dal codice). Sono state fatte via API da un tester che si comportava come un utente, anche «difficile», e poi esportate in un fixture (`app/seed/fixtures/demo_conversations.json`). Il seed le ricarica così come sono, senza chiamare nessun LLM e senza chiavi: quello che si legge è ciò che hanno scritto davvero i modelli.
 
 | Conversazione | Cosa mostra |
 |---|---|
@@ -43,6 +43,7 @@ Gli utenti `demo` e `reviewer` trovano cinque conversazioni **registrate con gli
 | Giappone, voli notturni · «prenota tu», annullata e riprenotata | Giorni di viaggio per gli orari dei voli ([ADR-0023](docs/adr/0023-giorni-di-viaggio.md)), variante mancante spiegata, data esatta, «prenota tu» che porta solo alla selezione, annullamento che riapre la chat ([ADR-0024](docs/adr/0024-annullamento-riapre-la-conversazione.md)) e nuova prenotazione |
 | Cliente difficile · injection, richieste impossibili, budget troppo basso | Prompt injection e fuori tema rifiutati con testi fissi, valori fuori catalogo spiegati dal codice, budget infattibile con costo minimo stimato, «non voglio la premium» che non seleziona nulla |
 | Famiglia con bambini · Spagna a luglio, attività per famiglie | Pubblico di riferimento delle attività, una sostituzione sbagliata corretta dopo l'insistenza dell'utente, hotel migliore rifiutato perché fuori budget, variante in attesa di conferma |
+| Curioso del catalogo · destinazioni, voli, hotel, poi l'Islanda | Domande sul catalogo con i tool di sola lettura ([ADR-0026](docs/adr/0026-tool-di-sola-lettura-sul-catalogo.md)): destinazioni, voli disponibili in un mese, hotel e attività invernali, poi le proposte; risposte di Gemini quando Groq è al limite di token |
 
 Le trascrizioni contengono anche le risposte imperfette dei modelli: è voluto, e l'analisi è in [docs/conversazioni-reali.md](docs/conversazioni-reali.md).
 
@@ -137,6 +138,8 @@ Componenti principali del backend (`project/src/backend/app/`):
 | `domain/validator.py` | Validatore deterministico, indipendente dal planner |
 | `services/conversation.py` | Orchestratore: decide transizioni, destinazioni fattibili, cosa arriva all'utente |
 | `services/booking.py` | Prenotazione: transazione, decremento condizionale, idempotenza, snapshot prezzi |
+| `services/proposal_tools.py`, `services/catalog_tools.py` | Tool delle proposte (modifiche alle varianti) e tool di sola lettura sul catalogo, in tutte le fasi |
+| `llm/grounding.py` | Verifiche deterministiche sul testo dell'LLM: importi, etichette dei campi |
 | `llm/` | Astrazione per task, gateway con fallback e cooldown, Interprete, provider mock |
 | `rag/retriever.py` | Chroma con filtro obbligatorio su paese e mese, fallback a parole chiave |
 | `observability.py` | Trace e span su Langfuse, no-op se Langfuse non è raggiungibile |

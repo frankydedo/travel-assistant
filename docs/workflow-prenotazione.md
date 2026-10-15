@@ -12,7 +12,7 @@ Questo documento visualizza il percorso completo, dalla prima frase dell'utente 
 | **Orchestratore** | codice deterministico | State machine delle fasi: decide le transizioni, valida ed esegue i tool, chiama planner e validatore |
 | **Interprete LLM** | probabilistico | Comprende il linguaggio (estrae i requisiti) e spiega i risultati (domande, presentazione delle varianti). Può **proporre** tool call, non eseguirle |
 | **Gateway LLM** | codice deterministico | Catena di fallback Groq → Gemini → Mock, con cooldown; registra il provider di ogni risposta |
-| **Tool di fase** | codice deterministico | Operazioni disponibili all'Interprete nella fase corrente, con argomenti validati da schema |
+| **Tool di fase** | codice deterministico | Operazioni disponibili all'Interprete nella fase corrente, con argomenti validati da schema; i tool di sola lettura sul catalogo (destinazioni, aeroporti, hotel, attività, disponibilità) sono disponibili in tutte le fasi ([ADR-0026](adr/0026-tool-di-sola-lettura-sul-catalogo.md)) |
 | **RAG (Chroma)** | indice vettoriale | Ordina le attività per pertinenza alle preferenze, con filtro obbligatorio su paese e mese |
 | **Planner** | codice deterministico | Costruisce 3 varianti di itinerario (greedy) |
 | **Validatore** | codice deterministico | Verifica budget, disponibilità e ID di ogni itinerario: seconda linea di difesa dopo il planner |
@@ -116,7 +116,7 @@ stateDiagram-v2
     state "Prenotato<br/>BOOKED" as BOOKED
 
     [*] --> COLLECTING
-    COLLECTING --> COLLECTING : almeno un campo è null
+    COLLECTING --> COLLECTING : almeno un campo è null, oppure domanda sul catalogo (tool di sola lettura)
     COLLECTING --> PROPOSING : tutti i campi valorizzati e validi
     PROPOSING --> COLLECTING : l'utente cambia i requisiti o accetta un rilassamento
     PROPOSING --> PROPOSING : modifica di una variante via tool
@@ -124,12 +124,14 @@ stateDiagram-v2
     AWAITING --> PROPOSING : ci ripensa o la disponibilità è cambiata
     AWAITING --> COLLECTING : cambia un requisito e il nuovo valore non è valido o non è fattibile
     AWAITING --> BOOKED : clic su Conferma e prenota e transazione riuscita
+    BOOKED --> PROPOSING : prenotazione annullata, restano altre proposte (ADR-0024)
+    BOOKED --> COLLECTING : prenotazione annullata, nessuna proposta rimasta
     BOOKED --> [*]
 ```
 
 ## 3. Sequenza completa
 
-I tool della fase di proposta sono `select_variant`, `update_requirements`, `swap_activity`, `change_hotel`, `search_activities`, `get_itinerary_details` e `flag_out_of_scope` (`app/services/proposal_tools.py`); l'Interprete li riferisce per variante e giorno, mai per id.
+I tool della fase di proposta sono `select_variant`, `update_requirements`, `swap_activity`, `change_hotel`, `search_activities`, `get_itinerary_details` e `flag_out_of_scope` (`app/services/proposal_tools.py`); l'Interprete li riferisce per variante e giorno, mai per id. In tutte le fasi ci sono anche i tool di sola lettura sul catalogo: `list_destinations`, `list_departure_airports`, `get_hotels`, `search_activities` e `check_availability` (`app/services/catalog_tools.py`).
 
 ```mermaid
 sequenceDiagram
@@ -158,10 +160,23 @@ sequenceDiagram
         OR->>OR: valida JWT, rate limit, carica lo stato
         OR->>LLM: messaggio + stato + schema dei requisiti
         Note right of LLM: fallback Groq → Gemini → Mock
-        LLM-->>OR: aggiornamento parziale in JSON
+        LLM-->>OR: aggiornamento parziale in JSON (+ è una domanda sul catalogo?)
         OR->>OR: validazione Pydantic e merge nello stato
-        OR->>LLM: formula la domanda sui campi mancanti
-        LLM-->>OR: testo
+        alt domanda sul catalogo
+            loop al massimo 3 passi
+                OR->>LLM: domanda + tool di sola lettura
+                LLM-->>OR: proposta di tool call (es. check_availability)
+                OR->>T: esegue il tool
+                T->>DB: legge catalogo e disponibilità
+                DB-->>T: dati
+                T-->>OR: risultato
+            end
+            LLM-->>OR: risposta dai dati + domanda sui campi mancanti
+            OR->>OR: verifica degli importi (ADR-0025)
+        else solo requisiti
+            OR->>LLM: formula la domanda sui campi mancanti
+            LLM-->>OR: testo
+        end
         OR-->>FE: SSE token + done con provider
         FE-->>U: risposta con tag GROQ / GEMINI / MOCK
     end
