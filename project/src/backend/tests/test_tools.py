@@ -85,3 +85,23 @@ def test_swap_respects_the_requested_category(client):
         assert used_relax > 0 and "Non posso sostituire il giorno 2" in conv["messages"][-1]["content"]
     else:
         assert after["days_plan"][1]["activity"]["category"] == "relax"
+
+
+def test_exact_dates_are_detected():
+    from app.domain.requirements import mentions_exact_date
+
+    for text in ["voglio partire esattamente il 4 febbraio", "dal 3 al 10 marzo", "partenza il 10/03", "il 1° maggio"]:
+        assert mentions_exact_date(text), text
+    for text in ["5-7 giorni a febbraio", "1500 euro, 4 giorni a marzo", "siamo in 2 ad agosto", "7 giorni"]:
+        assert not mentions_exact_date(text), text
+
+
+def test_an_exact_date_is_explained_not_silently_dropped(client):
+    from app.services.conversation import EXACT_DATE_NOTICE
+
+    conv = plan_trip(client)
+    conv = say(client, conv, "ho cambiato idea, voglio partire esattamente il 4 febbraio")
+    last = conv["messages"][-1]
+    assert last["provider"] == "SYSTEM" and last["content"] == EXACT_DATE_NOTICE
+    assert not any("chiedi all'utente" in m["content"] for m in conv["messages"])  # LLM-facing text never leaks
+    assert active(conv)  # proposals still there

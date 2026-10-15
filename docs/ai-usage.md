@@ -109,6 +109,7 @@ Casi reali emersi durante l'implementazione. Nessuno è stato trovato rileggendo
 | Per la pagina Tracing l'AI ha usato gli endpoint storici di Langfuse (`/traces`, `/observations`), non disponibili in Langfuse v4 in modalità *events_only* | Risposte 404 dall'istanza self-hosted | Verifica sulla documentazione e passaggio alle API v2 (Metrics e Observations) |
 | Il link "Trace" accanto ai messaggi non compariva: il backend salvava l'id della trace, ma lo schema della risposta dell'API non esponeva il campo | Prova nella UI | Campo aggiunto allo schema e ai tipi del frontend |
 | Una sostituzione con espressione regolare nei README ha cancellato parte dell'introduzione del README del frontend | Controllo dei file modificati | Testo ripristinato |
+| Una data esatta («voglio partire il 4 febbraio») non era gestita: l'estrazione non trovava nulla da cambiare, il messaggio d'errore pensato per l'LLM («chiedi all'utente di specificarlo») finiva in chat, ripetuto due volte, dopo il fallback sul mock | Prova manuale nella UI, da reviewer | Data esatta riconosciuta dal codice e spiegata con un testo fisso (`SYSTEM`); gli errori dei tool hanno un testo separato per l'LLM e per l'utente |
 
 ## Rischi dell'uso dell'AI e mitigazioni
 

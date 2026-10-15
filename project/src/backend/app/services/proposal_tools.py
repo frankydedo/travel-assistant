@@ -21,7 +21,7 @@ from sqlalchemy import select
 from app.catalog import SqlInventory, load_catalogs
 from app.domain.modify import ModificationError, rehydrate, replace_activity, replace_hotel
 from app.domain.phases import Phase, change_phase
-from app.domain.requirements import CATEGORIES
+from app.domain.requirements import CATEGORIES, mentions_exact_date
 from app.domain.validator import draft_from_plan, validate
 from app.llm.base import ToolCall, ToolSpec
 from app.llm.mock import VARIANT_LABELS
@@ -141,11 +141,11 @@ class ProposalToolbox:
     def execute(self, call: ToolCall) -> ToolOutcome:
         spec = next((s for s in SPECS if s.name == call.name), None)
         if spec is None:
-            return self._error(f"Strumento sconosciuto: {call.name}.")
+            return self._error(f"Strumento sconosciuto: {call.name}.", user_text="")
         try:
             args = spec.parameters.model_validate(call.arguments)
         except ValidationError as exc:
-            return self._error(f"Argomenti non validi per {call.name}: {exc.errors()[0]['msg']}.")
+            return self._error(f"Argomenti non validi per {call.name}: {exc.errors()[0]['msg']}.", user_text="")
         with self.service.tracer.observation(f"tool.{call.name}", as_type="tool", input=args.model_dump()) as span:
             try:
                 outcome = getattr(self, f"_{call.name}")(args)
@@ -159,8 +159,9 @@ class ProposalToolbox:
         return outcome
 
     @staticmethod
-    def _error(message: str) -> ToolOutcome:
-        return ToolOutcome(content={"errore": message}, summary=message)
+    def _error(message: str, user_text: str | None = None) -> ToolOutcome:
+        """``message`` goes to the LLM; ``summary`` may reach the user, so it must read as a reply."""
+        return ToolOutcome(content={"errore": message}, summary=message if user_text is None else user_text)
 
     def _itinerary(self, variant: str) -> Itinerary:
         it = self.active().get(variant)
@@ -180,7 +181,14 @@ class ProposalToolbox:
             args.change, current, self.service._history(self.conv)
         )
         if extraction.value.requirements.is_empty():
-            return self._error("Non ho capito quale requisito cambiare: chiedi all'utente di specificarlo.")
+            if mentions_exact_date(args.change) or mentions_exact_date(self.service._last_user_text or ""):
+                # Nothing to change: the orchestrator explains that dates are month-only (fixed text).
+                return ToolOutcome(content={"ok": True}, summary="", terminal=True)
+            return self._error(
+                "Non ho capito quale requisito cambiare: chiedi all'utente di specificarlo.",
+                user_text="Non ho capito cosa vuoi cambiare: dimmi quale requisito modificare (budget, mese, "
+                "durata, partenza, numero di persone o interessi).",
+            )
         self.service._apply_update(self.conv, current, extraction.value.requirements)
         return ToolOutcome(content={"ok": True}, summary="", terminal=True)
 

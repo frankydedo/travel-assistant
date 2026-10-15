@@ -32,6 +32,7 @@ from app.domain.requirements import (
     DestinationType,
     RequirementsUpdate,
     TripRequirements,
+    mentions_exact_date,
     validate_against_catalog,
 )
 from app.domain.validator import draft_from_plan, validate
@@ -57,6 +58,11 @@ GREETING = (
 BOOKED_REPLY = (
     "Questo viaggio è già prenotato: lo trovi nella pagina Prenotazioni. Per organizzarne un altro apri "
     "una nuova conversazione."
+)
+EXACT_DATE_NOTICE = (
+    "Nota: posso fissare solo il **mese** del viaggio, non il giorno esatto. La data di partenza la scelgo io "
+    "tra quelle con voli e hotel disponibili nel mese, e la trovi indicata su ogni proposta. Se preferisci, "
+    "posso cercare in un altro mese o con una durata diversa."
 )
 UNAVAILABLE_REPLY = "Il servizio di assistenza è momentaneamente non disponibile. Riprova tra poco."
 # Written by code, never by the LLM (ADR-0016): a jailbreak cannot talk the refusal into an answer.
@@ -174,6 +180,8 @@ class ConversationService:
                     self._apply_update(conv, current, interpreted.value.requirements)
             else:
                 self._proposal_reply(conv, text)
+            if phase != Phase.BOOKED and mentions_exact_date(text) and not self._refused(conv):
+                self._add_message(conv, "assistant", EXACT_DATE_NOTICE, provider="SYSTEM")
         except AllProvidersFailed:
             log.exception("llm.all_providers_failed")
             self._add_message(conv, "assistant", UNAVAILABLE_REPLY, provider="SYSTEM")
@@ -274,7 +282,8 @@ class ConversationService:
                 outcome = toolbox.execute(call)
                 if outcome.terminal:
                     return  # select / update / refuse: their flow already wrote the reply
-                summaries.append(outcome.summary)
+                if outcome.summary and outcome.summary not in summaries:
+                    summaries.append(outcome.summary)
                 new_ids += outcome.itinerary_ids
                 followups.append(
                     {
@@ -593,6 +602,10 @@ class ConversationService:
         previous = sum(1 for m in conv.messages if m.role == "assistant" and m.content.startswith(OUT_OF_SCOPE_REPLIES))
         reply = OUT_OF_SCOPE_REPLIES[previous % len(OUT_OF_SCOPE_REPLIES)]
         self._add_message(conv, "assistant", f"{reply} {OUT_OF_SCOPE_NEXT_STEP[Phase(conv.phase)]}", provider="SYSTEM")
+
+    def _refused(self, conv: Conversation) -> bool:
+        last = next((m for m in reversed(conv.messages) if m.role == "assistant"), None)
+        return last is not None and last.content.startswith(OUT_OF_SCOPE_REPLIES)
 
     def _planning_request(
         self, req: TripRequirements, start_dates: list[date], codes: list[str], scored: bool = True

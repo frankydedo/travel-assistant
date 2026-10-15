@@ -5,6 +5,7 @@ all of them are set. Some fields accept flexible values (destination ``suggest``
 duration range, month-only dates).
 """
 
+import re
 from enum import StrEnum
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -42,6 +43,18 @@ MONTHS_IT = [
     "novembre",
     "dicembre",
 ]
+
+# Dates are month-only (ADR-0002): a specific day ("il 4 febbraio", "10/03") is detected by code so the
+# reply can say so instead of silently dropping it.
+_EXACT_DATE = re.compile(
+    r"\b(?:[1-9]|[12]\d|3[01])\s*[°º]?\s+(?:" + "|".join(MONTHS_IT) + r")\b|\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b",
+    re.IGNORECASE,
+)
+
+
+def mentions_exact_date(text: str) -> bool:
+    return _EXACT_DATE.search(text) is not None
+
 
 MIN_DAYS = 2
 
